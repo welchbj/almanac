@@ -20,4 +20,4 @@ class AbstractArgumentMatcher(ABC):
         self,
         shlexer: Shlexer
     ) -> bool:
-        """Return whether this instance matchers the ``Shlexer``'s state."""
+        """Return whether this instance matches the ``Shlexer``'s state."""
