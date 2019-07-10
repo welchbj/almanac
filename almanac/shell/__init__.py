@@ -4,6 +4,8 @@ from .arguments import (  # noqa
     StrShellArgument,
     VariableShellArgument)
 from .channels import (  # noqa
+    NullReceiveChannel,
+    NullSendChannel,
     StderrSendChannel,
     StdinReceiveChannel,
     StdoutSendChannel)
