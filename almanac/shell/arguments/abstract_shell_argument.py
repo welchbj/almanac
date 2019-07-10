@@ -24,7 +24,13 @@ class AbstractShellArgument(ABC):
         self,
         evaluation_context: EvaluationContext
     ) -> Any:
-        """Fully evaluate this argument in the given context."""
+        """Fully evaluate this argument in the given context.
+
+        Raises:
+            ValueError: If the :data:``raw_argument`` cannot be evaluated into
+                its true value.
+
+        """
 
     @property
     def raw_argument(
