@@ -65,6 +65,6 @@ class EvaluationContext:
     @property
     def stdout(
         self
-    ) -> SendyAny:
+    ) -> SendAny:
         """The channel representing this context's stdout stream."""
         return self._stdout
