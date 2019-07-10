@@ -6,8 +6,7 @@ from abc import (
     abstractproperty)
 from typing import (
     Iterator,
-    Tuple,
-    TYPE_CHECKING)
+    Tuple)
 
 from prompt_toolkit.completion import (
     Completion)
@@ -19,10 +18,6 @@ from ..shell import (
     EvaluationContext,
     Shlexer)
 
-if TYPE_CHECKING:
-    from ..app import (
-        Application)
-
 
 class AbstractCommand(ABC):
     """The base class from which all commands are derived.
@@ -33,13 +28,6 @@ class AbstractCommand(ABC):
     TODO
 
     """
-
-    def __init__(
-        self,
-        app: 'Application'
-    ) -> None:
-        self._app = app
-        # TODO
 
     @abstractmethod
     async def run(
