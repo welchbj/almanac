@@ -5,7 +5,7 @@ import sys
 from trio.abc import (
     ReceiveChannel)
 from trio import (
-    sleep)
+    EndOfChannel)
 
 
 class StdinReceiveChannel(ReceiveChannel[str]):
@@ -18,6 +18,8 @@ class StdinReceiveChannel(ReceiveChannel[str]):
     async def receive(
         self
     ) -> str:
-        for line in sys.stdin:
-            await sleep(0)
-            yield line
+        line = next(sys.stdin, None)
+        if line is None:
+            raise EndOfChannel
+
+        return line
