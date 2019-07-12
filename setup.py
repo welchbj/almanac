@@ -33,7 +33,7 @@ install_requires = [
 
 with codecs.open(version_file, encoding='utf-8') as f:
     exec(f.read())  # loads __version__ and __version_info__
-    version = __version__  # noqa
+    version = __version__  # type: ignore  # noqa
 
 with codecs.open(readme_file, encoding='utf-8') as f:
     long_description = f.read()
