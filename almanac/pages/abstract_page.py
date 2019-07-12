@@ -107,7 +107,7 @@ class AbstractPage(ABC):
         defined.
 
         If this is not overriden by the page implementation, then a barebones
-        :class:``EvaluationContext`` is returned.
+        :class:`EvaluationContext` is returned.
 
         """
         return EvaluationContext()

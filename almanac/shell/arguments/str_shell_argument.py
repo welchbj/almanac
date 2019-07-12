@@ -7,7 +7,7 @@ from ..evaluation_context import (
 
 
 class StrShellArgument(AbstractShellArgument):
-    """An :class:``AbstractShellArgument`` representing a raw string."""
+    """An :class:`AbstractShellArgument` representing a raw string."""
 
     def evaluate(
         self,

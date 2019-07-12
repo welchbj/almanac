@@ -139,7 +139,7 @@ class Application(Completer):
         document: Document,
         complete_event: CompleteEvent
     ) -> Iterator[Completion]:
-        """Yield completions from the :class:``CommandEngine``."""
+        """Yield completions from the :class:`CommandEngine`."""
         text = document.text.strip()
         # TODO: what do we pass to the CommandEngine?
 

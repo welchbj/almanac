@@ -8,7 +8,7 @@ from trio.abc import (
 
 
 class NullSendChannel(SendChannel[Any]):
-    """A :class:``trio.abc.SendChannel`` that doesn't send anything."""
+    """A :class:`trio.abc.SendChannel` that doesn't send anything."""
 
     async def send(
         self,

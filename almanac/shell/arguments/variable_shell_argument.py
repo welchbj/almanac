@@ -7,7 +7,7 @@ from ..evaluation_context import (
 
 
 class VariableShellArgument(AbstractShellArgument):
-    """An :class:``AbstractShellArgument`` representing a shell variable."""
+    """An :class:`AbstractShellArgument` representing a shell variable."""
 
     def evaluate(
         self,

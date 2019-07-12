@@ -10,7 +10,7 @@ from trio.abc import (
 
 
 class StderrSendChannel(SendChannel[Any]):
-    """A :class:``trio.abc.SendChannel`` for writing to stderr."""
+    """A :class:`trio.abc.SendChannel` for writing to stderr."""
 
     async def send(
         value: Any,

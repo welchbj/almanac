@@ -10,7 +10,7 @@ from trio import (
 
 
 class NullReceiveChannel(ReceiveChannel[Any]):
-    """A :class:``trio.ReceiveChannel`` that does not receive anything."""
+    """A :class:`trio.ReceiveChannel` that does not receive anything."""
 
     def receive(
         self
