@@ -200,14 +200,14 @@ class Shlexer:
     def _char(
         self
     ) -> str:
-        """Character pointed to by :data:``_pos``."""
+        """Character pointed to by :data:`_pos`."""
         return self._source_str[self._pos]
 
     @property
     def _curr_evaluation_context(
         self
     ) -> Optional[EvaluationContext]:
-        """Get the current :class:``EvaluationContext``."""
+        """Get the current :class:`EvaluationContext`."""
         if self._evaluation_context_chain:
             return self._evaluation_context_chain[-1]
 
@@ -216,7 +216,7 @@ class Shlexer:
     def _add_evaluation_context(
         self
     ) -> None:
-        """Add a new :class:``EvaluationContext`` to the chain."""
+        """Add a new :class:`EvaluationContext` to the chain."""
         self._evaluation_context_chain.append(
             self._base_evaluation_context.clone())
 

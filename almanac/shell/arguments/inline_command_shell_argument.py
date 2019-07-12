@@ -7,7 +7,7 @@ from ..evaluation_context import (
 
 
 class InlineCommandShellArgument(AbstractShellArgument):
-    """An :class:``AbstractShellArgument`` representing an inline command."""
+    """An :class:`AbstractShellArgument` representing an inline command."""
 
     def evaluate(
         self,

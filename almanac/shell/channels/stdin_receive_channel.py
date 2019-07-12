@@ -9,7 +9,7 @@ from trio import (
 
 
 class StdinReceiveChannel(ReceiveChannel[str]):
-    """A :class:``trio.abc.ReceiveChannel`` for reading from stdin.
+    """A :class:`trio.abc.ReceiveChannel` for reading from stdin.
 
     Results will be yielded line-by-line.
 

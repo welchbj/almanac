@@ -10,7 +10,7 @@ from trio.abc import (
 
 
 class StdoutSendChannel(SendChannel[Any]):
-    """A :class:``trio.abc.SendChannel`` for writing to stdout."""
+    """A :class:`trio.abc.SendChannel` for writing to stdout."""
 
     async def send(
         value: Any,

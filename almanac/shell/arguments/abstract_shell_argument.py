@@ -27,7 +27,7 @@ class AbstractShellArgument(ABC):
         """Fully evaluate this argument in the given context.
 
         Raises:
-            ValueError: If the :data:``raw_argument`` cannot be evaluated into
+            ValueError: If the :data:`raw_argument` cannot be evaluated into
                 its true value.
 
         """
