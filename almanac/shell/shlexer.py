@@ -4,7 +4,6 @@ from enum import (
     auto,
     Enum)
 from typing import (
-    Iterable,
     List,
     Optional,
     Tuple)
@@ -111,12 +110,12 @@ class Shlexer:
     CHAIN_COMMAND_LAST_PASSED_TOKEN: str = '||'
     CHAIN_COMMAND_LAST_ANY_TOKEN: str = '&'
 
-    LINE_DELIM_TOKENS: str = ('\n',)
-    WHITESPACE_TOKENS: str = (' ', '\t', '\r',)
+    LINE_DELIM_TOKENS: Tuple[str, ...] = ('\n',)
+    WHITESPACE_TOKENS: Tuple[str, ...] = (' ', '\t', '\r',)
 
-    ESCAPE_TOKENS: str = ('\\',)
+    ESCAPE_TOKENS: Tuple[str, ...] = ('\\',)
 
-    SYMBOL_TOKENS: Tuple[str] = tuple(sorted(
+    SYMBOL_TOKENS: Tuple[str, ...] = tuple(sorted((
         HERESTR_BEGIN_TOKEN,
         HEREDOC_BEGIN_TOKEN,
         OUTPUT_STREAM_REDIR_TOKEN,
@@ -130,7 +129,7 @@ class Shlexer:
         PIPE_TOKEN,
         CHAIN_COMMAND_LAST_FAILED_TOKEN,
         CHAIN_COMMAND_LAST_PASSED_TOKEN,
-        CHAIN_COMMAND_LAST_ANY_TOKEN,
+        CHAIN_COMMAND_LAST_ANY_TOKEN,),
         key=len))
 
     # TODO: idea for parsing stratey and handling nested stuff -- we need some
@@ -160,7 +159,7 @@ class Shlexer:
         self._state: Shtate = Shtate.ENTER_NEW_CONTEXT
         self._pos: int = 0
         if s:
-            self._parse(s)
+            self._parse()
 
     @property
     def state(
@@ -231,7 +230,7 @@ class Shlexer:
         self
     ) -> Optional[str]:
         """Find the next matching token, advancing the current position."""
-        token = self._peek_ahead_next_token()
+        token = self._peek_next_token()
         if token is None:
             return None
 
