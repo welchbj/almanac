@@ -154,7 +154,7 @@ class EvaluationContext:
         self
     ) -> None:
         """Call `__aenter__` on all of this context's channels."""
-        with open_nursery() as nursery:
+        async with open_nursery() as nursery:
             for channel in self._channels.values():
                 nursery.start_soon(channel.__aenter__)
 
@@ -162,6 +162,6 @@ class EvaluationContext:
         self
     ) -> None:
         """Call `__aclose__()` on all of this context's channel."""
-        with open_nursery() as nursery:
+        async with open_nursery() as nursery:
             for channel in self._channels.values():
                 nursery.start_soon(channel.__aexit__)
