@@ -1,8 +1,5 @@
 """Implementation of the ``Shlexer`` class."""
 
-from enum import (
-    auto,
-    Enum)
 from typing import (
     List,
     Optional)
@@ -11,76 +8,12 @@ from .evaluation_context import (
     EvaluationContext)
 from .shell_tokens import (
     ShellTokens)
+from .shlexer_warning import (
+    ShlexerWarning)
+from .shtate import (
+    Shtate)
 from ..commands import (
     CommandEngine)
-
-
-class ShlexerWarning:
-    """Encapsulation of a warning that occured during ``Shlexer`` parsing."""
-
-    def __init__(
-        self,
-        message: str,
-        source: str,
-        position: Optional[int],
-        is_fatal: bool = False
-    ) -> None:
-        self._message: str = message
-        self._source: str = source
-        self._position: Optional[int] = position
-        self._is_fatal: bool = is_fatal
-
-    @property
-    def message(
-        self
-    ) -> str:
-        """The user-friendly warning message."""
-        return self._message
-
-    @property
-    def source(
-        self
-    ) -> str:
-        """The source string that generate the warning."""
-        return self._source
-
-    @property
-    def position(
-        self
-    ) -> Optional[int]:
-        """The zero-based position (if there is one) tied to the warning."""
-        return self._position
-
-    @property
-    def is_fatal(
-        self
-    ) -> bool:
-        """Whether this warning will cause execution to fail."""
-        return self._is_fatal
-
-    # TODO: __str__ / __repr__
-
-
-class Shtate(Enum):
-    """``Shlexer`` + state = ``Shtate``."""
-    ENTER_NEW_CONTEXT = auto()
-    IN_COMMAND_BODY = auto()
-
-    EXPECTING_FILE_DESCRIPTOR = auto()
-    IN_FILE_DESCRIPTOR = auto()
-
-    EXPECTING_HEREDOC_BEGIN = auto()
-    IN_HEREDOC = auto()
-
-    IN_HERESTR = auto()
-
-    IN_QUOTE_ALLOW_EXPANSION_BLOCK = auto()
-    IN_QUOTE_DISALLOW_EXPANSION_BLOCK = auto()
-
-    ESCAPE_NEXT = auto()
-
-    PARSE_FAILED = auto()
-    PARSE_COMPLETE = auto()
 
 
 class Shlexer:
