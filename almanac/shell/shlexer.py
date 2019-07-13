@@ -2,7 +2,8 @@
 
 from typing import (
     List,
-    Optional)
+    Optional,
+    Tuple)
 
 from .evaluation_context import (
     EvaluationContext)
@@ -12,6 +13,8 @@ from .shlexer_warning import (
     ShlexerWarning)
 from .shtate import (
     Shtate)
+from .wrapped_command_run_coroutine import (
+    WrappedCommandRunCoroutine)
 from ..commands import (
     CommandEngine)
 
@@ -23,10 +26,6 @@ class Shlexer:
     parser, too.
 
     """
-    # TODO: idea for parsing stratey and handling nested stuff -- we need some
-    #       kind of evaluation stack that pushes function partials and does
-    #       not evaluated them until it is time for execution ... and the
-    #       top of this stack will be the first command that needs to be run
 
     def __init__(
         self,
@@ -44,6 +43,8 @@ class Shlexer:
         # TODO: other attributes
         # TODO: what should be public?
 
+        self._wrapped_run_coros: Tuple[WrappedCommandRunCoroutine, ...] = \
+            tuple()
         self._tokens: List[str] = []
         self._state: Shtate = Shtate.ENTER_NEW_CONTEXT
         self._pos: int = 0
@@ -83,6 +84,25 @@ class Shlexer:
     ) -> bool:
         """Whether the initial parsing is still ongoing."""
         return self._pos < len(self._source_str)
+
+    @property
+    def did_parse_succeed(
+        self
+    ) -> bool:
+        """Whether the parse successfully completed."""
+        return self._state == Shtate.PARSE_SUCCEEDED
+
+    @property
+    def wrapped_run_coros(
+        self
+    ) -> Tuple[WrappedCommandRunCoroutine, ...]:
+        """The :class:`WrappedCommandRunCoroutine`s from a completed parse.
+
+        This property will only be populated once parsing has completed and
+        this :class:`Shlexer` is in the :data:`Shtate.PARSE_COMPLETE` state.
+
+        """
+        return self._wrapped_run_coros
 
     @property
     def _char(
@@ -156,3 +176,6 @@ class Shlexer:
             else:
                 raise ValueError(
                     'Encountered unknown state in Shlexer._parse!')
+
+            # TODO: populate _wrapped_run_coros
+            # TODO: state cleanup

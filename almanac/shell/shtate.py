@@ -24,4 +24,4 @@ class Shtate(Enum):
     ESCAPE_NEXT = auto()
 
     PARSE_FAILED = auto()
-    PARSE_COMPLETE = auto()
+    PARSE_SUCCEEDED = auto()
