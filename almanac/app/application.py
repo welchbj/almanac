@@ -2,7 +2,8 @@
 
 from typing import (
     Iterator,
-    List)
+    List,
+    Optional)
 
 from prompt_toolkit import (
     PromptSession)
@@ -12,6 +13,10 @@ from prompt_toolkit.completion import (
     Completion)
 from prompt_toolkit.document import (
     Document)
+from trio import (
+    open_nursery)
+from trio._core._run import (
+    Nursery)
 
 from ..commands import (
     AbstractCommand,
@@ -19,8 +24,10 @@ from ..commands import (
 from ..pages import (
     AbstractPageProvider,
     PageNavigator,
-    PagePath,
     PagePathLike)
+from ..shell import (
+    EvaluationContext,
+    Shlexer)
 
 # TODO: rather than setting children during the parsing of pages, we will
 #       have to pass over the page index and create the relationships once
@@ -46,10 +53,8 @@ class Application(Completer):
     ) -> None:
         self._page_providers: List[AbstractPageProvider] = []
 
-        # TODO: should we store a trio nursey here, or do we need some kind
-        #       of wrapper around the nursey that lets us monitor tasks?
-
         # TODO: determine if any of below should be publicly exposed
+        self._nursey: Optional[Nursery] = None
         self._page_navigator = PageNavigator()
         self._session = PromptSession(message=self._prompt_callback)
         self._command_engine = CommandEngine()
@@ -59,7 +64,13 @@ class Application(Completer):
         line: str
     ) -> None:
         """Evaluate a line passed to the application by the user."""
-        # TODO
+        shlexer: Shlexer = self._get_shlexer(line)
+        if not shlexer.did_parse_succeed:
+            # TODO: report why we can't / won't run this
+            return
+
+        for command_run_coro in shlexer.wrapped_run_coros:
+            self._nursery.start_soon(command_run_coro)
 
     async def run(
         self
@@ -70,35 +81,28 @@ class Application(Completer):
             The exit code of the application's execution.
 
         """
-        while True:
-            try:
-                line = self._session.prompt(
-                    completer=self._command_engine,
-                    complete_while_typing=True,
-                    complete_in_thread=True).strip()
+        async with open_nursery() as nursery:
+            self._nursey = nursery
 
-                if not line:
+            while True:
+                try:
+                    line = self._session.prompt(
+                        completer=self._command_engine,
+                        complete_while_typing=True,
+                        complete_in_thread=True).strip()
+
+                    if not line:
+                        continue
+
+                    await self.eval_line(line)
+                except KeyboardInterrupt:
+                    # TODO: this needs to clean up running tasks
                     continue
-
-                # TODO: there might be a problem with having something other
-                #       than the Application be the Completer, since
-                #       get_completions is going to be continually called
-                #       and is going to rely on the current state of a few
-                #       different things (the Shlexer, the CommandEngine, etc.)
-
-                # TODO: we need completion logic from the Shlexer in here;
-                #       this is also where we need to pull the base
-                #       EvaluationContext from the current page
-
-                await self.eval_line(line)
-            except KeyboardInterrupt:
-                # TODO: this needs to clean up running tasks
-                continue
-            except EOFError:
-                break
-            finally:
-                # TODO: is anything needed here?
-                pass
+                except EOFError:
+                    break
+                finally:
+                    # TODO: is anything needed here?
+                    pass
 
         return 0
 
@@ -142,6 +146,17 @@ class Application(Completer):
         """Yield completions from the :class:`CommandEngine`."""
         text = document.text.strip()
         # TODO: what do we pass to the CommandEngine?
+
+    def _get_shlexer(
+        self,
+        s: str
+    ) -> Shlexer:
+        """Get a ``Shlexer`` instance based on the app's current state."""
+        evaluation_context = EvaluationContext(self)
+        self._page_navigator.current_page.mutate_base_evaluation_context(
+            evaluation_context)
+
+        return Shlexer(s, self._command_engine, evaluation_context)
 
     def _prompt_callback(
         self
