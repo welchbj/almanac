@@ -99,13 +99,11 @@ class Shlexer:
         self,
         s: str,
         command_engine: CommandEngine,
-        base_evaluation_context: Optional[EvaluationContext] = None
+        base_evaluation_context: EvaluationContext
     ) -> None:
         self._source_str: str = s
-        self._command_engine: CommandEngine = command_engine
-        self._base_evaluation_context: EvaluationContext = \
-            base_evaluation_context if base_evaluation_context is not None \
-            else EvaluationContext()
+        self._command_engine = command_engine
+        self._base_evaluation_context = base_evaluation_context
         self._evaluation_context_chain: List[EvaluationContext] = []
         self._warnings: List[ShlexerWarning] = []
         self._open_paren_pos_stack: List[int] = []
