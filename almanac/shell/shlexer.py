@@ -5,11 +5,12 @@ from enum import (
     Enum)
 from typing import (
     List,
-    Optional,
-    Tuple)
+    Optional)
 
 from .evaluation_context import (
     EvaluationContext)
+from .shell_tokens import (
+    ShellTokens)
 from ..commands import (
     CommandEngine)
 
@@ -89,49 +90,6 @@ class Shlexer:
     parser, too.
 
     """
-    HERESTR_BEGIN_TOKEN: str = '<<<'
-    HEREDOC_BEGIN_TOKEN: str = '<<'
-
-    OUTPUT_STREAM_REDIR_TOKEN: str = '>'
-    INPUT_STREAM_REDIR_TOKEN: str = '<'
-
-    FILE_DESCRIPTOR_BEGIN_TOKEN: str = '%'
-    VARIABLE_BEGIN_TOKEN: str = '$'
-
-    PAREN_OPEN_TOKEN: str = '('
-    PAREN_CLOSE_TOKEN: str = ')'
-
-    QUOTE_ALLOW_EXPANSION_BEGIN_TOKEN: str = '"'
-    QUOTE_NO_EXPANSION_BEGIN_TOKEN: str = "'"
-
-    PIPE_TOKEN: str = '|'
-
-    CHAIN_COMMAND_LAST_FAILED_TOKEN: str = '&&'
-    CHAIN_COMMAND_LAST_PASSED_TOKEN: str = '||'
-    CHAIN_COMMAND_LAST_ANY_TOKEN: str = '&'
-
-    LINE_DELIM_TOKENS: Tuple[str, ...] = ('\n',)
-    WHITESPACE_TOKENS: Tuple[str, ...] = (' ', '\t', '\r',)
-
-    ESCAPE_TOKENS: Tuple[str, ...] = ('\\',)
-
-    SYMBOL_TOKENS: Tuple[str, ...] = tuple(sorted((
-        HERESTR_BEGIN_TOKEN,
-        HEREDOC_BEGIN_TOKEN,
-        OUTPUT_STREAM_REDIR_TOKEN,
-        INPUT_STREAM_REDIR_TOKEN,
-        FILE_DESCRIPTOR_BEGIN_TOKEN,
-        VARIABLE_BEGIN_TOKEN,
-        PAREN_OPEN_TOKEN,
-        PAREN_CLOSE_TOKEN,
-        QUOTE_ALLOW_EXPANSION_BEGIN_TOKEN,
-        QUOTE_NO_EXPANSION_BEGIN_TOKEN,
-        PIPE_TOKEN,
-        CHAIN_COMMAND_LAST_FAILED_TOKEN,
-        CHAIN_COMMAND_LAST_PASSED_TOKEN,
-        CHAIN_COMMAND_LAST_ANY_TOKEN,),
-        key=len))
-
     # TODO: idea for parsing stratey and handling nested stuff -- we need some
     #       kind of evaluation stack that pushes function partials and does
     #       not evaluated them until it is time for execution ... and the
@@ -251,10 +209,10 @@ class Shlexer:
                 pass
             elif self.state == Shtate.ENTER_NEW_CONTEXT:
                 self._add_evaluation_context()
-                if next_token == self.PAREN_OPEN_TOKEN:
+                if next_token == ShellTokens.PAREN_OPEN_TOKEN:
                     self._open_paren_pos_stack.append(start_pos)
                     self._state = Shtate.ENTER_NEW_CONTEXT
-                elif next_token in self.SYMBOL_TOKENS:
+                elif next_token in ShellTokens.SYMBOL_TOKENS:
                     # TODO: how are we raising errors?
                     pass
                 else:
