@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+from copy import (
+    deepcopy)
 from typing import (
     Any,
     MutableMapping,
+    TYPE_CHECKING,
     Optional,
     Union)
 
@@ -19,6 +22,10 @@ from .channels import (
     StdinReceiveChannel,
     StdoutSendChannel)
 
+if TYPE_CHECKING:
+    from ..app import (
+        Application)
+
 
 Channel = Union[SendChannel[Any], ReceiveChannel[Any]]
 
@@ -32,11 +39,14 @@ class EvaluationContext:
 
     def __init__(
         self,
+        app: 'Application',
         variables: MutableMapping[str, Any] = None,
         stdin: Optional[ReceiveChannel[Any]] = None,
         stdout: Optional[SendChannel[Any]] = None,
         stderr: Optional[SendChannel[Any]] = None
     ) -> None:
+        self._app = app
+
         self._stdin: ReceiveChannel[Any] = (stdin if stdin is not None
                                             else StdinReceiveChannel())
         self._stdout: SendChannel[Any] = (stdout if stdout is not None
@@ -68,10 +78,18 @@ class EvaluationContext:
         self._stderr = orig_stderr.clone()
 
         return EvaluationContext(
-            variables=self._variables.copy(),
+            self.app,
+            variables=deepcopy(self._variables),
             stdin=orig_stdin.clone(),
             stdout=orig_stdout.clone(),
             stderr=orig_stderr.clone())
+
+    @property
+    def app(
+        self
+    ) -> 'Application':
+        """The application in which this context will be evaluated."""
+        return self._app
 
     @property
     def variables(
