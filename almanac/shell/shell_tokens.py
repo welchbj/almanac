@@ -48,4 +48,5 @@ class ShellTokens:
         CHAIN_COMMAND_LAST_FAILED_TOKEN,
         CHAIN_COMMAND_LAST_PASSED_TOKEN,
         CHAIN_COMMAND_LAST_ANY_TOKEN,),
-        key=len))
+        key=len,
+        reverse=True))
