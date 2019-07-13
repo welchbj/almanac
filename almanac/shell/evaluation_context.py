@@ -15,8 +15,9 @@ from trio import (
     open_nursery)
 
 from .channels import (
-    NullReceiveChannel,
-    NullSendChannel)
+    StderrSendChannel,
+    StdinReceiveChannel,
+    StdoutSendChannel)
 
 
 Channel = Union[SendChannel[Any], ReceiveChannel[Any]]
@@ -31,19 +32,21 @@ class EvaluationContext:
 
     def __init__(
         self,
+        variables: MutableMapping[str, Any] = None,
         stdin: Optional[ReceiveChannel[Any]] = None,
         stdout: Optional[SendChannel[Any]] = None,
         stderr: Optional[SendChannel[Any]] = None
     ) -> None:
         self._stdin: ReceiveChannel[Any] = (stdin if stdin is not None
-                                            else NullReceiveChannel())
+                                            else StdinReceiveChannel())
         self._stdout: SendChannel[Any] = (stdout if stdout is not None
-                                          else NullSendChannel())
+                                          else StdoutSendChannel())
         self._stderr: SendChannel[Any] = (stderr if stderr is not None
-                                          else NullSendChannel())
+                                          else StderrSendChannel())
 
-        self._vars: MutableMapping[str, Any] = {}
-        self._descriptors: MutableMapping[str, Channel] = {
+        self._variables: MutableMapping[str, Any] = (
+            variables if variables is not None else {})
+        self._channels: MutableMapping[str, Channel] = {
             '0': self._stdin,
             'stdin': self._stdin,
             '1': self._stdout,
@@ -56,21 +59,33 @@ class EvaluationContext:
         self
     ) -> EvaluationContext:
         """Clone a deep copy of this :class:`EvaluationContext`."""
-        # TODO: how do we handle cloning of streams?
+        orig_stdin = self._stdin
+        orig_stdout = self._stdout
+        orig_stderr = self._stderr
+
+        self._stdin = orig_stdin.clone()
+        self._stdout = orig_stdout.clone()
+        self._stderr = orig_stderr.clone()
+
+        return EvaluationContext(
+            variables=self._variables.copy(),
+            stdin=orig_stdin.clone(),
+            stdout=orig_stdout.clone(),
+            stderr=orig_stderr.clone())
 
     @property
-    def vars(
+    def variables(
         self
     ) -> MutableMapping[str, Channel]:
         """A mapping of variable names to values."""
-        return self._vars
+        return self._variables
 
     @property
-    def descriptors(
+    def channels(
         self
     ) -> MutableMapping[str, Any]:
-        """A mapping of descriptor names to channel instances."""
-        return self._descriptors
+        """A mapping of channel names to channel instances."""
+        return self._channels
 
     @property
     def stdin(
@@ -96,15 +111,15 @@ class EvaluationContext:
     async def __aenter__(
         self
     ) -> None:
-        """Call `__aenter__` on all of this context's descriptors."""
+        """Call `__aenter__` on all of this context's channels."""
         with open_nursery() as nursery:
-            for descriptor in self._descriptors.values():
-                nursery.start_soon(descriptor.__aenter__)
+            for channel in self._channels.values():
+                nursery.start_soon(channel.__aenter__)
 
     async def __aexit__(
         self
     ) -> None:
-        """Call `__aclose__()` on all of this context's descriptors."""
+        """Call `__aclose__()` on all of this context's channel."""
         with open_nursery() as nursery:
-            for descriptor in self._descriptors.values():
-                nursery.start_soon(descriptor.__aexit__)
+            for channel in self._channels.values():
+                nursery.start_soon(channel.__aexit__)
