@@ -112,6 +112,14 @@ class EvaluationContext:
         """The channel representing this context's stdin stream."""
         return self._stdin
 
+    @stdin.setter
+    def stdin(
+        self,
+        new_stdin: ReceiveChannel[Any]
+    ) -> None:
+        """Set the stdin channel of this context."""
+        self._stdin = new_stdin
+
     @property
     def stderr(
         self
@@ -119,11 +127,27 @@ class EvaluationContext:
         """The channel representing this context's stderr stream."""
         return self._stderr
 
+    @stderr.setter
+    def stderr(
+        self,
+        new_stderr: SendChannel[Any]
+    ) -> None:
+        """Set the stderr chanel of this context."""
+        self._stderr = new_stderr
+
     @property
     def stdout(
         self
     ) -> SendChannel[Any]:
         """The channel representing this context's stdout stream."""
+        return self._stdout
+
+    @stdout.setter
+    def stdout(
+        self,
+        new_stdout: SendChannel[Any]
+    ) -> None:
+        """Set the stdout channel of this context."""
         return self._stdout
 
     async def __aenter__(
