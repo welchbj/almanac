@@ -104,6 +104,7 @@ class Application(Completer):
                     # TODO: is anything needed here?
                     pass
 
+        self._nursey = None
         return 0
 
     def register_command(
@@ -147,11 +148,16 @@ class Application(Completer):
         text = document.text.strip()
         # TODO: what do we pass to the CommandEngine?
 
-    def _get_shlexer(
+    def get_shlexer(
         self,
         s: str
     ) -> Shlexer:
-        """Get a ``Shlexer`` instance based on the app's current state."""
+        """Get a :class:`Shlexer` from the app's current state.
+
+        Args:
+            s: The command to parse.
+
+        """
         evaluation_context = EvaluationContext(self)
         self._page_navigator.current_page.mutate_base_evaluation_context(
             evaluation_context)
