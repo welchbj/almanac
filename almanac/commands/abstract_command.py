@@ -4,6 +4,8 @@ from abc import (
     ABC,
     abstractmethod,
     abstractproperty)
+from itertools import (
+    chain)
 from typing import (
     Iterator,
     Tuple)
@@ -78,5 +80,12 @@ class AbstractCommand(ABC):
         self
     ) -> str:
         """The in-depth explanation (the "man page") for this command."""
+
+    @property
+    def identifiers(
+        self
+    ) -> Tuple[str, ...]:
+        """A tuple contain the `name` and all `aliases` of this command."""
+        return tuple(chain((self.name,), self.aliases))
 
     # TODO: __str__ / __repr__
