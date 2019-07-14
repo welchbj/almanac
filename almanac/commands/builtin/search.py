@@ -37,13 +37,13 @@ class SearchCommand(AbstractCommand):
     def name(
         self
     ) -> str:
-        return 'back'
+        return 'search'
 
     @property
     def aliases(
         self
     ) -> Tuple[str, ...]:
-        return ('b',)
+        return ('s',)
 
     @property
     def brief_description(
