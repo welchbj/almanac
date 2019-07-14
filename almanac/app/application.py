@@ -144,9 +144,16 @@ class Application(Completer):
         document: Document,
         complete_event: CompleteEvent
     ) -> Iterator[Completion]:
-        """Yield completions from the :class:`CommandEngine`."""
+        """Yield completions from the :class:`Shlexer`.
+
+        The :class:`Shlexer` will only yield string completion suggestions,
+        so this method wraps those suggestions in the ``Completion``
+        instances expected by Prompt Toolkit.
+
+        """
         text = document.text.strip()
-        # TODO: what do we pass to the CommandEngine?
+        shlexer = self.get_shlexer(text)
+        yield from shlexer.get_completions()
 
     def get_shlexer(
         self,
@@ -162,7 +169,7 @@ class Application(Completer):
         self._page_navigator.current_page.mutate_base_evaluation_context(
             evaluation_context)
 
-        return Shlexer(s, self._command_engine, evaluation_context)
+        return Shlexer(s, self, self._command_engine, evaluation_context)
 
     def _prompt_callback(
         self
