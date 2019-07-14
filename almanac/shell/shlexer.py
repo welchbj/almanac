@@ -3,7 +3,8 @@
 from typing import (
     List,
     Optional,
-    Tuple)
+    Tuple,
+    TYPE_CHECKING)
 
 from .evaluation_context import (
     EvaluationContext)
@@ -15,8 +16,10 @@ from .shtate import (
     Shtate)
 from .wrapped_command_run_coroutine import (
     WrappedCommandRunCoroutine)
-from ..commands import (
-    CommandEngine)
+
+if TYPE_CHECKING:
+    from ..commands import (
+        CommandEngine)
 
 
 class Shlexer:
@@ -30,7 +33,7 @@ class Shlexer:
     def __init__(
         self,
         s: str,
-        command_engine: CommandEngine,
+        command_engine: 'CommandEngine',
         base_evaluation_context: EvaluationContext
     ) -> None:
         self._source_str: str = s
@@ -68,7 +71,7 @@ class Shlexer:
     @property
     def command_engine(
         self
-    ) -> CommandEngine:
+    ) -> 'CommandEngine':
         """The engine used to lookup commands, as parsed."""
 
     @property
