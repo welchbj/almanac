@@ -1,10 +1,14 @@
 """Implementation of the ``Shlexer`` class."""
 
 from typing import (
+    Iterator,
     List,
     Optional,
     Tuple,
     TYPE_CHECKING)
+
+from prompt_toolkit.completion import (
+    Completion)
 
 from .evaluation_context import (
     EvaluationContext)
@@ -18,6 +22,8 @@ from .wrapped_command_run_coroutine import (
     WrappedCommandRunCoroutine)
 
 if TYPE_CHECKING:
+    from ..app import (
+        Application)
     from ..commands import (
         CommandEngine)
 
@@ -33,10 +39,12 @@ class Shlexer:
     def __init__(
         self,
         s: str,
+        app: 'Application',
         command_engine: 'CommandEngine',
         base_evaluation_context: EvaluationContext
     ) -> None:
         self._source_str: str = s
+        self._app = app
         self._command_engine = command_engine
         self._base_evaluation_context = base_evaluation_context
         self._evaluation_context_chain: List[EvaluationContext] = []
@@ -67,6 +75,13 @@ class Shlexer:
     ) -> str:
         """The original string that was parsed."""
         return self._source_str
+
+    @property
+    def app(
+        self
+    ) -> 'Application':
+        """The :class:`Application` that spawned this ``Shlexer``."""
+        return self._app
 
     @property
     def command_engine(
@@ -106,6 +121,13 @@ class Shlexer:
 
         """
         return self._wrapped_run_coros
+
+    def get_completions(
+        self
+    ) -> Iterator[Completion]:
+        """Yield completions based on the current state."""
+        # TODO
+        raise NotImplementedError
 
     @property
     def _char(
