@@ -3,8 +3,11 @@ from .abstract_command import (  # noqa
 from .builtin import (  # noqa
     BackCommand,
     CdCommand,
+    EchoCommand,
+    EncodeCommand,
     ForwardCommand,
     LsCommand,
-    PwdCommand)
+    PwdCommand,
+    SearchCommand)
 from .command_engine import (  # noqa
     CommandEngine)

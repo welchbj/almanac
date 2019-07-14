@@ -11,8 +11,6 @@ from typing import (
 from prompt_toolkit.completion import (
     Completion)
 
-from .arguments import (
-    AbstractArgumentMatcher)
 from ..shell import (
     AbstractShellArgument,
     EvaluationContext,
@@ -28,6 +26,13 @@ class AbstractCommand(ABC):
     TODO
 
     """
+
+    @abstractmethod
+    def get_completions(
+        self,
+        shlexer: Shlexer
+    ) -> Iterator[Completion]:
+        """Get the command's completions for the specified ``Shlexer``."""
 
     @abstractmethod
     async def run(
@@ -46,20 +51,32 @@ class AbstractCommand(ABC):
         """
 
     @abstractproperty
-    def argument_matchers(
+    def name(
         self
-    ) -> Tuple[AbstractArgumentMatcher, ...]:
-        """Matchers for any arguments supported by this command.
+    ) -> str:
+        """The name of this command.
 
-        TODO: description of what this actually does
+        This will be the main string used to invoke this command from the
+        command-line.
 
         """
 
-    def get_completions(
-        self,
-        shlexer: Shlexer
-    ) -> Iterator[Completion]:
-        """Get the command's completions for the specified ``Shlexer``."""
-        # TODO: think about how this fits in with the big picture
-        # TODO: can this just be derived from however we end up describing
-        #       the arguments for a given command?
+    @abstractproperty
+    def aliases(
+        self
+    ) -> Tuple[str, ...]:
+        """Aliases for this command, which can be used to invoke it."""
+
+    @abstractproperty
+    def brief_description(
+        self
+    ) -> str:
+        """A short, one-sentence description of what this command does."""
+
+    @abstractproperty
+    def detailed_usage(
+        self
+    ) -> str:
+        """The in-depth explanation (the "man page") for this command."""
+
+    # TODO: __str__ / __repr__
