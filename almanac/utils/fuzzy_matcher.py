@@ -59,7 +59,7 @@ class FuzzyMatcher:
     def fuzz(
         reference: str,
         comparison: str
-    ) -> float:
+    ) -> FuzzResult:
         """Return the fuzz ratio of two strings. Higher means more similar."""
         ratio = SequenceMatcher(None, reference, comparison).ratio()
         return FuzzResult(comparison, ratio)
