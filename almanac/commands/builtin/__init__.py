@@ -14,3 +14,13 @@ from .pwd import (  # noqa
     PwdCommand)
 from .search import (  # noqa
     SearchCommand)
+
+BUILTIN_COMMANDS = (
+    BackCommand(),
+    CdCommand(),
+    EchoCommand(),
+    EncodeCommand(),
+    ForwardCommand(),
+    LsCommand(),
+    PwdCommand(),
+    SearchCommand(),)

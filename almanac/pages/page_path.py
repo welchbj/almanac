@@ -24,16 +24,36 @@ class PagePath:
 
     def __init__(
         self,
-        path: str
+        path: PagePathLike
     ) -> None:
-        self._path: str = path
+        # TODO: ensure that this path is absolute and only contains valid
+        #       path characters
+        self._path: str = self.__class__.un_trailing_slashify(str(path))
+        self._segments: Tuple[str, ...] = self._path.split('/')
+
+    @staticmethod
+    def is_absolute_path(
+        path: PagePathLike
+    ) -> bool:
+        """Whether the specified path is absolute or not (i.e., relative)."""
+        return str(path).startswith('/')
+
+    @staticmethod
+    def contains_only_valid_chars(
+        path: str
+    ) -> bool:
+        # TODO
+        raise NotImplementedError
 
     @staticmethod
     def un_trailing_slashify(
         path: PagePathLike
-    ) -> PagePath:
-        # TODO
-        pass
+    ) -> str:
+        path_str = str(path)
+        if path_str == '/':
+            return '/'
+
+        return path_str.rstrip('/')
 
     @property
     def path(
@@ -51,18 +71,15 @@ class PagePath:
         TODO: example
 
         """
-        # TODO
+        return self._segments
 
     def explode(
         self,
-        path: PagePathLike
+        path: str
     ) -> PagePath:
-        """Expand the specified path, using this instance as the start.
-
-        TODO: explain explosion logic
-
-        """
-        pass
+        """Expand the specified path, using this instance as the start."""
+        # TODO: I think this actually fits better in PageNavigator
+        raise NotImplementedError
 
     def __contains__(
         self,
@@ -85,6 +102,16 @@ class PagePath:
         self
     ) -> int:
         return hash(self._path)
+
+    def __str__(
+        self
+    ) -> str:
+        return self._path
+
+    def __repr__(
+        self
+    ) -> str:
+        return f'<{self.__class__.__qualname__} [{str(self)}]>'
 
 
 PagePathLike = Union[str, PagePath]

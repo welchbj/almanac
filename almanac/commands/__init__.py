@@ -8,6 +8,7 @@ from .builtin import (  # noqa
     ForwardCommand,
     LsCommand,
     PwdCommand,
-    SearchCommand)
+    SearchCommand,
+    BUILTIN_COMMANDS)
 from .command_engine import (  # noqa
     CommandEngine)
