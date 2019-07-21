@@ -1,5 +1,7 @@
 """Implementation of the ``AbstractCommand`` class."""
 
+from __future__ import annotations
+
 from abc import (
     ABC,
     abstractmethod,
@@ -87,5 +89,11 @@ class AbstractCommand(ABC):
     ) -> Tuple[str, ...]:
         """A tuple contain the `name` and all `aliases` of this command."""
         return tuple(chain((self.name,), self.aliases))
+
+    def __eq__(
+        self,
+        other: AbstractCommand
+    ) -> bool:
+        return self.name == other.name
 
     # TODO: __str__ / __repr__

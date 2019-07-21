@@ -12,7 +12,8 @@ from typing import (
     Tuple)
 
 from .page_path import (
-    PagePath)
+    PagePath,
+    PagePathLike)
 from ..shell import (
     EvaluationContext)
 
@@ -29,7 +30,7 @@ class AbstractPage(ABC):
 
     def __init__(
         self,
-        path: str,
+        path: PagePathLike,
     ) -> None:
         self._path = PagePath(path)
         self._parent: Optional[AbstractPage] = None
@@ -88,6 +89,13 @@ class AbstractPage(ABC):
     ) -> Optional[AbstractPage]:
         """The parent page of this page."""
         return self._parent
+
+    @parent.setter
+    def parent(
+        self,
+        new_parent: AbstractPage
+    ) -> None:
+        self._parent = new_parent
 
     @property
     def children(

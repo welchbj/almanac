@@ -8,6 +8,8 @@ from enum import (
 class Shtate(Enum):
     """``Shlexer`` + state = ``Shtate``."""
     ENTER_NEW_CONTEXT = auto()
+
+    IN_COMMAND_NAME = auto()
     IN_COMMAND_BODY = auto()
 
     EXPECTING_FILE_DESCRIPTOR = auto()

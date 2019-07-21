@@ -52,19 +52,24 @@ class Application(Completer):
         self
     ) -> None:
         self._page_providers: List[AbstractPageProvider] = []
-
-        # TODO: determine if any of below should be publicly exposed
+        self._command_engine = CommandEngine()
         self._nursey: Optional[Nursery] = None
         self._page_navigator = PageNavigator()
         self._session = PromptSession(message=self._prompt_callback)
-        self._command_engine = CommandEngine()
+
+    @property
+    def pages(
+        self
+    ) -> PageNavigator:
+        """The :class:`PageNavigator` powering this app's navigation."""
+        return self._page_navigator
 
     async def eval_line(
         self,
         line: str
     ) -> None:
         """Evaluate a line passed to the application by the user."""
-        shlexer: Shlexer = self._get_shlexer(line)
+        shlexer: Shlexer = self.get_shlexer(line)
         if not shlexer.did_parse_succeed:
             # TODO: report why we can't / won't run this
             return
@@ -144,13 +149,7 @@ class Application(Completer):
         document: Document,
         complete_event: CompleteEvent
     ) -> Iterator[Completion]:
-        """Yield completions from the :class:`Shlexer`.
-
-        The :class:`Shlexer` will only yield string completion suggestions,
-        so this method wraps those suggestions in the ``Completion``
-        instances expected by Prompt Toolkit.
-
-        """
+        """Yield completions from a :class:`Shlexer`."""
         text = document.text.strip()
         shlexer = self.get_shlexer(text)
         yield from shlexer.get_completions()
