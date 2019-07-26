@@ -1,4 +1,4 @@
 from .application import (  # noqa
     Application)
-from .utils import (  # noqa
+from .app_utils import (  # noqa
     get_default_app)
