@@ -92,8 +92,11 @@ class AbstractCommand(ABC):
 
     def __eq__(
         self,
-        other: AbstractCommand
+        other: object
     ) -> bool:
+        if not isinstance(other, AbstractCommand):
+            return NotImplemented
+
         return self.name == other.name
 
     # TODO: __str__ / __repr__

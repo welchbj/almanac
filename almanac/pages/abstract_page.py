@@ -14,6 +14,8 @@ from typing import (
 from .page_path import (
     PagePath,
     PagePathLike)
+from ..commands import (
+    AbstractCommand)
 from ..shell import (
     EvaluationContext)
 
@@ -39,7 +41,7 @@ class AbstractPage(ABC):
     @abstractproperty
     def allowed_commands(
         self
-    ) -> Tuple[str, ...]:
+    ) -> Tuple[AbstractCommand, ...]:
         """The commands that can be executed on this page."""
 
     @abstractproperty
