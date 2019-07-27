@@ -96,7 +96,11 @@ class PagePath:
     ) -> str:
         """Collapse consecutive slashes into single slashes.
 
-        TODO: example
+        .. code-block:: python
+
+            >>> from almanac import PagePath
+            >>> PagePath.collapse_slashes('/my///awesome////path')
+            '/my/awesome/path'
 
         """
         collapsed_path: str = ''
@@ -135,7 +139,13 @@ class PagePath:
     ) -> str:
         """Remove the trailing slash from a path.
 
-        TODO: example
+        .. code-block:: python
+
+            >>> from almanac import PagePath
+            >>> PagePath.un_trailing_slashify('/')
+            '/'
+            >>> PagePath.un_trailing_slashify('/a/b/c/')
+            '/a/b/c'
 
         """
         path_str = str(path)
@@ -148,11 +158,7 @@ class PagePath:
     def path(
         self
     ) -> str:
-        """The string path wrapped in this instance.
-
-        TODO: example
-
-        """
+        """The string path wrapped in this instance."""
         return self._path
 
     @property
@@ -161,7 +167,13 @@ class PagePath:
     ) -> Tuple[str, ...]:
         """The path segments of this class.
 
-        TODO: example
+        .. code-block:: python
+
+            >>> from almanac import PagePath
+            >>> PagePath('/a/b/c').segments
+            ('a', 'b', 'c')
+            >>> PagePath('/').segments
+            ()
 
         """
         return self._segments
@@ -172,7 +184,15 @@ class PagePath:
     ) -> Tuple[str, ...]:
         """All parent directory paths of this path.
 
-        TODO: example
+        .. code-block:: python
+
+            >>> from almanac import PagePath
+            >>> print('\\n'.join(PagePath('/a/b/c/d/e').parent_dirs))
+            /
+            /a
+            /a/b
+            /a/b/c
+            /a/b/c/d
 
         """
         return self._parent_dirs
