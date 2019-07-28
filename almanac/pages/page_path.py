@@ -29,7 +29,7 @@ class _CollapseSlashState(Enum):
 
 
 class PagePath:
-    """An encapsulation of a path pointing to a page."""
+    """An encapsulation of a file-system path."""
 
     def __init__(
         self,
