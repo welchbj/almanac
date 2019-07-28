@@ -64,7 +64,8 @@ def test() -> None:
 
         # TODO: almanac.shell
 
-        almanac.utils.fuzzy_matcher
+        almanac.utils.fuzzy_matcher,
+        almanac.utils.iteration
     ]
 
     doctest_files = [
