@@ -7,8 +7,8 @@ from abc import (
     abstractmethod,
     abstractproperty)
 from typing import (
-    List,
     Optional,
+    Set,
     Tuple)
 
 from .page_path import (
@@ -36,7 +36,7 @@ class AbstractPage(ABC):
     ) -> None:
         self._path = PagePath(path)
         self._parent: Optional[AbstractPage] = None
-        self._children: List[AbstractPage] = []
+        self._children: Set[AbstractPage] = set()
 
     @abstractproperty
     def allowed_commands(
@@ -102,7 +102,7 @@ class AbstractPage(ABC):
     @property
     def children(
         self
-    ) -> List[AbstractPage]:
+    ) -> Set[AbstractPage]:
         """The immediate children of this page."""
         return self._children
 
@@ -121,6 +121,20 @@ class AbstractPage(ABC):
         on the base :class:`EvaluationContext` will occur.
 
         """
+
+    def __hash__(
+        self
+    ) -> int:
+        return hash(self._path)
+
+    def __eq__(
+        self,
+        other: object
+    ) -> bool:
+        if not isinstance(other, AbstractPage):
+            return False
+
+        return self._path == other._path
 
     def __str__(
         self
