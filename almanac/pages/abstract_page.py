@@ -125,7 +125,7 @@ class AbstractPage(ABC):
     def __str__(
         self
     ) -> str:
-        return self.path
+        return str(self.path)
 
     def __repr__(
         self

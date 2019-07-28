@@ -208,7 +208,7 @@ class PagePath:
         self,
         other: Any
     ) -> bool:
-        if isinstance(other, PagePathLike.__args__):
+        if isinstance(other, (str, PagePath,)):
             return self._path == str(other)
 
         return False
