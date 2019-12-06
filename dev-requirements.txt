@@ -1,7 +1,0 @@
-flake8
-mypy
-prompt-toolkit
-sphinx
-sphinx-autodoc-typehints
-toml
-trio

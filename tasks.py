@@ -62,8 +62,6 @@ def test() -> None:
         almanac.pages.page_navigator,
         almanac.pages.page_path,
 
-        # TODO: almanac.shell
-
         almanac.utils.fuzzy_matcher,
         almanac.utils.iteration
     ]
@@ -99,7 +97,7 @@ TASKS = {
 }
 
 
-def get_parsed_args(args=None):
+def get_parsed_args():
     """Get the parsed command line arguments."""
     parser = ArgumentParser(
         prog='tasks.py',
@@ -114,13 +112,10 @@ def get_parsed_args(args=None):
         choices=sorted(TASKS.keys()),
         help='the ttask to run')
 
-    if args is None:
-        args = sys.argv[1:]
-
-    return parser.parse_args(args)
+    return parser.parse_args()
 
 
-def main(args=None):
+def main():
     """Main routine for running this script."""
     try:
         opts = get_parsed_args()

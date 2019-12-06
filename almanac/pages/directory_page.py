@@ -5,9 +5,6 @@ from typing import (
 
 from .abstract_page import (
     AbstractPage)
-from ..commands import (
-    AbstractCommand,
-    BUILTIN_COMMANDS)
 
 
 class DirectoryPage(AbstractPage):
@@ -16,12 +13,6 @@ class DirectoryPage(AbstractPage):
     TODO
 
     """
-
-    @property
-    def allowed_commands(
-        self
-    ) -> Tuple[AbstractCommand, ...]:
-        return BUILTIN_COMMANDS
 
     @property
     def help_text(

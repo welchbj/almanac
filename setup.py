@@ -26,9 +26,7 @@ author = 'Brian Welch'
 author_email = 'welch18@vt.edu'
 url = 'https://almanac.brianwel.ch'
 install_requires = [
-    'prompt-toolkit',
-    'toml',
-    'trio',
+    # TODO: pull from deps/requirements.txt
 ]
 
 with codecs.open(version_file, encoding='utf-8') as f:

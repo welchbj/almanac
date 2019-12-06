@@ -14,10 +14,6 @@ from typing import (
 from .page_path import (
     PagePath,
     PagePathLike)
-from ..commands import (
-    AbstractCommand)
-from ..shell import (
-    EvaluationContext)
 
 
 class AbstractPage(ABC):
@@ -37,12 +33,6 @@ class AbstractPage(ABC):
         self._path = PagePath(path)
         self._parent: Optional[AbstractPage] = None
         self._children: Set[AbstractPage] = set()
-
-    @abstractproperty
-    def allowed_commands(
-        self
-    ) -> Tuple[AbstractCommand, ...]:
-        """The commands that can be executed on this page."""
 
     @abstractproperty
     def help_text(
@@ -105,22 +95,6 @@ class AbstractPage(ABC):
     ) -> Set[AbstractPage]:
         """The immediate children of this page."""
         return self._children
-
-    def mutate_base_evaluation_context(
-        self,
-        evaluation_context: EvaluationContext
-    ) -> None:
-        """Mutate the base :class:`EvaluationContext` for this page.
-
-        Page implementations can override this method to inject default
-        data into the base context in which all commands will be evaluated.
-        For example, a certain type of page may want some basic variables
-        defined.
-
-        If this is not overriden by the page implementation, then no mutation
-        on the base :class:`EvaluationContext` will occur.
-
-        """
 
     def __hash__(
         self
