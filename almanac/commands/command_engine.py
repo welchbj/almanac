@@ -3,12 +3,13 @@
 from functools import (
     lru_cache)
 from typing import (
+    Callable,
     List,
     MutableMapping,
     Tuple)
 
-from .abstract_command import (
-    AbstractCommand)
+from .command import (
+    Command)
 from ..utils import (
     FuzzyMatcher)
 
@@ -18,17 +19,17 @@ class CommandEngine:
 
     def __init__(
         self,
-        *registered_commands: AbstractCommand
+        *registered_commands: Command
     ) -> None:
-        self._registered_commands: List[AbstractCommand] = []
-        self._command_lookup_table: MutableMapping[str, AbstractCommand] = {}
+        self._registered_commands: List[Command] = []
+        self._command_lookup_table: MutableMapping[str, Command] = {}
 
         for command in registered_commands:
             self.register_command(command)
 
     def register_command(
         self,
-        command: AbstractCommand
+        command: Command
     ) -> None:
         """Register a command on this class.
 
@@ -36,7 +37,7 @@ class CommandEngine:
 
         Raises:
             ValueError: If the ``name`` or one of the ``aliases`` on the
-                specified :class:`AbstractCommand` conflicts with an entry
+                specified :class:`Command` conflicts with an entry
                 already stored in this :class:`CommandEngine`.
 
         """
@@ -55,11 +56,11 @@ class CommandEngine:
     def get(
         self,
         name_or_alias: str
-    ) -> AbstractCommand:
-        """Get a :class:`AbstractCommand` by its name or alias.
+    ) -> Command:
+        """Get a :class:`Command` by its name or alias.
 
         Returns:
-            The mapped :class:`AbstractCommand` instance.
+            The mapped :class:`Command` instance.
 
         Raises:
             KeyError: If the specified ``name_or_alias`` is not contained
@@ -83,7 +84,7 @@ class CommandEngine:
         """Find the closest matching names/aliases to the specified string.
 
         Returns:
-            A possibly-empty tuple of :class:`AbstractCommand`s that most
+            A possibly-empty tuple of :class:`Command`s that most
             closely match the specified `name_or_alias` field.
 
         """
@@ -96,8 +97,8 @@ class CommandEngine:
     @property
     def registered_commands(
         self
-    ) -> List[AbstractCommand]:
-        """The :class:`AbstractCommand`s registered on this instance."""
+    ) -> List[Command]:
+        """The :class:`Command`s registered on this instance."""
         return self._registered_commands
 
     def __contains__(
