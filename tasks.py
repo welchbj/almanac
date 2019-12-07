@@ -53,7 +53,6 @@ def test() -> None:
         # TODO: almanac.loaders
 
         # TODO: almanac.pages.search
-        # TODO: almanac.pages.toml
 
         almanac.pages.abstract_page_provider,
         almanac.pages.abstract_page_serializer_mixin,

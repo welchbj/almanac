@@ -32,7 +32,7 @@ class AbstractPageProvider(ABC):
     def text_loader(
         self
     ) -> AbstractTextResourceLoader:
-        """The textual resource loader that provides the TOML."""
+        """The textual resource loader that provides the text."""
 
     @abstractproperty
     def serializer(
