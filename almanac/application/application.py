@@ -51,6 +51,13 @@ class Application:
         """The :class:`PageNavigator` powering this app's navigation."""
         return self._page_navigator
 
+    @property
+    def command_engine(
+        self
+    ) -> CommandEngine:
+        """The :class:`CommandEngine` powering this app's command lookup."""
+        return self._command_engine
+
     async def eval_line(
         self,
         line: str
