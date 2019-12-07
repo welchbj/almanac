@@ -1,24 +1,20 @@
 """Implementation of the ``Application`` class."""
 
+import shlex
+
 from typing import (
-    Iterator,
-    List,
-    Optional)
+    Union)
 
 from prompt_toolkit import (
     PromptSession)
 from prompt_toolkit.patch_stdout import (
     patch_stdout)
 from ..commands import (
+    Command,
+    CommandCallable,
     CommandEngine)
 from ..pages import (
-    AbstractPageProvider,
-    PageNavigator,
-    PagePathLike)
-
-# TODO: rather than setting children during the parsing of pages, we will
-#       have to pass over the page index and create the relationships once
-#       everything has parsed
+    PageNavigator)
 
 
 class Application:
@@ -61,10 +57,21 @@ class Application:
     async def eval_line(
         self,
         line: str
-    ) -> None:
+    ) -> int:
         """Evaluate a line passed to the application by the user."""
-        # TODO
-        print('You said:', line)
+        args = shlex.split(line)
+        if not args:
+            return 0
+
+        name_or_alias = args[0]
+        try:
+            command = self._command_engine[name_or_alias]
+            # TODO: docopt parsing of arguments into dict
+            command(self, {})
+        except KeyError:
+            self.print_command_suggestions(name_or_alias)
+
+        return -1
 
     async def run(
         self
@@ -78,12 +85,7 @@ class Application:
         with patch_stdout():
             while True:
                 try:
-                    line = await self._session.prompt_async(
-                        completer=self._command_engine,
-                        complete_while_typing=True,
-                        complete_in_thread=True)
-
-                    line = line.strip()
+                    line = (await self._session.prompt_async()).strip()
                     if not line:
                         continue
 
@@ -97,6 +99,47 @@ class Application:
                     pass
 
             return 0
+
+    def command(
+        self,
+        new_command: Union[Command, CommandCallable]
+    ) -> Command:
+        """Register a command on this application.
+
+        TODO
+
+        Args:
+            new_command: Either a :class:`Command` instance or a
+                :class:`CommandCallable` function. This will be registered
+                on this class's :data:`command_engine` attribute.
+
+        Returns:
+            The created :class:`Command` instance.
+
+        Raises:
+            CommandNameCollisionError: If an attempt is made to register a
+                command with a name or alias(es) that conflict with already-
+                registered commands.
+
+        """
+        if not isinstance(new_command, Command):
+            new_command = Command.from_callable(new_command)
+
+        self._command_engine.register_command(new_command)
+        return new_command
+
+    def print_command_suggestions(
+        self,
+        name_or_alias: str
+    ) -> None:
+        """Print command recommendations for a misspelled attempt.
+
+        It is assumed that lookup has already been attempted and that no
+        matching command exists.
+
+        """
+        # TODO
+        print('print_command_suggestions not yet implemented!')
 
     def _prompt_callback(
         self
