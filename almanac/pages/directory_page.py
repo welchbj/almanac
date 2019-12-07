@@ -1,8 +1,5 @@
 """Implementation of the ``DirectoryPage`` class."""
 
-from typing import (
-    Tuple)
-
 from .abstract_page import (
     AbstractPage)
 
