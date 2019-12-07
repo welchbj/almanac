@@ -1,7 +1,10 @@
 """Implementation of the ``PositionalValueError`` class."""
 
+from .almanac_error import (
+    AlmanacError)
 
-class PositionalValueError(ValueError):
+
+class PositionalValueError(ValueError, AlmanacError):
     """An exception that holds a specific, error-causing input position."""
 
     def __init__(
