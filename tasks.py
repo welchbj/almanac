@@ -44,8 +44,8 @@ def test() -> None:
         top_level_dir=HERE)
 
     doctest_modules = [
-        almanac.application.application,
-        almanac.application.shortcuts,
+        almanac.core.application,
+        almanac.core.shortcuts,
 
         # TODO: almanac.commands
         # TODO: almanac.errors
