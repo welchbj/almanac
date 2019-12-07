@@ -3,13 +3,14 @@
 from functools import (
     lru_cache)
 from typing import (
-    Callable,
     List,
     MutableMapping,
     Tuple)
 
 from .command import (
     Command)
+from ..errors import (
+    CommandNameCollisionError)
 from ..utils import (
     FuzzyMatcher)
 
@@ -36,9 +37,9 @@ class CommandEngine:
         This will enable this TODO
 
         Raises:
-            ValueError: If the ``name`` or one of the ``aliases`` on the
-                specified :class:`Command` conflicts with an entry
-                already stored in this :class:`CommandEngine`.
+            CommandNameCollisionError: If the ``name`` or one of the
+                ``aliases`` on the specified :class:`Command` conflicts with an
+                entry already stored in this :class:`CommandEngine`.
 
         """
         already_mapped = tuple(
@@ -46,7 +47,7 @@ class CommandEngine:
             if identifier in self._command_lookup_table.keys())
         if already_mapped:
             mapped_names = ', '.join(already_mapped)
-            raise ValueError(
+            raise CommandNameCollisionError(
                 'Identifier(s) ' + mapped_names + ' already mapped')
 
         for identifier in command.identifiers:
