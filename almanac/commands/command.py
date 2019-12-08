@@ -13,6 +13,9 @@ from .types import (
     CommandCallable,
     OptsType)
 
+from ..io import (
+    AbstractIoContext)
+
 if TYPE_CHECKING:
     from ..application import (
         Application)
@@ -80,6 +83,7 @@ class Command:
     def __call__(
         self,
         app: Application,
+        io: AbstractIoContext,
         opts: OptsType
     ) -> int:
         """Run this command.
@@ -89,4 +93,4 @@ class Command:
             Anything else -> Something went wrong.
 
         """
-        return self._impl_callable(app, opts)
+        return self._impl_callable(app, io, opts)
