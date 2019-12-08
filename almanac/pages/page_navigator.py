@@ -253,7 +253,7 @@ class PageNavigator(MutableMapping[PagePathLike, AbstractPage]):
     ) -> int:
         return len(self._page_table.keys())
 
-    def __setitem__(
+    def set_page(
         self,
         key: PagePathLike,
         value: AbstractPage,
@@ -289,6 +289,13 @@ class PageNavigator(MutableMapping[PagePathLike, AbstractPage]):
             new_page.children.update(old_page.children)
             new_page.parent = old_page.parent
             self._page_table[path] = new_page
+
+    def __setitem__(
+        self,
+        key: PagePathLike,
+        value: AbstractPage
+    ) -> None:
+        self.set_page(key, value, allow_overwrite=True)
 
     def add_directory_page(
         self,
@@ -327,7 +334,7 @@ class PageNavigator(MutableMapping[PagePathLike, AbstractPage]):
 
         """
         dir_page = self.directory_page_cls(path)
-        self.__setitem__(
+        self.set_page(
             PagePath(path),
             dir_page,
             allow_overwrite=False)
@@ -356,7 +363,7 @@ class PageNavigator(MutableMapping[PagePathLike, AbstractPage]):
 
         existing_page = self._page_table[page_path]
 
-        existing_page.parent.children.remove(existing_page)
+        existing_page.parent.children.remove(existing_page)  # type: ignore
         del self._page_table[page_path]
 
     def __getitem__(
