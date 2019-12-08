@@ -49,13 +49,10 @@ def test() -> None:
 
         # TODO: almanac.commands
         # TODO: almanac.errors
-        # TODO: almanac.formatting
         # TODO: almanac.loaders
 
         # TODO: almanac.pages.search
 
-        almanac.pages.abstract_page_provider,
-        almanac.pages.abstract_page_serializer_mixin,
         almanac.pages.abstract_page,
         almanac.pages.directory_page,
         almanac.pages.page_navigator,
