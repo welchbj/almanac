@@ -5,7 +5,7 @@ import shlex
 from contextlib import (
     contextmanager)
 from typing import (
-    ContextManager,
+    Iterator,
     List,
     Union)
 
@@ -80,7 +80,7 @@ class Application:
     def io_context(
         self,
         new_io_context: AbstractIoContext
-    ) -> ContextManager[AbstractIoContext]:
+    ) -> Iterator[AbstractIoContext]:
         """Change the app's current input/output context."""
         self._io_stack.append(new_io_context)
         yield new_io_context
