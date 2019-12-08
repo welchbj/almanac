@@ -6,10 +6,13 @@ from typing import (
     Dict,
     TYPE_CHECKING)
 
+from ..io import (
+    AbstractIoContext)
+
 if TYPE_CHECKING:
     from ..application import (  # noqa
         Application)
 
 
 OptsType = Dict[str, Any]
-CommandCallable = Callable[['Application', OptsType], int]
+CommandCallable = Callable[['Application', AbstractIoContext, OptsType], int]

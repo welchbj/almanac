@@ -2,6 +2,8 @@
 
 from ..core import (
     Application)
+from ..io import (
+    AbstractIoContext)
 
 from .types import (
     OptsType)
@@ -9,6 +11,7 @@ from .types import (
 
 def cd(
     app: Application,
+    io: AbstractIoContext,
     opts: OptsType
 ) -> int:
     """Change directories.
@@ -19,12 +22,13 @@ def cd(
 
     """
     # TODO
-    print('Called cd')
+    io.print_info('Called cd')
     return 0
 
 
 def ls(
     app: Application,
+    io: AbstractIoContext,
     opts: OptsType
 ) -> int:
     """List files in a directory.
@@ -35,5 +39,5 @@ def ls(
 
     """
     # TODO
-    print('Called ls')
+    io.print_info('Called ls')
     return 0

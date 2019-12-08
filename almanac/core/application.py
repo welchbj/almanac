@@ -2,19 +2,30 @@
 
 import shlex
 
+from contextlib import (
+    contextmanager)
 from typing import (
+    ContextManager,
+    List,
     Union)
 
+from docopt import (
+    docopt,
+    DocoptExit)
 from prompt_toolkit import (
     PromptSession)
 from prompt_toolkit.patch_stdout import (
     patch_stdout)
+
 from ..commands import (
     Command,
     CommandCallable,
     CommandEngine)
 from ..pages import (
     PageNavigator)
+from ..io import (
+    AbstractIoContext,
+    StandardConsoleIoContext)
 
 
 class Application:
@@ -31,6 +42,10 @@ class Application:
         self
     ) -> None:
         # TODO: load some configuration options and put them into the session
+
+        self._io_stack: List[AbstractIoContext] = [
+            StandardConsoleIoContext()
+        ]
 
         self._command_engine = CommandEngine()
         self._page_navigator = PageNavigator()
@@ -54,6 +69,23 @@ class Application:
         """The :class:`CommandEngine` powering this app's command lookup."""
         return self._command_engine
 
+    @property
+    def io(
+        self
+    ) -> AbstractIoContext:
+        """The application's top-level input/output context."""
+        return self._io_stack[-1]
+
+    @contextmanager
+    def io_context(
+        self,
+        new_io_context: AbstractIoContext
+    ) -> ContextManager[AbstractIoContext]:
+        """Change the app's current input/output context."""
+        self._io_stack.append(new_io_context)
+        yield new_io_context
+        self._io_stack.pop()
+
     async def eval_line(
         self,
         line: str
@@ -66,12 +98,20 @@ class Application:
         name_or_alias = args[0]
         try:
             command = self._command_engine[name_or_alias]
-            # TODO: docopt parsing of arguments into dict
-            command(self, {})
+            opts = docopt(command.doc, argv=args[1:])
+            command(self, self.io, opts)
         except KeyError:
             self.print_command_suggestions(name_or_alias)
+            return 1
+        except DocoptExit as e:
+            self.io.print_err(f'Invalid arguments for command {command.name}')
+            self.io.print_raw(e)
+            return 1
+        except SystemExit:
+            # raised by docopt for -h/--help
+            pass
 
-        return -1
+        return 0
 
     async def run(
         self
