@@ -32,7 +32,7 @@ class Command:
         # TODO: this will not work with decorators
         return Command(
             name=command_callable.__name__,
-            doc=command_callable.__doc__,
+            doc=command_callable.__doc__,  # type: ignore
             aliases=tuple(),
             impl_callable=command_callable
         )
