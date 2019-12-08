@@ -8,8 +8,7 @@ from abc import (
     abstractproperty)
 from typing import (
     Optional,
-    Set,
-    Tuple)
+    Set)
 
 from .page_path import (
     PagePath,

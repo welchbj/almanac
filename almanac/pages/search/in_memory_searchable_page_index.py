@@ -1,7 +1,6 @@
 """Implementation of the ``PageIndex`` class."""
 
 from ..page_path import (
-    PagePath,
     PagePathLike)
 
 
