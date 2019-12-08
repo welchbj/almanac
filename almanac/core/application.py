@@ -101,7 +101,8 @@ class Application:
             opts = docopt(command.doc, argv=args[1:])
             command(self, self.io, opts)
         except KeyError:
-            self.print_command_suggestions(name_or_alias)
+            self.io.print_err(f'Command {name_or_alias} does not exist')
+            self._print_command_suggestions(name_or_alias)
             return 1
         except DocoptExit as e:
             self.io.print_err(f'Invalid arguments for command {command.name}')
@@ -168,7 +169,7 @@ class Application:
         self._command_engine.register_command(new_command)
         return new_command
 
-    def print_command_suggestions(
+    def _print_command_suggestions(
         self,
         name_or_alias: str
     ) -> None:
@@ -178,8 +179,13 @@ class Application:
         matching command exists.
 
         """
-        # TODO
-        print('print_command_suggestions not yet implemented!')
+        suggestions = self._command_engine.get_suggestions(name_or_alias)
+        if not suggestions:
+            return
+
+        self.io.print_info('Perhaps you meant one of these:')
+        for suggestion in suggestions:
+            self.io.print_raw('    ', suggestion, sep='')
 
     def _prompt_callback(
         self
