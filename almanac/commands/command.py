@@ -80,7 +80,7 @@ class Command:
             self._aliases
         ))
 
-    def __call__(
+    async def run(
         self,
         app: Application,
         io: AbstractIoContext,
@@ -93,4 +93,4 @@ class Command:
             Anything else -> Something went wrong.
 
         """
-        return self._impl_callable(app, io, opts)
+        return await self._impl_callable(app, io, opts)

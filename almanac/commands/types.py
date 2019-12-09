@@ -2,6 +2,7 @@
 
 from typing import (
     Any,
+    Coroutine,
     Callable,
     Dict,
     TYPE_CHECKING)
@@ -15,4 +16,6 @@ if TYPE_CHECKING:
 
 
 OptsType = Dict[str, Any]
-CommandCallable = Callable[['Application', AbstractIoContext, OptsType], int]
+CommandCallable = Callable[
+    ['Application', AbstractIoContext, OptsType],
+    Coroutine[Any, Any, int]]

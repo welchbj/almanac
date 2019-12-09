@@ -1,5 +1,6 @@
 """Implementation of the ``Application`` class."""
 
+import asyncio
 import shlex
 
 from contextlib import (
@@ -21,6 +22,8 @@ from ..commands import (
     Command,
     CommandCallable,
     CommandEngine)
+from ..errors import (
+    CommandRegistrationError)
 from ..pages import (
     PageNavigator)
 from ..io import (
@@ -99,7 +102,7 @@ class Application:
         try:
             command = self._command_engine[name_or_alias]
             opts = docopt(command.doc, argv=args[1:])
-            command(self, self.io, opts)
+            await command.run(self, self.io, opts)
         except KeyError:
             self.io.print_err(f'Command {name_or_alias} does not exist')
             self._print_command_suggestions(name_or_alias)
@@ -164,6 +167,11 @@ class Application:
 
         """
         if not isinstance(new_command, Command):
+            if not asyncio.iscoroutinefunction(new_command):
+                raise CommandRegistrationError(
+                    'Attempted to register a command with non-async '
+                    f'function {new_command.__name__}')
+
             new_command = Command.from_callable(new_command)
 
         self._command_engine.register_command(new_command)
