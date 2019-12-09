@@ -9,7 +9,7 @@ from .types import (
     OptsType)
 
 
-def cd(
+async def cd(
     app: Application,
     io: AbstractIoContext,
     opts: OptsType
@@ -26,7 +26,7 @@ def cd(
     return 0
 
 
-def ls(
+async def ls(
     app: Application,
     io: AbstractIoContext,
     opts: OptsType

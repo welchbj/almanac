@@ -9,7 +9,7 @@ async def main():
     app = make_standard_app()
 
     @app.command
-    def liteval(app, io, opts) -> int:
+    async def liteval(app, io, opts) -> int:
         """Literal eval of Python code.
 
         Usage:
