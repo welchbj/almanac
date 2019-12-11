@@ -26,6 +26,23 @@ async def cd(
     return 0
 
 
+async def help(
+    app: Application,
+    io: AbstractIoContext,
+    opts: OptsType
+) -> int:
+    """Print help text about the current page or a command.
+
+    Usage:
+        help
+        help <command>
+
+    """
+    # TODO
+    io.print_info('Called help')
+    return 0
+
+
 async def ls(
     app: Application,
     io: AbstractIoContext,
@@ -40,4 +57,21 @@ async def ls(
     """
     # TODO
     io.print_info('Called ls')
+    return 0
+
+
+async def quit(
+    app: Application,
+
+    io: AbstractIoContext,
+    opts: OptsType
+) -> int:
+    """Quit the application.
+
+    Usage:
+        quit
+
+    """
+    # TODO
+    io.print_info('Called quit')
     return 0
