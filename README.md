@@ -18,7 +18,7 @@ pip install https://github.com/welchbj/almanac/archive/master.tar.gz
 
 ## License
 
-The content of this repository is licensed under the [MIT License](https://opensource.org/licenses/MIT), as per the [`license.txt`](./license.txt) file.
+The content of this repository is licensed under the [MIT License](https://opensource.org/licenses/MIT), as per the [`license.txt`](./LICENSE.txt) file.
 
 ## Development
 
