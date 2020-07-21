@@ -1,18 +1,11 @@
 """Implementation of the ``CommandEngine`` class."""
 
-from functools import (
-    lru_cache)
-from typing import (
-    List,
-    MutableMapping,
-    Tuple)
+from functools import lru_cache
+from typing import List, MutableMapping, Tuple
 
-from .command import (
-    Command)
-from ..errors import (
-    CommandNameCollisionError)
-from ..utils import (
-    FuzzyMatcher)
+from .command import Command
+from ..errors import CommandNameCollisionError
+from ..utils import FuzzyMatcher
 
 
 class CommandEngine:
@@ -20,21 +13,19 @@ class CommandEngine:
 
     def __init__(
         self,
-        *registered_commands: Command
+        *commands_to_register: Command
     ) -> None:
         self._registered_commands: List[Command] = []
         self._command_lookup_table: MutableMapping[str, Command] = {}
 
-        for command in registered_commands:
-            self.register_command(command)
+        for command in commands_to_register:
+            self.register(command)
 
-    def register_command(
+    def register(
         self,
         command: Command
     ) -> None:
         """Register a command on this class.
-
-        This will enable this TODO
 
         Raises:
             CommandNameCollisionError: If the ``name`` or one of the
@@ -44,11 +35,13 @@ class CommandEngine:
         """
         already_mapped = tuple(
             identifier for identifier in command.identifiers
-            if identifier in self._command_lookup_table.keys())
+            if identifier in self._command_lookup_table.keys()
+        )
         if already_mapped:
             mapped_names = ', '.join(already_mapped)
             raise CommandNameCollisionError(
-                'Identifier(s) ' + mapped_names + ' already mapped')
+                'Identifier(s) ' + mapped_names + ' already mapped'
+            )
 
         for identifier in command.identifiers:
             self._command_lookup_table[identifier] = command
@@ -69,8 +62,9 @@ class CommandEngine:
 
         """
         if name_or_alias not in self._command_lookup_table.keys():
-            raise KeyError('`' + name_or_alias + '` is not a configured '
-                           'command name or alias')
+            raise KeyError(
+                '`' + name_or_alias + '` is not a configured command name or alias'
+            )
 
         return self._command_lookup_table[name_or_alias]
 
@@ -92,7 +86,8 @@ class CommandEngine:
         fuzz = FuzzyMatcher(
             name_or_alias,
             self._command_lookup_table.keys(),
-            num_max_matches=max_suggestions)
+            num_max_matches=max_suggestions
+        )
         return fuzz.matches
 
     @property
@@ -123,5 +118,6 @@ class CommandEngine:
     def __str__(
         self
     ) -> str:
-        return (f'{len(self)} names mapped to {len(self._registered_commands)}'
-                ' commands')
+        return (
+            f'{len(self)} names mapped to {len(self._registered_commands)} commands'
+        )

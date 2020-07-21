@@ -2,20 +2,34 @@
 
 ## Synopsis
 
-TODO
+This framework aims to serve as an intuitive interface for spinning up interactive page-based console applications.
 
 ## Installation
 
-TODO
+You can download the latest packaged version from PyPI:
+```sh
+pip install almanac
+```
 
-## Basic Usage
-
-TODO
+Alternatively, you can get the bleeding-edge version from version control:
+```sh
+pip install https://github.com/welchbj/almanac/archive/master.tar.gz
+```
 
 ## License
 
-TODO
+The content of this repository is licensed under the [MIT License](https://opensource.org/licenses/MIT), as per the [`license.txt`](./license.txt) file.
 
 ## Development
 
-TODO
+Development dependencies can be installed with:
+
+```sh
+pip install -r deps/dev-requirements.txt
+```
+
+To run the tests, use:
+
+```sh
+python tasks.py test
+```

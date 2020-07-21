@@ -1,7 +1,6 @@
 """Exception type for command name collisions."""
 
-from .almanac_error import (
-    AlmanacError)
+from .almanac_error import AlmanacError
 
 
 class CommandNameCollisionError(AlmanacError):

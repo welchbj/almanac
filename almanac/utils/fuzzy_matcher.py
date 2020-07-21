@@ -1,16 +1,9 @@
 """Implementation of the ``FuzzyMatcher`` class."""
 
-from collections import (
-    namedtuple)
-from difflib import (
-    SequenceMatcher)
-from operator import (
-    attrgetter)
-from typing import (
-    Iterable,
-    Iterator,
-    Tuple)
-
+from collections import namedtuple
+from difflib import SequenceMatcher
+from operator import attrgetter
+from typing import Iterable, Iterator, Tuple
 
 FuzzResult = namedtuple('FuzzResult', ['string', 'ratio'])
 
@@ -46,7 +39,8 @@ class FuzzyMatcher:
         _fuzzes = iter(self.__class__.fuzz(reference, c) for c in candidates)
         _passing_fuzzes = iter(f for f in _fuzzes if f.ratio > ratio_threshold)
         _sorted_passing_fuzzes = tuple(
-            sorted(_passing_fuzzes, key=attrgetter('ratio')))
+            sorted(_passing_fuzzes, key=attrgetter('ratio'))
+        )
 
         if len(_sorted_passing_fuzzes) <= num_max_matches:
             self._results = _sorted_passing_fuzzes

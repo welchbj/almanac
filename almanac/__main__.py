@@ -1,23 +1,21 @@
 """Run an example application."""
 
+import ast
 import asyncio
 
-from almanac import make_standard_app
+from almanac import current_app, make_standard_app
 
 
 async def main():
     app = make_standard_app()
 
     @app.command
-    async def liteval(app, io, opts) -> int:
-        """Literal eval of Python code.
+    async def liteval(expr: str) -> int:
+        """Literal eval of Python code."""
+        app = current_app()
 
-        Usage:
-            liteval <expr>
+        app.io.print_raw(ast.literal_eval(expr))
 
-        """
-        # TODO
-        io.print_info('Called liteval')
         return 0
 
     await app.run()
