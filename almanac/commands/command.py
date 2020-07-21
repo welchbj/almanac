@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import itertools
 
+import pyparsing as pp
+
 from typing import Iterable, Tuple
 
 from .types import CommandCallable
@@ -76,7 +78,7 @@ class Command:
 
     async def run(
         self,
-        *args,
+        args: pp.ParseResults
     ) -> int:
         """Run this command.
 
@@ -87,4 +89,4 @@ class Command:
         """
         # TODO: some kind of argument validation, since we know what kinds of arguments
         #       we should be allowed to receive here
-        return await self._impl_callable(*args)
+        return await self._impl_callable(*args.positionals, **args.kv)

@@ -1,7 +1,6 @@
 """Implementation of the ``Application`` class."""
 
 import asyncio
-import shlex
 
 from contextlib import contextmanager
 from typing import Iterator, List, Union
@@ -10,10 +9,10 @@ from prompt_toolkit import PromptSession
 from prompt_toolkit.patch_stdout import patch_stdout
 
 from .context import current_app_lock, set_current_app
-from ..commands import Command, CommandCallable, CommandEngine
-from ..errors import CommandRegistrationError
-from ..pages import PageNavigator
+from ..commands import Command, CommandCallable, CommandEngine, parse
+from ..errors import CommandParseError, CommandRegistrationError
 from ..io import AbstractIoContext, StandardConsoleIoContext
+from ..pages import PageNavigator
 
 
 class Application:
@@ -72,7 +71,13 @@ class Application:
         line: str
     ) -> int:
         """Evaluate a line passed to the application by the user."""
-        args = shlex.split(line)
+        try:
+            args = parse(line)
+        except CommandParseError as e:
+            print(e.__dict__)
+            # TODO: display error position?
+            return 1
+
         if not args:
             return 0
 
@@ -84,7 +89,7 @@ class Application:
 
             async with current_app_lock():
                 set_current_app(self)
-                return await command.run(*args[1:])
+                return await command.run(args)
         except KeyError:
             self.io.print_err(f'Command {name_or_alias} does not exist')
             self._print_command_suggestions(name_or_alias)
