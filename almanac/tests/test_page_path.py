@@ -1,13 +1,9 @@
 """Tests for the ``PagePath`` class."""
 
-from typing import (
-    Tuple)
-from unittest import (
-    TestCase)
+from typing import Tuple
+from unittest import TestCase
 
-from almanac import (
-    PagePath,
-    PositionalValueError)
+from almanac import PagePath, PositionalValueError
 
 
 class PagePathTestCase(TestCase):
@@ -34,57 +30,70 @@ class PagePathTestCase(TestCase):
     def test_slash_collapsing(self):
         self.assert_path(
             '//a/b/c/',
-            '/a/b/c')
+            '/a/b/c'
+        )
 
         self.assert_path(
             '////////a//a//a/a///////a/a/a/a//a/a',
-            '/a/a/a/a/a/a/a/a/a/a')
+            '/a/a/a/a/a/a/a/a/a/a'
+        )
 
         self.assert_path(
             '//////////',
-            '/')
+            '/'
+        )
 
         self.assert_path(
             '/b///////',
-            '/b')
+            '/b'
+        )
 
         self.assert_path(
             '/b////c/',
-            '/b/c')
+            '/b/c'
+        )
 
     def test_path_segments(self):
         self.assert_segments(
             '/a/b/c/d/e/f/g',
-            ('a', 'b', 'c', 'd', 'e', 'f', 'g',))
+            ('a', 'b', 'c', 'd', 'e', 'f', 'g',)
+        )
 
         self.assert_segments(
             '/a--//-//b',
-            ('a--', '-', 'b',))
+            ('a--', '-', 'b',)
+        )
 
         self.assert_segments(
             '/a/b/c/d/',
-            ('a', 'b', 'c', 'd',))
+            ('a', 'b', 'c', 'd',)
+        )
 
         self.assert_segments(
             '/',
-            tuple())
+            tuple()
+        )
 
         self.assert_segments(
             '/////',
-            tuple())
+            tuple()
+        )
 
     def test_parent_directories(self):
         self.assert_parent_dirs(
             '/',
-            tuple())
+            tuple()
+        )
 
         self.assert_parent_dirs(
             '/a',
-            ('/',))
+            ('/',)
+        )
 
         self.assert_parent_dirs(
             '/a/b/',
-            ('/', '/a',))
+            ('/', '/a',)
+        )
 
         self.assert_parent_dirs(
             '/a/b/c/d/e',
@@ -94,7 +103,8 @@ class PagePathTestCase(TestCase):
                 '/a/b',
                 '/a/b/c',
                 '/a/b/c/d',
-            ))
+            )
+        )
 
     def test_invalid_characters(self):
         invalid_paths = (
@@ -108,7 +118,8 @@ class PagePathTestCase(TestCase):
             '/a/b./',
             '/a/b/.',
             '/a---b/!',
-            '/a_@b/',)
+            '/a_@b/',
+        )
 
         for path in invalid_paths:
             with self.assertRaises(PositionalValueError):
