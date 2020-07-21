@@ -1,15 +1,10 @@
 """Implementation of the ``DirectoryPage`` class."""
 
-from .abstract_page import (
-    AbstractPage)
+from .abstract_page import AbstractPage
 
 
 class DirectoryPage(AbstractPage):
-    """A page that holds references to other pages.
-
-    TODO
-
-    """
+    """A page that holds references to other pages."""
 
     @property
     def help_text(

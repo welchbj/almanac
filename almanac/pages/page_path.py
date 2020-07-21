@@ -4,22 +4,13 @@ from __future__ import annotations
 
 import string
 
-from enum import (
-    auto,
-    Enum)
-from typing import (
-    Any,
-    Tuple,
-    Union)
+from enum import auto, Enum
+from typing import Any, Tuple, Union
 
-from ..errors import (
-    PositionalValueError)
+from ..errors import PositionalValueError
 
 
-VALID_PATH_CHARS: str = (
-    string.ascii_letters +
-    string.digits +
-    '-_/')
+VALID_PATH_CHARS: str = string.ascii_letters + string.digits + '-_/'
 
 
 class _CollapseSlashState(Enum):
@@ -53,7 +44,8 @@ class PagePath:
             self._segments = tuple(self._path.split('/')[1:])
             self._parent_dirs = tuple(
                 '/' + '/'.join(self._segments[:i]) for i in
-                range(len(self._segments)))
+                range(len(self._segments))
+            )
 
     @staticmethod
     def assert_absolute_path(

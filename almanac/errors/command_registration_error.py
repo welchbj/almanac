@@ -1,7 +1,6 @@
 """Exception type for command registration errors."""
 
-from .almanac_error import (
-    AlmanacError)
+from .almanac_error import AlmanacError
 
 
 class CommandRegistrationError(AlmanacError):

@@ -2,28 +2,14 @@
 
 from __future__ import annotations
 
-from abc import (
-    ABC,
-    abstractmethod,
-    abstractproperty)
-from typing import (
-    Optional,
-    Set)
+from abc import ABC, abstractmethod, abstractproperty
+from typing import Optional, Set
 
-from .page_path import (
-    PagePath,
-    PagePathLike)
+from .page_path import PagePath, PagePathLike
 
 
 class AbstractPage(ABC):
-    """The base page class from which all implementations derive.
-
-    Attributes:
-        TODO
-
-    TODO
-
-    """
+    """The base page class."""
 
     def __init__(
         self,
@@ -39,9 +25,9 @@ class AbstractPage(ABC):
     ) -> str:
         """The help text about this page.
 
-        Think of this as a static explanation about the page type's role
-        within the greater application, rather than reflecting the current
-        state of this particular page.
+        Think of this as a static explanation about the page type's role within the
+        greater application, rather than reflecting the current state of this
+        particular page.
 
         """
 

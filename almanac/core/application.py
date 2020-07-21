@@ -3,49 +3,25 @@
 import asyncio
 import shlex
 
-from contextlib import (
-    contextmanager)
-from typing import (
-    Iterator,
-    List,
-    Union)
+from contextlib import contextmanager
+from typing import Iterator, List, Union
 
-from docopt import (
-    docopt,
-    DocoptExit)
-from prompt_toolkit import (
-    PromptSession)
-from prompt_toolkit.patch_stdout import (
-    patch_stdout)
+from prompt_toolkit import PromptSession
+from prompt_toolkit.patch_stdout import patch_stdout
 
-from ..commands import (
-    Command,
-    CommandCallable,
-    CommandEngine)
-from ..errors import (
-    CommandRegistrationError)
-from ..pages import (
-    PageNavigator)
-from ..io import (
-    AbstractIoContext,
-    StandardConsoleIoContext)
+from .context import current_app_lock, set_current_app
+from ..commands import Command, CommandCallable, CommandEngine
+from ..errors import CommandRegistrationError
+from ..pages import PageNavigator
+from ..io import AbstractIoContext, StandardConsoleIoContext
 
 
 class Application:
-    """The core class of ``almanac``, wrapping everything together.
-
-    Attributes:
-        TODO
-
-    TODO: examples
-
-    """
+    """The core class of ``almanac``, wrapping everything together."""
 
     def __init__(
         self
     ) -> None:
-        # TODO: load some configuration options and put them into the session
-
         self._io_stack: List[AbstractIoContext] = [
             StandardConsoleIoContext()
         ]
@@ -54,9 +30,11 @@ class Application:
         self._page_navigator = PageNavigator()
         self._session = PromptSession(
             message=self._prompt_callback,
-            # completer=TODO
+            # TODO: wire in completer implementation here
+            # completer=???
             complete_while_typing=True,
-            complete_in_thread=True)
+            complete_in_thread=True
+        )
 
     @property
     def page_navigator(
@@ -101,21 +79,16 @@ class Application:
         name_or_alias = args[0]
         try:
             command = self._command_engine[name_or_alias]
-            opts = docopt(command.doc, argv=args[1:])
-            await command.run(self, self.io, opts)
+
+            # TODO: arguments need to be passed to run()
+
+            async with current_app_lock():
+                set_current_app(self)
+                return await command.run(*args[1:])
         except KeyError:
             self.io.print_err(f'Command {name_or_alias} does not exist')
             self._print_command_suggestions(name_or_alias)
             return 1
-        except DocoptExit as e:
-            self.io.print_err(f'Invalid arguments for command {command.name}')
-            self.io.print_raw(e)
-            return 1
-        except SystemExit:
-            # raised by docopt for -h/--help
-            pass
-
-        return 0
 
     async def run(
         self
@@ -150,8 +123,6 @@ class Application:
     ) -> Command:
         """Register a command on this application.
 
-        TODO
-
         Args:
             new_command: Either a :class:`Command` instance or a
                 :class:`CommandCallable` function. This will be registered
@@ -170,11 +141,14 @@ class Application:
             if not asyncio.iscoroutinefunction(new_command):
                 raise CommandRegistrationError(
                     'Attempted to register a command with non-async '
-                    f'function {new_command.__name__}')
+                    f'function {new_command.__name__}'
+                )
 
             new_command = Command.from_callable(new_command)
 
-        self._command_engine.register_command(new_command)
+        # TODO: decorators and argument handling here?
+
+        self._command_engine.register(new_command)
         return new_command
 
     def _print_command_suggestions(
@@ -200,3 +174,5 @@ class Application:
     ) -> str:
         """A callback for getting the current page's prompt."""
         return self._page_navigator.current_page.get_prompt()
+
+    # TODO: need a seamless way to force the application to quit

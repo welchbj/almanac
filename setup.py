@@ -5,15 +5,12 @@ import os
 import sys
 
 try:
-    from setuptools import (
-        find_packages,
-        setup)
+    from setuptools import find_packages, setup
 except ImportError:
     print('`setuptools` is required for installation.\n',
           'You can install it using pip.', file=sys.stderr)
     sys.exit(1)
 
-# file pathsphinx_autodoc_typehints s
 here = os.path.abspath(os.path.dirname(__file__))
 readme_file = os.path.join(here, 'README.md')
 deps_dir = os.path.join(here, 'deps')
@@ -21,9 +18,8 @@ prod_requirements_file = os.path.join(deps_dir, 'requirements.txt')
 almanac_dir = os.path.join(here, 'almanac')
 version_file = os.path.join(almanac_dir, 'version.py')
 
-# setup args
 pypi_name = 'almanac'
-description = 'TODO'
+description = 'A framework for interactive page-based console applications'
 license = 'MIT'
 author = 'Brian Welch'
 author_email = 'welch18@vt.edu'

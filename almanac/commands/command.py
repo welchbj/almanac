@@ -4,21 +4,9 @@ from __future__ import annotations
 
 import itertools
 
-from typing import (
-    Iterable,
-    Tuple,
-    TYPE_CHECKING)
+from typing import Iterable, Tuple
 
-from .types import (
-    CommandCallable,
-    OptsType)
-
-from ..io import (
-    AbstractIoContext)
-
-if TYPE_CHECKING:
-    from ..application import (
-        Application)
+from .types import CommandCallable
 
 
 class Command:
@@ -29,7 +17,13 @@ class Command:
         command_callable: CommandCallable
     ) -> Command:
         """Generate a :class:`Command` instance from a callable."""
-        # TODO: this will not work with decorators
+
+        # TODO: need to do some meta-programming to pull out all of the
+        #       arguments and stuff
+        #       this also allows us to stuff some extra stuff on an __almanac_command__
+        #       attribute or similar
+        #       perhaps we need a CommandMetadata structure of some kind?
+
         return Command(
             name=command_callable.__name__,
             doc=command_callable.__doc__,  # type: ignore
@@ -82,9 +76,7 @@ class Command:
 
     async def run(
         self,
-        app: Application,
-        io: AbstractIoContext,
-        opts: OptsType
+        *args,
     ) -> int:
         """Run this command.
 
@@ -93,4 +85,6 @@ class Command:
             Anything else -> Something went wrong.
 
         """
-        return await self._impl_callable(app, io, opts)
+        # TODO: some kind of argument validation, since we know what kinds of arguments
+        #       we should be allowed to receive here
+        return await self._impl_callable(*args)

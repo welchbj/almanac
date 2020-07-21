@@ -2,19 +2,14 @@
 
 import doctest
 import os
-import unittest
 import sys
+import unittest
 
 import almanac
 
-from argparse import (
-    ArgumentParser,
-    RawTextHelpFormatter)
-from contextlib import (
-    contextmanager)
-from typing import (
-    Any,
-    Dict)
+from argparse import ArgumentParser, RawTextHelpFormatter
+from contextlib import contextmanager
+from typing import Any, Dict
 
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -41,7 +36,8 @@ def test() -> None:
     suite = unittest.defaultTestLoader.discover(
         TESTS_DIR,
         pattern='test_*.py',
-        top_level_dir=HERE)
+        top_level_dir=HERE
+    )
 
     doctest_modules = [
         almanac.core.application,
@@ -49,9 +45,6 @@ def test() -> None:
 
         # TODO: almanac.commands
         # TODO: almanac.errors
-        # TODO: almanac.loaders
-
-        # TODO: almanac.pages.search
 
         almanac.pages.abstract_page,
         almanac.pages.directory_page,
@@ -63,24 +56,29 @@ def test() -> None:
     ]
 
     doctest_files = [
-        README_FILE
+        README_FILE,
     ]
 
     doctest_kwargs: Dict[str, Any] = dict(
-        optionflags=doctest.IGNORE_EXCEPTION_DETAIL)
+        optionflags=doctest.IGNORE_EXCEPTION_DETAIL
+    )
 
     for module in doctest_modules:
         suite.addTests(
             doctest.DocTestSuite(
                 module,
-                **doctest_kwargs))
+                **doctest_kwargs
+            )
+        )
 
     for _file in doctest_files:
         suite.addTests(
             doctest.DocFileSuite(
                 _file,
                 module_relative=False,
-                **doctest_kwargs))
+                **doctest_kwargs
+            )
+        )
 
     runner = unittest.TextTestRunner()
     result = runner.run(suite)
@@ -98,7 +96,8 @@ def get_parsed_args():
     parser = ArgumentParser(
         prog='tasks.py',
         description='Helper script for running almanac project tasks',
-        formatter_class=RawTextHelpFormatter)
+        formatter_class=RawTextHelpFormatter
+    )
 
     parser.add_argument(
         'task',
@@ -106,7 +105,8 @@ def get_parsed_args():
         metavar='TASK',
         type=str,
         choices=sorted(TASKS.keys()),
-        help='the ttask to run')
+        help='the task to run'
+    )
 
     return parser.parse_args()
 

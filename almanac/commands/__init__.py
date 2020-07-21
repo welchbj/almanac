@@ -1,7 +1,3 @@
-from .command import (  # noqa
-    Command)
-from .command_engine import (  # noqa
-    CommandEngine)
-from .types import (  # noqa
-    CommandCallable,
-    OptsType)
+from .command import Command  # noqa
+from .command_engine import CommandEngine  # noqa
+from .types import CommandCallable  # noqa
