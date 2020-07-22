@@ -1,4 +1,5 @@
 from .almanac_error import AlmanacError  # noqa
+from .command_argument_error import CommandArgumentError  # noqa
 from .command_name_collision_error import CommandNameCollisionError  # noqa
 from .command_parse_error import CommandParseError  # noqa
 from .command_registration_error import CommandRegistrationError  # noqa

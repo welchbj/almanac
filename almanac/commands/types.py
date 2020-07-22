@@ -3,4 +3,4 @@
 from typing import Any, Coroutine, Callable
 
 
-CommandCallable = Callable[..., Coroutine[Any, Any, int]]
+CommandCoroutine = Callable[..., Coroutine[Any, Any, int]]

@@ -1,16 +1,20 @@
 """Implementation of the ``Application`` class."""
 
 import asyncio
+import sys
+
+import pyparsing as pp
 
 from contextlib import contextmanager
-from typing import Iterator, List, Union
+from typing import Iterator, List, NoReturn, Union
 
 from prompt_toolkit import PromptSession
 from prompt_toolkit.patch_stdout import patch_stdout
 
 from .context import current_app_lock, set_current_app
-from ..commands import Command, CommandCallable, CommandEngine, parse
-from ..errors import CommandParseError, CommandRegistrationError
+from ..commands import Command, CommandCoroutine, CommandEngine, parse
+from ..constants import ExitCodes
+from ..errors import CommandArgumentError, CommandParseError, CommandRegistrationError
 from ..io import AbstractIoContext, StandardConsoleIoContext
 from ..pages import PageNavigator
 
@@ -72,28 +76,37 @@ class Application:
     ) -> int:
         """Evaluate a line passed to the application by the user."""
         try:
-            args = parse(line)
+            args: pp.ParseResults = parse(line)
         except CommandParseError as e:
-            print(e.__dict__)
-            # TODO: display error position?
-            return 1
+            self.io.print_err(
+                'Error in command parsing. Suspected error position marked below:'
+            )
+            self.io.print_err(line)
+            self.io.print_err(' ' * e.error_pos + '^')
+
+            return ExitCodes.ERR_COMMAND_PARSING
 
         if not args:
-            return 0
+            return ExitCodes.OK
 
-        name_or_alias = args[0]
+        name_or_alias = args.command
         try:
             command = self._command_engine[name_or_alias]
-
-            # TODO: arguments need to be passed to run()
 
             async with current_app_lock():
                 set_current_app(self)
                 return await command.run(args)
+        except CommandArgumentError as e:
+            self.io.print_err(e)
+
+            # TODO
+            print(e.argument_state)
+
+            return ExitCodes.ERR_COMMAND_INVALID_ARGUMENTS
         except KeyError:
             self.io.print_err(f'Command {name_or_alias} does not exist')
             self._print_command_suggestions(name_or_alias)
-            return 1
+            return ExitCodes.ERR_COMMAND_NONEXISTENT
 
     async def run(
         self
@@ -120,17 +133,24 @@ class Application:
                     # TODO: this needs to clean up running tasks
                     pass
 
-            return 0
+            return ExitCodes.OK
+
+    def quit(
+        self,
+        exit_code: int
+    ) -> NoReturn:
+        # TODO: this should really not be sys.exit-ing... just need the app to stop
+        sys.exit(exit_code)
 
     def command(
         self,
-        new_command: Union[Command, CommandCallable]
+        new_command: Union[Command, CommandCoroutine]
     ) -> Command:
         """Register a command on this application.
 
         Args:
             new_command: Either a :class:`Command` instance or a
-                :class:`CommandCallable` function. This will be registered
+                :class:`CommandCoroutine` function. This will be registered
                 on this class's :data:`command_engine` attribute.
 
         Returns:
@@ -149,9 +169,7 @@ class Application:
                     f'function {new_command.__name__}'
                 )
 
-            new_command = Command.from_callable(new_command)
-
-        # TODO: decorators and argument handling here?
+            new_command = Command(new_command)
 
         self._command_engine.register(new_command)
         return new_command
@@ -179,5 +197,3 @@ class Application:
     ) -> str:
         """A callback for getting the current page's prompt."""
         return self._page_navigator.current_page.get_prompt()
-
-    # TODO: need a seamless way to force the application to quit
