@@ -38,19 +38,22 @@ class PageNavigatorTestCase(TestCase):
         """Utility for testing exploded path handling."""
         self.assertEqual(
             self.page_navigator.explode(path_to_explode),
-            expected)
+            expected
+        )
 
     def assert_path_is(self, expected: str):
         """Assert the current path of the page_navigator."""
         self.assertEqual(
             str(self.page_navigator.current_page.path),
-            expected)
+            expected
+        )
 
     def assert_match_is(self, pattern: str, expected: List[str]):
         """Assert the matches to the pattern."""
         self.assertEqual(
             [m.path for m in self.page_navigator.match(pattern)],
-            expected)
+            expected
+        )
 
     def test_back_and_forward(self):
         self.assert_path_is('/')

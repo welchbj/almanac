@@ -11,17 +11,20 @@ class PagePathTestCase(TestCase):
     def assert_segments(self, path: str, expected: Tuple[str, ...]):
         self.assertEqual(
             PagePath(path).segments,
-            expected)
+            expected
+        )
 
     def assert_parent_dirs(self, path: str, expected: Tuple[str, ...]):
         self.assertEqual(
             PagePath(path).parent_dirs,
-            expected)
+            expected
+        )
 
     def assert_path(self, path: str, expected: str):
         self.assertEqual(
             PagePath(path).path,
-            expected)
+            expected
+        )
 
     def test_non_absolute(self):
         with self.assertRaises(PositionalValueError):
