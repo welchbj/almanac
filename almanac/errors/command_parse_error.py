@@ -2,10 +2,10 @@
 
 import pyparsing as pp
 
-from .almanac_error import AlmanacError
+from .positional_value_error import PositionalValueError
 
 
-class CommandParseError(AlmanacError):
+class CommandParseError(PositionalValueError):
     """An exception type for when command parsing fails."""
 
     def __init__(
@@ -15,7 +15,7 @@ class CommandParseError(AlmanacError):
         partial_result: pp.ParseResults,
         col: int,
     ) -> None:
-        super().__init__(msg)
+        super().__init__(msg, col-1)
 
         self.remaining = remaining
         self.partial_result = partial_result

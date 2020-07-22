@@ -2,48 +2,36 @@
 
 from __future__ import annotations
 
+import inspect
 import itertools
 
 import pyparsing as pp
 
-from typing import Iterable, Tuple
+from typing import Tuple
 
-from .types import CommandCallable
+from .types import CommandCoroutine
+from ..constants import CommandDefaults
+from ..errors import CommandArgumentError
+from ..utils import capitalized
 
 
 class Command:
     """Encapsulation of a command."""
 
-    @staticmethod
-    def from_callable(
-        command_callable: CommandCallable
-    ) -> Command:
-        """Generate a :class:`Command` instance from a callable."""
-
-        # TODO: need to do some meta-programming to pull out all of the
-        #       arguments and stuff
-        #       this also allows us to stuff some extra stuff on an __almanac_command__
-        #       attribute or similar
-        #       perhaps we need a CommandMetadata structure of some kind?
-
-        return Command(
-            name=command_callable.__name__,
-            doc=command_callable.__doc__,  # type: ignore
-            aliases=tuple(),
-            impl_callable=command_callable
-        )
-
     def __init__(
         self,
-        name: str,
-        doc: str,
-        aliases: Iterable[str],
-        impl_callable: CommandCallable
+        coroutine: CommandCoroutine
     ) -> None:
-        self._name = name
-        self._doc = doc
-        self._aliases = tuple(aliases)
-        self._impl_callable = impl_callable
+        # XXX: these fields will be able to come from decorators, too
+
+        self._name = coroutine.__name__
+        self._aliases: Tuple[str, ...] = tuple()
+
+        maybe_doc = coroutine.__doc__
+        self._doc = maybe_doc if maybe_doc is not None else CommandDefaults.DOC
+
+        self._impl_signature = inspect.signature(coroutine)
+        self._impl_coroutine = coroutine
 
     @property
     def name(
@@ -87,6 +75,16 @@ class Command:
             Anything else -> Something went wrong.
 
         """
-        # TODO: some kind of argument validation, since we know what kinds of arguments
-        #       we should be allowed to receive here
-        return await self._impl_callable(*args.positionals, **args.kv)
+        # Verify that we have a callable set of arguments.
+        try:
+            self._impl_signature.bind(*args.positionals, **args.kv)
+        except TypeError as e:
+            clean_err_msg = capitalized(str(e)) + '.'
+            # TODO: this can also throw a type error if there are too many positionals
+            bound_args = self._impl_signature.bind_partial(*args.positionals, **args.kv)
+            raise CommandArgumentError(clean_err_msg, bound_args) from e
+
+        # Verify the type of all arguments, and promote special cases.
+        # TODO
+
+        return await self._impl_coroutine(*args.positionals, **args.kv)
