@@ -1,5 +1,7 @@
 """Implementation of the ``CommandEngine`` class."""
 
+import pyparsing as pp
+
 from functools import lru_cache
 from typing import List, MutableMapping, Tuple
 
@@ -69,6 +71,38 @@ class CommandEngine:
         return self._command_lookup_table[name_or_alias]
 
     __getitem__ = get
+
+    async def run(
+        self,
+        name_or_alias: str,
+        parsed_args: pp.ParseResults
+    ) -> int:
+        """Run a command, validating the specified arguments."""
+        args = parsed_args.positionals
+        kwargs = parsed_args.kv
+
+        try:
+            command: Command = self[name_or_alias]
+        except NoSuchCommandError as e:
+            raise e
+
+        try:
+            bound_args = command.signature.bind(*args, **kwargs)
+        except TypeError:
+            can_bind = False
+        else:
+            can_bind = True
+
+        # If we can call our function, we do so.
+        if can_bind:
+            return await command.run(*args, **kwargs)
+
+        # Otherwise, we need to figure out what went wrong.
+        # TODO
+
+        # XXX
+        # Attempt to promote arguments to their desired type, if the argument is not of
+        # the expected type and promotion exists.
 
     @lru_cache(maxsize=256)
     def get_suggestions(
