@@ -39,7 +39,10 @@
 
 import pyparsing as pp
 
-from ..errors import CommandParseError
+from enum import auto, Enum
+from typing import List, NamedTuple
+
+from ..errors import CommandPartialParseError, CommandTotalParseError
 
 allowed_symbols_in_string = r'-_/#@£$€%*+~|<>?.'
 
@@ -130,16 +133,61 @@ command = identifier.setResultsName('command')
 command_line = command + key_value + positionals
 
 
-def parse(
+def parse_cmd_line(
     text: str
 ) -> pp.ParseResults:
+    """Attempt to parse the command line as per the grammar defined in this module.
+
+    If the specified text can be fully parsed, then a `pypaysing.ParseResults` will be
+    returned with the following attributes:
+
+        * command: The name or alias of the command.
+        * kv: A dictionary of key-value pairs representing the keyword arguments.
+        * positionals: Any positional argument values.
+
+    Otherwise, a descendant of :class:`CommandParseError` is raised.
+
+    Raises:
+        :class:`CommandPartialParseError`: If the specified text can be partially
+            parsed, but errors still exist.
+        :class:`CommandPartialParseError`: If the text cannot even be partially parsed.
+
+    """
     try:
         result = command_line.parseString(text, parseAll=True)
         return result
     except pp.ParseException as e:
         remaining = e.markInputline()
         remaining = remaining[(remaining.find('>!<') + 3):]
-        partial_result = command_line.parseString(text, parseAll=False)
 
-        new_exc = CommandParseError(str(e), remaining, partial_result, e.col)
-        raise new_exc from e
+        try:
+            partial_result = command_line.parseString(text, parseAll=False)
+        except pp.ParseException as ee:
+            raise CommandTotalParseError(str(ee)) from None
+
+        new_exc = CommandPartialParseError(str(e), remaining, partial_result, e.col)
+        raise new_exc from None
+
+
+class TokenParseState(Enum):
+    OK = auto()
+
+    IN_LIT_DICT = auto()
+    IN_LIT_LIST = auto()
+    IN_LIT_TUPLE = auto()
+    IN_LIT_STR = auto()
+
+
+class TokenParseResults(NamedTuple):
+    state: TokenParseState
+    data: str
+
+
+def parse_token(
+    text: str
+) -> TokenParseResults:
+    literal_state_stack: List[TokenParseState] = []
+
+    # TODO
+
+    return TokenParseResults(TokenParseState.OK, 'test')
