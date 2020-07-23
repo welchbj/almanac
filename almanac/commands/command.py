@@ -80,5 +80,3 @@ class Command:
 
         """
         return await self._impl_coroutine(*args, **kwargs)
-
-
