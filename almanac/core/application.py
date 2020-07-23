@@ -6,7 +6,15 @@ import sys
 import pyparsing as pp
 
 from contextlib import contextmanager
-from typing import Iterator, List, NoReturn, Union
+from typing import (
+    Any,
+    Awaitable,
+    Callable,
+    Iterator,
+    List,
+    NoReturn,
+    Union
+)
 
 from prompt_toolkit import PromptSession
 from prompt_toolkit.patch_stdout import patch_stdout
@@ -102,10 +110,7 @@ class Application:
         name_or_alias = args.command
         try:
             command = self._command_engine[name_or_alias]
-
-            async with current_app_lock():
-                set_current_app(self)
-                return await command.run(args)
+            return await self._call_with_current_app_lock(command.run, args)
         except CommandArgumentError as e:
             self.io.print_err(e)
 
@@ -144,6 +149,17 @@ class Application:
                     pass
 
             return ExitCodes.OK
+
+    async def _call_with_current_app_lock(
+        self,
+        coro: Callable[..., Awaitable[Any]],
+        *args: Any,
+        **kwargs: Any,
+    ) -> Any:
+        """Helper for calling a coroutine with the current application lock acquired."""
+        async with current_app_lock():
+            set_current_app(self)
+            return await coro(*args, **kwargs)
 
     def quit(
         self,
