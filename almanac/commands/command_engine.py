@@ -4,7 +4,7 @@ from functools import lru_cache
 from typing import List, MutableMapping, Tuple
 
 from .command import Command
-from ..errors import CommandNameCollisionError
+from ..errors import CommandNameCollisionError, NoSuchCommandError
 from ..utils import FuzzyMatcher
 
 
@@ -57,12 +57,12 @@ class CommandEngine:
             The mapped :class:`Command` instance.
 
         Raises:
-            KeyError: If the specified ``name_or_alias`` is not contained
+            NoSuchCommandError: If the specified ``name_or_alias`` is not contained
                 within this instance.
 
         """
         if name_or_alias not in self._command_lookup_table.keys():
-            raise KeyError(
+            raise NoSuchCommandError(
                 '`' + name_or_alias + '` is not a configured command name or alias'
             )
 
