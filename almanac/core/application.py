@@ -94,7 +94,7 @@ class Application:
     ) -> int:
         """Evaluate a line passed to the application by the user."""
         try:
-            args: pp.ParseResults = parse_cmd_line(line)
+            parsed_args: pp.ParseResults = parse_cmd_line(line)
         except CommandParseError as e:
             self.io.print_err(
                 'Error in command parsing. Suspected error position marked below:'
@@ -104,13 +104,14 @@ class Application:
 
             return ExitCodes.ERR_COMMAND_PARSING
 
-        if not args:
+        if not parsed_args:
             return ExitCodes.OK
 
-        name_or_alias = args.command
+        name_or_alias = parsed_args.command
         try:
-            command = self._command_engine[name_or_alias]
-            return await self._call_with_current_app_lock(command.run, args)
+            return await self._call_with_current_app_lock(
+                self._command_engine.run, name_or_alias, parsed_args
+            )
         except CommandArgumentError as e:
             self.io.print_err(e)
 

@@ -5,14 +5,10 @@ from __future__ import annotations
 import inspect
 import itertools
 
-import pyparsing as pp
-
 from typing import Tuple
 
 from .types import CommandCoroutine
 from ..constants import CommandDefaults
-from ..errors import CommandArgumentError
-from ..utils import capitalized
 
 
 class Command:
@@ -64,27 +60,25 @@ class Command:
             self._aliases
         ))
 
+    @property
+    def signature(
+        self
+    ) -> inspect.Signature:
+        """The signature of the user-written coroutine wrapped by this command."""
+        return self._impl_signature
+
     async def run(
         self,
-        args: pp.ParseResults
+        *args,
+        **kwargs
     ) -> int:
-        """Run this command.
+        """A thin wrapper around this command's user-provided coroutine.
 
         The return code follows the following pattern:
             0 -> No errors occured.
             Anything else -> Something went wrong.
 
         """
-        # Verify that we have a callable set of arguments.
-        try:
-            self._impl_signature.bind(*args.positionals, **args.kv)
-        except TypeError as e:
-            clean_err_msg = capitalized(str(e)) + '.'
-            # TODO: this can also throw a type error if there are too many positionals
-            bound_args = self._impl_signature.bind_partial(*args.positionals, **args.kv)
-            raise CommandArgumentError(clean_err_msg, bound_args) from e
+        return await self._impl_coroutine(*args, **kwargs)
 
-        # Verify the type of all arguments, and promote special cases.
-        # TODO
 
-        return await self._impl_coroutine(*args.positionals, **args.kv)
