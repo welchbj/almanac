@@ -30,8 +30,9 @@ from ..commands import (
 from ..constants import ExitCodes
 from ..errors import (
     CommandArgumentError,
-    CommandParseError,
+    CommandPartialParseError,
     CommandRegistrationError,
+    CommandTotalParseError,
     NoSuchCommandError
 )
 from ..io import AbstractIoContext, StandardConsoleIoContext
@@ -95,7 +96,7 @@ class Application:
         """Evaluate a line passed to the application by the user."""
         try:
             parsed_args: pp.ParseResults = parse_cmd_line(line)
-        except CommandParseError as e:
+        except CommandPartialParseError as e:
             self.io.print_err(
                 'Error in command parsing. Suspected error position marked below:'
             )
@@ -103,13 +104,16 @@ class Application:
             self.io.print_err(' ' * e.error_pos + '^')
 
             return ExitCodes.ERR_COMMAND_PARSING
+        except CommandTotalParseError:
+            self.io.print_err('Error in command parsing.')
+            return ExitCodes.ERR_COMMAND_PARSING
 
         if not parsed_args:
             return ExitCodes.OK
 
         name_or_alias = parsed_args.command
         try:
-            return await self._call_with_current_app_lock(
+            return await self.call_with_current_app_lock(
                 self._command_engine.run, name_or_alias, parsed_args
             )
         except CommandArgumentError as e:
@@ -151,7 +155,7 @@ class Application:
 
             return ExitCodes.OK
 
-    async def _call_with_current_app_lock(
+    async def call_with_current_app_lock(
         self,
         coro: Callable[..., Awaitable[Any]],
         *args: Any,
