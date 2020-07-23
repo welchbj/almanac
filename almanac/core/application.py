@@ -12,9 +12,20 @@ from prompt_toolkit import PromptSession
 from prompt_toolkit.patch_stdout import patch_stdout
 
 from .context import current_app_lock, set_current_app
-from ..commands import Command, CommandCoroutine, CommandEngine, parse
+from ..commands import (
+    Command,
+    CommandCompleter,
+    CommandCoroutine,
+    CommandEngine,
+    parse_cmd_line
+)
 from ..constants import ExitCodes
-from ..errors import CommandArgumentError, CommandParseError, CommandRegistrationError
+from ..errors import (
+    CommandArgumentError,
+    CommandParseError,
+    CommandRegistrationError,
+    NoSuchCommandError
+)
 from ..io import AbstractIoContext, StandardConsoleIoContext
 from ..pages import PageNavigator
 
@@ -33,8 +44,7 @@ class Application:
         self._page_navigator = PageNavigator()
         self._session = PromptSession(
             message=self._prompt_callback,
-            # TODO: wire in completer implementation here
-            # completer=???
+            completer=CommandCompleter(self),
             complete_while_typing=True,
             complete_in_thread=True
         )
@@ -76,7 +86,7 @@ class Application:
     ) -> int:
         """Evaluate a line passed to the application by the user."""
         try:
-            args: pp.ParseResults = parse(line)
+            args: pp.ParseResults = parse_cmd_line(line)
         except CommandParseError as e:
             self.io.print_err(
                 'Error in command parsing. Suspected error position marked below:'
@@ -103,7 +113,7 @@ class Application:
             print(e.argument_state)
 
             return ExitCodes.ERR_COMMAND_INVALID_ARGUMENTS
-        except KeyError:
+        except NoSuchCommandError:
             self.io.print_err(f'Command {name_or_alias} does not exist')
             self._print_command_suggestions(name_or_alias)
             return ExitCodes.ERR_COMMAND_NONEXISTENT
