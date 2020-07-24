@@ -129,7 +129,7 @@ key_value = pp.Dict(pp.ZeroOrMore(pp.Group(
 
 command = identifier.setResultsName('command')
 
-command_line = command + key_value + positionals
+command_line = command + positionals + key_value
 
 
 def parse_cmd_line(
