@@ -19,7 +19,7 @@ from typing import (
 from prompt_toolkit import PromptSession
 from prompt_toolkit.patch_stdout import patch_stdout
 
-from .context import current_app_lock, set_current_app
+from .context import set_current_app
 from ..commands import (
     Command,
     CommandCompleter,
@@ -113,7 +113,7 @@ class Application:
 
         name_or_alias = parsed_args.command
         try:
-            return await self.call_with_current_app_lock(
+            return await self.call_as_current_app(
                 self._command_engine.run, name_or_alias, parsed_args
             )
         except CommandArgumentError as e:
@@ -155,16 +155,15 @@ class Application:
 
             return ExitCodes.OK
 
-    async def call_with_current_app_lock(
+    async def call_as_current_app(
         self,
         coro: Callable[..., Awaitable[Any]],
         *args: Any,
         **kwargs: Any,
     ) -> Any:
-        """Helper for calling a coroutine with the current application lock acquired."""
-        async with current_app_lock():
-            set_current_app(self)
-            return await coro(*args, **kwargs)
+        """Helper for calling a coroutine with the current app set to this instance."""
+        set_current_app(self)
+        return await coro(*args, **kwargs)
 
     def quit(
         self,
