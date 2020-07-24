@@ -255,7 +255,7 @@ class IncompleteToken:
 def last_incomplete_token(
     document: Document,
     unparsed_text: str
-) -> str:
+) -> IncompleteToken:
     if document.char_before_cursor in ' ]}':
         last_token = ''
     else:
