@@ -39,8 +39,7 @@
 
 import pyparsing as pp
 
-from enum import auto, Enum
-from typing import List, NamedTuple
+from prompt_toolkit.document import Document
 
 from ..errors import CommandPartialParseError, CommandTotalParseError
 
@@ -169,25 +168,106 @@ def parse_cmd_line(
         raise new_exc from None
 
 
-class TokenParseState(Enum):
-    OK = auto()
+class IncompleteToken:
 
-    IN_LIT_DICT = auto()
-    IN_LIT_LIST = auto()
-    IN_LIT_TUPLE = auto()
-    IN_LIT_STR = auto()
+    def __init__(
+        self,
+        token: str
+    ) -> None:
+        self._token = token
+
+        self._key = ''
+        self._value = ''
+        self._is_kw_arg = False
+        self._is_pos_arg = False
+
+        self._parse()
+
+    def _parse(
+        self
+    ) -> None:
+        key, delim, value = self._token.partition('=')
+
+        if any(x in key for x in '[]{}"\''):
+            # Treat the whole token as a positional value.
+            self._is_pos_arg = True
+            self._value = self._token
+            return
+
+        if delim == '=':
+            # This is a key=value.
+            self._is_kw_arg = True
+            self._key = key
+            self._value = value
+        else:
+            # This could either be the beginning of something like key=value or the
+            # positional literal keywest.
+            self._key = self._value = key
+
+    @property
+    def is_kw_arg(
+        self
+    ) -> bool:
+        return self._is_kw_arg
+
+    @property
+    def is_pos_arg(
+        self
+    ) -> bool:
+        return self._is_pos_arg
+
+    @property
+    def is_ambiguous_arg(
+        self
+    ) -> bool:
+        return not self._is_kw_arg and not self._is_pos_arg
+
+    @property
+    def key(
+        self
+    ) -> str:
+        return self._key
+
+    @property
+    def value(
+        self
+    ) -> str:
+        return self._value
+
+    def __str__(
+        self
+    ) -> str:
+        if self.is_kw_arg:
+            return f'kwarg {self._key}={self._value}'
+        elif self.is_pos_arg:
+            return f'positional {self._value}'
+        elif self.is_ambiguous_arg:
+            return f'ambiguous {self._key}'
+        else:
+            return 'Parse error'
+
+    def __repr__(
+        self
+    ) -> str:
+        return f'<{self.__class__.__qualname__} [{str(self)}]>'
 
 
-class TokenParseResults(NamedTuple):
-    state: TokenParseState
-    data: str
+def last_incomplete_token(
+    document: Document,
+    unparsed_text: str
+) -> str:
+    if document.char_before_cursor in ' ]}':
+        last_token = ''
+    else:
+        last_space = document.find_backwards(' ', in_current_line=True)
+        if last_space is None:
+            last_space = -1
 
+        last_token = document.text[last_space+1:]
 
-def parse_token(
-    text: str
-) -> TokenParseResults:
-    literal_state_stack: List[TokenParseState] = []
+    # The longer of the last_token and unparsed_text is taken in the event that the
+    # unparsed_text is an open literal, which could itself contain spaces.
+    if len(unparsed_text) > len(last_token):
+        last_token = unparsed_text
 
-    # TODO
-
-    return TokenParseResults(TokenParseState.OK, 'test')
+    return IncompleteToken(last_token)
