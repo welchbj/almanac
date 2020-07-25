@@ -27,6 +27,7 @@ from ..command_line import (
     CommandCoroutine,
     CommandDecorator,
     CommandEngine,
+    FrozenCommand,
     MutableCommand,
     parse_cmd_line
 )
@@ -197,7 +198,7 @@ class Application:
 
         def wrapped(
             new_command: Union[MutableCommand, CommandCoroutine]
-        ) -> MutableCommand:
+        ) -> FrozenCommand:
             new_command = MutableCommand.ensure_command(new_command)
 
             if name is not None:
@@ -209,8 +210,9 @@ class Application:
             if aliases is not None:
                 new_command.add_alias(*aliases)
 
-            self._command_engine.register(new_command.freeze())
-            return new_command
+            frozen_command = new_command.freeze()
+            self._command_engine.register(frozen_command)
+            return frozen_command
 
         return wrapped
 
