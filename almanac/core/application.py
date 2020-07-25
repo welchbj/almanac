@@ -32,7 +32,9 @@ from ..command_line import (
 )
 from ..command_line.decorators import (
     argument as argument_decorator,
-    completer as completer_decorator
+    completer as completer_decorator,
+    description as description_decorator,
+    name as name_decorator
 )
 from ..constants import ExitCodes
 from ..errors import (
@@ -196,14 +198,23 @@ class Application:
         def wrapped(
             new_command: Union[MutableCommand, CommandCoroutine]
         ) -> MutableCommand:
-            # TODO: actually set the above kwargs!
             new_command = MutableCommand.ensure_command(new_command)
+
+            if name is not None:
+                new_command.name = name
+
+            if description is not None:
+                new_command.description = description
+
+            if aliases is not None:
+                new_command.add_alias(*aliases)
+
             self._command_engine.register(new_command.freeze())
             return new_command
 
         return wrapped
 
-    def aliases(
+    def cmd_aliases(
         self,
         *alias_names: str
     ) -> CommandDecorator:
@@ -218,11 +229,41 @@ class Application:
 
         return wrapped
 
-    # TODO: other shorthands for command-level decorators
+    def cmd_description(
+        self,
+        description: str
+    ) -> CommandDecorator:
+        """Shorthand decorator for specifying a command's description."""
+
+        def wrapped(
+            new_command: Union[MutableCommand, CommandCoroutine]
+        ) -> MutableCommand:
+            new_command = MutableCommand.ensure_command(new_command)
+            new_command.description = description
+            return new_command
+
+        return wrapped
+
+    def cmd_name(
+        self,
+        name: str
+    ) -> CommandDecorator:
+        """Shorthand decorator for specifying a command's name."""
+
+        def wrapped(
+            new_command: Union[MutableCommand, CommandCoroutine]
+        ) -> MutableCommand:
+            new_command = MutableCommand.ensure_command(new_command)
+            new_command.name = name
+            return new_command
+
+        return wrapped
 
     # Argument-modification decorators are stored on this class as a convenience.
-    argument = staticmethod(argument_decorator)
-    completer = staticmethod(completer_decorator)
+    arg = staticmethod(argument_decorator)
+    arg_completer = staticmethod(completer_decorator)
+    arg_description = staticmethod(description_decorator)
+    arg_name = staticmethod(name_decorator)
 
     def _print_command_suggestions(
         self,

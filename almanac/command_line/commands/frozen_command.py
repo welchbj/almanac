@@ -3,7 +3,7 @@
 from __future__ import annotations
 from almanac.errors.arguments.no_such_argument_error import NoSuchArgumentError
 
-from typing import Iterable, Iterator, Mapping, Optional, Tuple, Union
+from typing import Any, Dict, Iterable, Iterator, Mapping, Optional, Tuple, Union
 
 from .command_base import CommandBase
 from ..arguments import FrozenArgument
@@ -39,8 +39,21 @@ class FrozenCommand(CommandBase, Mapping[str, FrozenArgument]):
     # TODO: validate that all of the arguments of the wrapped coroutine are actually
     #       represented with an equivalent FrozenArgument?
 
-    # TODO: method for converting a kwarg dict to reflect the "real" names, instead
-    #       of the ones the user prefers
+    def resolved_kwarg_names(
+        self,
+        kwarg_dict: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Transform keyword argument names from their display to real values.
+
+        Argument display names are those that may have been overriden by the user. To
+        transform a kwarg dict to a form suitable for binding to the original function
+        defintion, we must swap out these argument names to match the wrapped coroutine
+        signature.
+
+        """
+        return {
+            self[name].real_name: value for name, value in kwarg_dict.items()
+        }
 
     def _abstract_description_setter(
         self,
@@ -75,9 +88,6 @@ class FrozenCommand(CommandBase, Mapping[str, FrozenArgument]):
             bound_arguments = self._impl_signature.bind_partial(*args, **kwargs)
         except TypeError:
             return tuple()
-
-        # XXX
-        print(self._argument_map)
 
         bound_param_names = set(bound_arguments.arguments.keys())
         unbound_arguments = tuple(

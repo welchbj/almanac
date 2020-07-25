@@ -53,11 +53,25 @@ class ArgumentBase(ABC):
         """Abstract display name setter to allow for access control."""
 
     @property
-    def real_name(
+    def completer(
         self
-    ) -> str:
-        """The name of this argument within the actual command coroutine."""
-        return self._real_name
+    ) -> Completer:
+        """The completer for this argument."""
+        return self._completer
+
+    @completer.setter
+    def completer(
+        self,
+        new_completer: Completer
+    ) -> None:
+        self._abstract_completer_setter(new_completer)
+
+    @abstractmethod
+    def _abstract_completer_setter(
+        self,
+        new_completer: Completer
+    ) -> None:
+        """Abstract display name setter to allow for access control."""
 
     @property
     def description(
@@ -66,12 +80,26 @@ class ArgumentBase(ABC):
         """A description of what this argument does."""
         return self._description
 
+    @description.setter
+    def description(
+        self,
+        new_description: str
+    ) -> None:
+        self._abstract_description_setter(new_description)
+
+    @abstractmethod
+    def _abstract_description_setter(
+        self,
+        new_description: str
+    ) -> None:
+        """Abstract description setter to allow for access control."""
+
     @property
-    def completer(
+    def real_name(
         self
-    ) -> Completer:
-        """The completer for this argument."""
-        return self._completer
+    ) -> str:
+        """The name of this argument within the actual command coroutine."""
+        return self._real_name
 
     @property
     def param(
