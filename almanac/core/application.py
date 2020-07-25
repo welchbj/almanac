@@ -1,6 +1,5 @@
 """Implementation of the ``Application`` class."""
 
-import asyncio
 import sys
 
 import pyparsing as pp
@@ -10,9 +9,11 @@ from typing import (
     Any,
     Awaitable,
     Callable,
+    Iterable,
     Iterator,
     List,
     NoReturn,
+    Optional,
     Union
 )
 
@@ -20,19 +21,23 @@ from prompt_toolkit import PromptSession
 from prompt_toolkit.patch_stdout import patch_stdout
 
 from .context import set_current_app
-from ..commands import (
-    Command,
+from ..command_line import (
     CommandCompleter,
     CommandCoroutine,
+    CommandDecorator,
     CommandEngine,
+    MutableCommand,
     parse_cmd_line
+)
+from ..command_line.decorators import (
+    argument as argument_decorator,
+    completer as completer_decorator
 )
 from ..constants import ExitCodes
 from ..errors import (
-    CommandArgumentError,
-    CommandPartialParseError,
-    CommandRegistrationError,
-    CommandTotalParseError,
+    BaseArgumentError,
+    PartialParseError,
+    TotalParseError,
     NoSuchCommandError
 )
 from ..io import AbstractIoContext, StandardConsoleIoContext
@@ -96,7 +101,7 @@ class Application:
         """Evaluate a line passed to the application by the user."""
         try:
             parsed_args: pp.ParseResults = parse_cmd_line(line)
-        except CommandPartialParseError as e:
+        except PartialParseError as e:
             self.io.print_err(
                 'Error in command parsing. Suspected error position marked below:'
             )
@@ -104,7 +109,7 @@ class Application:
             self.io.print_err(' ' * e.error_pos + '^')
 
             return ExitCodes.ERR_COMMAND_PARSING
-        except CommandTotalParseError:
+        except TotalParseError:
             self.io.print_err('Error in command parsing.')
             return ExitCodes.ERR_COMMAND_PARSING
 
@@ -116,11 +121,10 @@ class Application:
             return await self.call_as_current_app(
                 self._command_engine.run, name_or_alias, parsed_args
             )
-        except CommandArgumentError as e:
+        except BaseArgumentError as e:
             self.io.print_err(e)
 
             # TODO
-            print(e.argument_state)
 
             return ExitCodes.ERR_COMMAND_INVALID_ARGUMENTS
         except NoSuchCommandError:
@@ -174,35 +178,48 @@ class Application:
 
     def command(
         self,
-        new_command: Union[Command, CommandCoroutine]
-    ) -> Command:
-        """Register a command on this application.
+        *,
+        name: Optional[str] = None,
+        description: Optional[str] = None,
+        aliases: Optional[Union[str, Iterable[str]]] = None
+    ) -> CommandDecorator:
+        """A decorator for registering a command on this application.
 
-        Args:
-            new_command: Either a :class:`Command` instance or a
-                :class:`CommandCoroutine` function. This will be registered
-                on this class's :data:`command_engine` attribute.
-
-        Returns:
-            The created :class:`Command` instance.
-
-        Raises:
-            CommandNameCollisionError: If an attempt is made to register a
-                command with a name or alias(es) that conflict with already-
-                registered commands.
+        This should always be the top-most (i.e., lowest line number) decorator in a
+        stack on top of your command's coroutine.
 
         """
-        if not isinstance(new_command, Command):
-            if not asyncio.iscoroutinefunction(new_command):
-                raise CommandRegistrationError(
-                    'Attempted to register a command with non-async '
-                    f'function {new_command.__name__}'
-                )
 
-            new_command = Command(new_command)
+        def wrapped(
+            new_command: Union[MutableCommand, CommandCoroutine]
+        ) -> MutableCommand:
+            # TODO: actually set the above kwargs!
+            new_command = MutableCommand.ensure_command(new_command)
+            self._command_engine.register(new_command.freeze())
+            return new_command
 
-        self._command_engine.register(new_command)
-        return new_command
+        return wrapped
+
+    def aliases(
+        self,
+        *alias_names: str
+    ) -> CommandDecorator:
+        """Shorthand decorator for specifying a command's alias(es)."""
+
+        def wrapped(
+            new_command: Union[MutableCommand, CommandCoroutine]
+        ) -> MutableCommand:
+            new_command = MutableCommand.ensure_command(new_command)
+            new_command.add_alias(*alias_names)
+            return new_command
+
+        return wrapped
+
+    # TODO: other shorthands for command-level decorators
+
+    # Argument-modification decorators are stored on this class as a convenience.
+    argument = staticmethod(argument_decorator)
+    completer = staticmethod(completer_decorator)
 
     def _print_command_suggestions(
         self,

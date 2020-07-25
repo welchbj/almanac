@@ -1,7 +1,7 @@
 """Default values."""
 
 
-class CommandDefaults:
+class CommandLineDefaults:
     """Default values for various command fields."""
 
     DOC = '... no documentation ...'

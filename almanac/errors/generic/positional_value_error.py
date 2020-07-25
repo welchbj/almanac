@@ -1,6 +1,6 @@
 """Implementation of the ``PositionalValueError`` class."""
 
-from .almanac_error import AlmanacError
+from ..almanac_error import AlmanacError
 
 
 class PositionalValueError(ValueError, AlmanacError):

@@ -1,7 +1,7 @@
 """Exception type for non-existent command-name accesses."""
 
-from .almanac_error import AlmanacError
+from .base_command_error import BaseCommandError
 
 
-class NoSuchCommandError(AlmanacError, KeyError):
+class NoSuchCommandError(BaseCommandError, KeyError):
     """An exception type for resolutions of non-existent commands."""

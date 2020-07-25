@@ -1,2 +1,2 @@
-from .defaults import CommandDefaults  # noqa
+from .defaults import CommandLineDefaults  # noqa
 from .exit_codes import ExitCodes  # noqa
