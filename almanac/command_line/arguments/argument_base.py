@@ -109,6 +109,13 @@ class ArgumentBase(ABC):
         return self._param
 
     @property
+    def annotation(
+        self
+    ) -> Any:
+        """The annotated type of this parameter."""
+        return self._param.annotation
+
+    @property
     def is_pos_only(
         self
     ) -> bool:
