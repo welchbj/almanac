@@ -14,6 +14,7 @@ from typing import (
     List,
     NoReturn,
     Optional,
+    TypeVar,
     Union
 )
 
@@ -42,6 +43,8 @@ from ..errors import (
 )
 from ..io import AbstractIoContext, StandardConsoleIoContext
 from ..pages import PageNavigator
+
+_T = TypeVar('_T')
 
 
 class Application:
@@ -161,10 +164,10 @@ class Application:
 
     async def call_as_current_app(
         self,
-        coro: Callable[..., Awaitable[Any]],
+        coro: Callable[..., Awaitable[_T]],
         *args: Any,
         **kwargs: Any,
-    ) -> Any:
+    ) -> _T:
         """Helper for calling a coroutine with the current app set to this instance."""
         set_current_app(self)
         return await coro(*args, **kwargs)
