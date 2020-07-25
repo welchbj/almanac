@@ -2,10 +2,7 @@
 
 from unittest import TestCase
 
-# from almanac import CommandEngine
-
 
 class CommandEngineTestCase(TestCase):
-
-    def test_dummy(self):
-        assert False
+    # TODO
+    pass
