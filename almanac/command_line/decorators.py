@@ -4,11 +4,11 @@ from typing import Callable, Optional, Union
 
 from prompt_toolkit.completion import Completer
 
-from .commands import MutableCommand
+from .commands import CommandBase, MutableCommand
 from .types import CommandCoroutine
 from ..errors import NoSuchArgumentError
 
-CommandDecorator = Callable[[Union[MutableCommand, CommandCoroutine]], MutableCommand]
+CommandDecorator = Callable[[Union[MutableCommand, CommandCoroutine]], CommandBase]
 
 
 def argument(
