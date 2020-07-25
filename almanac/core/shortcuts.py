@@ -1,7 +1,9 @@
 """Shortcuts for initializing a pre-built application."""
 
 from .application import Application
-from ..commands.builtins import cd, help, ls, quit
+from ..command_line.builtins import cd, help, ls, quit
+
+# TODO: below will probably be decorators soon
 
 
 def make_standard_app(
@@ -16,11 +18,13 @@ def make_standard_app(
     """
     app = Application()
 
-    app.command(help)
-    app.command(quit)
+    register_command = app.command()
+
+    register_command(help)
+    register_command(quit)
 
     if with_pages:
-        app.command(cd)
-        app.command(ls)
+        register_command(cd)
+        register_command(ls)
 
     return app

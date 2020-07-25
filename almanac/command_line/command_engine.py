@@ -2,36 +2,35 @@
 
 import pyparsing as pp
 
-from functools import lru_cache
 from typing import List, MutableMapping, Tuple
 
-from .command import Command
+from .commands import FrozenCommand
 from ..errors import CommandNameCollisionError, NoSuchCommandError
 from ..utils import FuzzyMatcher
 
 
 class CommandEngine:
-    """A command lookup engine."""
+    """A command lookup and management engine."""
 
     def __init__(
         self,
-        *commands_to_register: Command
+        *commands_to_register: FrozenCommand
     ) -> None:
-        self._registered_commands: List[Command] = []
-        self._command_lookup_table: MutableMapping[str, Command] = {}
+        self._registered_commands: List[FrozenCommand] = []
+        self._command_lookup_table: MutableMapping[str, FrozenCommand] = {}
 
         for command in commands_to_register:
             self.register(command)
 
     def register(
         self,
-        command: Command
+        command: FrozenCommand
     ) -> None:
         """Register a command on this class.
 
         Raises:
             CommandNameCollisionError: If the ``name`` or one of the
-                ``aliases`` on the specified :class:`Command` conflicts with an
+                ``aliases`` on the specified :class:`FrozenCommand` conflicts with an
                 entry already stored in this :class:`CommandEngine`.
 
         """
@@ -52,7 +51,7 @@ class CommandEngine:
     def get(
         self,
         name_or_alias: str
-    ) -> Command:
+    ) -> FrozenCommand:
         """Get a :class:`Command` by its name or alias.
 
         Returns:
@@ -81,17 +80,21 @@ class CommandEngine:
         args = parsed_args.positionals
         kwargs = parsed_args.kv
 
+        # TODO: we need to update kwargs to reflect the names of the actual coro args
+
         try:
-            command: Command = self[name_or_alias]
+            command: FrozenCommand = self[name_or_alias]
         except NoSuchCommandError as e:
             raise e
 
         try:
             bound_args = command.signature.bind(*args, **kwargs)
+            can_bind = True
         except TypeError:
             can_bind = False
-        else:
-            can_bind = True
+
+        # TODO: Attempt to promote arguments to their desired type, if the argument is
+        # not of the expected type and promotion callback exists.
 
         # If we can call our function, we do so.
         if can_bind:
@@ -99,12 +102,8 @@ class CommandEngine:
 
         # Otherwise, we need to figure out what went wrong.
         # TODO
+        raise NotImplementedError('Need to implement error generation here')
 
-        # XXX
-        # Attempt to promote arguments to their desired type, if the argument is not of
-        # the expected type and promotion exists.
-
-    @lru_cache(maxsize=256)
     def get_suggestions(
         self,
         name_or_alias: str,
@@ -124,12 +123,18 @@ class CommandEngine:
         )
         return fuzz.matches
 
+    def keys(
+        self
+    ) -> Tuple[str, ...]:
+        """Get a tuple of all registered command names and aliases."""
+        return tuple(self._command_lookup_table.keys())
+
     @property
     def registered_commands(
         self
-    ) -> List[Command]:
-        """The :class:`Command`s registered on this instance."""
-        return self._registered_commands
+    ) -> Tuple[FrozenCommand, ...]:
+        """The :class:`FrozenCommand`s registered on this instance."""
+        return tuple(self._registered_commands)
 
     def __contains__(
         self,

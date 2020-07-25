@@ -1,7 +1,7 @@
 """Exception type for command registration errors."""
 
-from .almanac_error import AlmanacError
+from .base_command_error import BaseCommandError
 
 
-class CommandRegistrationError(AlmanacError):
+class CommandRegistrationError(BaseCommandError):
     """An exception type for invalid command registration."""

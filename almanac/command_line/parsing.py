@@ -41,7 +41,7 @@ import pyparsing as pp
 
 from prompt_toolkit.document import Document
 
-from ..errors import CommandPartialParseError, CommandTotalParseError
+from ..errors import PartialParseError, TotalParseError
 
 allowed_symbols_in_string = r'-_/#@£$€%*+~|<>?.'
 
@@ -162,9 +162,9 @@ def parse_cmd_line(
         try:
             partial_result = command_line.parseString(text, parseAll=False)
         except pp.ParseException as ee:
-            raise CommandTotalParseError(str(ee)) from None
+            raise TotalParseError(str(ee)) from None
 
-        new_exc = CommandPartialParseError(str(e), remaining, partial_result, e.col)
+        new_exc = PartialParseError(str(e), remaining, partial_result, e.col)
         raise new_exc from None
 
 

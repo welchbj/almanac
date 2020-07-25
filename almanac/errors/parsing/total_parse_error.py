@@ -1,7 +1,7 @@
 """Exception type for when command parsing totally fails."""
 
-from .command_parse_error import CommandParseError
+from .base_parse_error import BaseParseError
 
 
-class CommandTotalParseError(CommandParseError):
+class TotalParseError(BaseParseError):
     """Exception type for when command parsing totally fails."""

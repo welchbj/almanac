@@ -4,12 +4,16 @@ from typing import Optional
 
 from ..constants import ExitCodes
 from ..core import current_app
+from ..pages import PagePath
 
 
-async def cd(path: Optional[str] = None) -> int:
+async def cd(path: Optional[PagePath] = None) -> int:
     """Change directories."""
     app = current_app()
+
     app.io.print_info('Called cd')
+    app.io.print_info('path:', path)
+
     return ExitCodes.OK
 
 
@@ -20,7 +24,7 @@ async def help() -> int:
     return ExitCodes.OK
 
 
-async def ls(path: Optional[str] = None) -> int:
+async def ls(path: Optional[PagePath] = None) -> int:
     """List files in a directory."""
     app = current_app()
     app.io.print_info('Called ls')

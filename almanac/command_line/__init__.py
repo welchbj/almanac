@@ -1,7 +1,12 @@
-from .argument import Argument  # noqa
-from .command import Command  # noqa
+from .arguments import *  # noqa
+from .commands import *  # noqa
 from .command_completer import CommandCompleter  # noqa
 from .command_engine import CommandEngine  # noqa
+from .decorators import (  # noqa
+    argument,
+    CommandDecorator,
+    completer
+)
 from .parsing import (  # noqa
     IncompleteToken,
     last_incomplete_token,

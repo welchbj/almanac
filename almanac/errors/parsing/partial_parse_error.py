@@ -2,11 +2,11 @@
 
 import pyparsing as pp
 
-from .command_parse_error import CommandParseError
-from .positional_value_error import PositionalValueError
+from .base_parse_error import BaseParseError
+from ..generic import PositionalValueError
 
 
-class CommandPartialParseError(CommandParseError, PositionalValueError):
+class PartialParseError(BaseParseError, PositionalValueError):
     """An exception type for when command parsing partially fails."""
 
     def __init__(
