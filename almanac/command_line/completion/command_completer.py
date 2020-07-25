@@ -12,12 +12,12 @@ from prompt_toolkit.completion import (
     Completer,
 )
 
-from .commands import FrozenCommand
-from .parsing import IncompleteToken, last_incomplete_token, parse_cmd_line
-from ..errors import PartialParseError, TotalParseError
+from ..commands import FrozenCommand
+from ..parsing import IncompleteToken, last_incomplete_token, parse_cmd_line
+from ...errors import PartialParseError, TotalParseError
 
 if TYPE_CHECKING:
-    from ..core import Application
+    from ...core import Application
 
 
 def _startswith_completions(
@@ -95,10 +95,7 @@ class CommandCompleter(Completer):
         print(last_token)
 
         args = [x for x in parse_results.positionals]
-        kwargs = {k: v for k, v in parse_results.kv.asDict().items()}
-
-        # TODO: need to translate these kwarg names to those that can actually be
-        #       bound to a function
+        kwargs = command.resolved_kwarg_names(parse_results.kv.asDict())
 
         # Check if we want to avoid binding this argument, since we might not know if
         # really a positional argument or actually an incomplete keyword argument.
@@ -129,6 +126,8 @@ class CommandCompleter(Completer):
 
         # Yield possible values for the next positional argument.
         if could_be_key_or_pos_value or last_token.is_pos_arg:
+            # TODO: how do we get the nth pos argument?
+
             # TODO: get completions based on per-argument completer
             # TODO: get completions based on history of argument
             # TODO: get completions if configured as global type
