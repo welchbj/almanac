@@ -1,14 +1,13 @@
 """An immutable command abstraction."""
 
 from __future__ import annotations
-from almanac.errors.arguments.no_such_argument_error import NoSuchArgumentError
 
 from typing import Any, Dict, Iterable, Iterator, Mapping, Optional, Tuple, Union
 
 from .command_base import CommandBase
 from ..arguments import FrozenArgument
 from ..types import CommandCoroutine
-from ...errors import FrozenAccessError
+from ...errors import FrozenAccessError, NoSuchArgumentError
 
 
 class FrozenCommand(CommandBase, Mapping[str, FrozenArgument]):
