@@ -46,8 +46,8 @@ class FrozenCommand(CommandBase, Mapping[str, FrozenArgument]):
 
         Argument display names are those that may have been overriden by the user. To
         transform a kwarg dict to a form suitable for binding to the original function
-        defintion, we must swap out these argument names to match the wrapped coroutine
-        signature.
+        definition, we must swap out these argument names to match the wrapped
+        coroutine signature.
 
         """
         return {
