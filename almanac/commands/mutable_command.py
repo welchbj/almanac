@@ -9,8 +9,8 @@ from typing import Iterable, Iterator, Mapping, MutableMapping, Optional, Union
 from .command_base import CommandBase
 from .frozen_command import FrozenCommand
 from ..arguments import MutableArgument
+from ..errors import CommandRegistrationError, NoSuchArgumentError
 from ..types import CommandCoroutine
-from ...errors import CommandRegistrationError, NoSuchArgumentError
 
 
 class MutableCommand(CommandBase, MutableMapping[str, MutableArgument]):

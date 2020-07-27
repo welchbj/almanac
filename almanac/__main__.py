@@ -5,16 +5,16 @@ import asyncio
 
 from typing import Optional
 
-from almanac import current_app, make_standard_app
-from prompt_toolkit.completion import WordCompleter
+from almanac import current_app, make_standard_app, WordCompleter
 
 
 async def main():
     app = make_standard_app()
 
     @app.command(aliases=['leval'])
-    @app.aliases('literal_eval', 'eval')
-    @app.completer('expr', WordCompleter(['0x10', '["a"]']))
+    @app.cmd_aliases('literal_eval', 'eval')
+    @app.arg_completer('expr', WordCompleter(['0x10', '["a"]']))
+    @app.arg_completer('verbose', WordCompleter(['True', 'False', '1']))
     async def liteval(
         expr: str, verbose: Optional[bool] = False
     ) -> int:

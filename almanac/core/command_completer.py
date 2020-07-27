@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from enum import auto, Enum
 from typing import Iterable, TYPE_CHECKING
 
 from prompt_toolkit.document import Document
@@ -13,11 +12,10 @@ from prompt_toolkit.completion import (
 )
 
 from ..commands import FrozenCommand
-from ..parsing import IncompleteToken, last_incomplete_token, parse_cmd_line
-from ...errors import PartialParseError, TotalParseError
+from ..parsing import IncompleteToken, last_incomplete_token, parse_cmd_line, ParseState
 
 if TYPE_CHECKING:
-    from ...core import Application
+    from .application import Application
 
 
 def _startswith_completions(
@@ -30,13 +28,8 @@ def _startswith_completions(
             yield Completion(candidate, start_position=-len(needle))
 
 
-class _ParseStatus(Enum):
-    FULL = auto()
-    PARTIAL = auto()
-    NONE = auto()
-
-
 class CommandCompleter(Completer):
+    """A completer that provides command argument completion for an application."""
 
     def __init__(
         self,
@@ -53,30 +46,16 @@ class CommandCompleter(Completer):
         cmd_line = document.text
         curr_word = document.get_word_before_cursor()
 
-        try:
-            parse_results = parse_cmd_line(cmd_line)
-            unparsed_text = ''
-            parse_status = _ParseStatus.FULL
-        except PartialParseError as e:
-            parse_results = e.partial_result
-            unparsed_text = e.remaining
-            parse_status = _ParseStatus.PARTIAL
-        except TotalParseError:
-            parse_results = None
-            unparsed_text = cmd_line
-            parse_status = _ParseStatus.NONE
-
-        # XXX
-        print('parse_results:')
-        print(parse_results.asDict())
-        print('curr_word:')
-        print(curr_word)
-        print('parse progress:')
-        print(parse_status)
+        parse_results, unparsed_text, _, parse_status = parse_cmd_line(cmd_line)
 
         # Determine if we are in the command name, in which case we can fall back on
         # the CommandEngine for finding potential command names or aliases.
-        if parse_status == _ParseStatus.NONE or curr_word == parse_results.command:
+        stripped_cmd_line = cmd_line.strip()
+        if parse_status == ParseState.NONE and stripped_cmd_line:
+            # There is non-whitespace, and the parser still fails. The line is
+            # inherently malformed, so any further completions would just build on that.
+            return
+        elif not stripped_cmd_line or curr_word == parse_results.command:
             yield from _startswith_completions(curr_word, self._command_engine.keys())
             return
 
@@ -89,10 +68,6 @@ class CommandCompleter(Completer):
 
         # Determine the last incomplete token.
         last_token: IncompleteToken = last_incomplete_token(document, unparsed_text)
-
-        # XXX
-        print('last_token:')
-        print(last_token)
 
         args = [x for x in parse_results.positionals]
         kwargs = command.resolved_kwarg_names(parse_results.kv.asDict())
@@ -107,35 +82,42 @@ class CommandCompleter(Completer):
         # are our options for future argument-based completions.
         unbound_arguments = command.get_unbound_arguments(*args, **kwargs)
         unbound_kw_args = [x for x in unbound_arguments if not x.is_pos_only]
+        unbound_kw_arg_display_names = set(x.display_name for x in unbound_kw_args)
         unbound_pos_args = [x for x in unbound_arguments if not x.is_kw_only]
-
-        # XXX
-        print('unbound_arguments:')
-        print(unbound_arguments)
 
         could_be_key_or_pos_value = (
             last_token.is_ambiguous_arg and curr_word == last_token.key
         )
 
-        # Yield keyword argument name completions. The second part of this Boolean
-        # clause prevents offering completions in scenarios immediately following a
-        # literal, like [].
+        # Yield keyword argument name completions.
         if could_be_key_or_pos_value:
             corpus = [f'{x.display_name}=' for x in unbound_kw_args]
             yield from _startswith_completions(last_token.key, corpus)
 
         # Yield possible values for the next positional argument.
-        if could_be_key_or_pos_value or last_token.is_pos_arg:
-            # TODO: how do we get the nth pos argument?
+        if unbound_pos_args and (could_be_key_or_pos_value or last_token.is_pos_arg):
+            next_pos_arg_completer = unbound_pos_args[0].completer
 
-            # TODO: get completions based on per-argument completer
-            # TODO: get completions based on history of argument
+            yield from self._app.call_as_current_app(
+                next_pos_arg_completer.get_completions, document, complete_event
+            )
+
             # TODO: get completions if configured as global type
-            pass
 
         # Yield possible values for the current keyword argument.
-        if last_token.is_kw_arg:
-            # TODO: get completions based on per-argument completer
-            # TODO: get completions based on history of argument
+        kwarg_name = last_token.key
+        if last_token.is_kw_arg and kwarg_name in unbound_kw_arg_display_names:
+            kwarg_completer = command[kwarg_name].completer
+
+            yield from self._app.call_as_current_app(
+                kwarg_completer.get_completions, document, complete_event
+            )
+
             # TODO: get completions if configured as global type
-            pass
+
+        # TODO: completions based on the history of the argument?
+        #       will probably be a mechanism implemented on the CommandEngine
+
+        # TODO: if we want to inject global styles into the completions generated here,
+        #       I think we will need some kind of Completion.replace function, and
+        #       re-write properties of each Completion as we yield them

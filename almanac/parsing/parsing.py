@@ -39,6 +39,10 @@
 
 import pyparsing as pp
 
+from enum import auto, Enum
+from functools import lru_cache
+from typing import NamedTuple
+
 from prompt_toolkit.document import Document
 
 from ..errors import PartialParseError, TotalParseError
@@ -132,7 +136,44 @@ command = identifier.setResultsName('command')
 command_line = command + positionals + key_value
 
 
+class ParseState(Enum):
+    FULL = auto()
+    PARTIAL = auto()
+    NONE = auto()
+
+
+class ParseStatus(NamedTuple):
+    results: pp.ParseResults
+    unparsed_text: str
+    unparsed_start_pos: int
+    state: ParseState
+
+
+@lru_cache()
 def parse_cmd_line(
+    text: str
+) -> ParseStatus:
+    """Attempt to parse a command line, returning a :class:`ParseStatus` object."""
+    try:
+        parse_results = _raw_parse_cmd_line(text)
+        unparsed_text = ''
+        unparsed_start_pos = len(text)
+        parse_state = ParseState.FULL
+    except PartialParseError as e:
+        parse_results = e.partial_result
+        unparsed_text = e.remaining
+        unparsed_start_pos = e.error_pos
+        parse_state = ParseState.PARTIAL
+    except TotalParseError:
+        parse_results = None
+        unparsed_text = text
+        unparsed_start_pos = 0
+        parse_state = ParseState.NONE
+
+    return ParseStatus(parse_results, unparsed_text, unparsed_start_pos, parse_state)
+
+
+def _raw_parse_cmd_line(
     text: str
 ) -> pp.ParseResults:
     """Attempt to parse the command line as per the grammar defined in this module.
