@@ -31,8 +31,9 @@ async def ls(path: Optional[PagePath] = None) -> int:
     return ExitCodes.OK
 
 
-async def quit(exit_code: int = ExitCodes.OK) -> int:
+async def quit() -> int:
     """Quit the application."""
     app = current_app()
     app.io.print_info('Quitting!')
-    return app.quit(exit_code)
+    app.quit()
+    return ExitCodes.OK
