@@ -2,8 +2,6 @@
 
 import sys
 
-import pyparsing as pp
-
 from contextlib import contextmanager
 from typing import (
     Any,
@@ -21,31 +19,23 @@ from typing import (
 from prompt_toolkit import PromptSession
 from prompt_toolkit.patch_stdout import patch_stdout
 
+from .command_completer import CommandCompleter
+from .command_engine import CommandEngine
 from .context import set_current_app
-from ..command_line import (
-    CommandCompleter,
-    CommandCoroutine,
-    CommandDecorator,
-    CommandEngine,
-    FrozenCommand,
-    MutableCommand,
-    parse_cmd_line
-)
-from ..command_line.decorators import (
+from .decorators import CommandDecorator
+from .decorators import (
     argument as argument_decorator,
     completer as completer_decorator,
     description as description_decorator,
     name as name_decorator
 )
+from ..commands import FrozenCommand, MutableCommand
 from ..constants import ExitCodes
-from ..errors import (
-    BaseArgumentError,
-    PartialParseError,
-    TotalParseError,
-    NoSuchCommandError
-)
+from ..errors import BaseArgumentError, NoSuchCommandError
 from ..io import AbstractIoContext, StandardConsoleIoContext
 from ..pages import PageNavigator
+from ..parsing import parse_cmd_line, ParseState
+from ..types import CommandCoroutine
 
 _T = TypeVar('_T')
 
@@ -105,26 +95,27 @@ class Application:
         line: str
     ) -> int:
         """Evaluate a line passed to the application by the user."""
-        try:
-            parsed_args: pp.ParseResults = parse_cmd_line(line)
-        except PartialParseError as e:
+        parse_status = parse_cmd_line(line)
+
+        if parse_status.state == ParseState.PARTIAL:
             self.io.print_err(
                 'Error in command parsing. Suspected error position marked below:'
             )
             self.io.print_err(line)
-            self.io.print_err(' ' * e.error_pos + '^')
+            self.io.print_err(' ' * parse_status.unparsed_start_pos + '^')
 
             return ExitCodes.ERR_COMMAND_PARSING
-        except TotalParseError:
+        elif parse_status.state == ParseState.NONE:
             self.io.print_err('Error in command parsing.')
             return ExitCodes.ERR_COMMAND_PARSING
 
+        parsed_args = parse_status.results
         if not parsed_args:
             return ExitCodes.OK
 
         name_or_alias = parsed_args.command
         try:
-            return await self.call_as_current_app(
+            return await self.call_as_current_app_async(
                 self._command_engine.run, name_or_alias, parsed_args
             )
         except BaseArgumentError as e:
@@ -165,13 +156,23 @@ class Application:
 
             return ExitCodes.OK
 
-    async def call_as_current_app(
+    def call_as_current_app(
+        self,
+        func: Callable[..., _T],
+        *args: Any,
+        **kwargs: Any,
+    ) -> _T:
+        """Call a synchronous function with the current app set to this instance."""
+        set_current_app(self)
+        return func(*args, **kwargs)
+
+    async def call_as_current_app_async(
         self,
         coro: Callable[..., Awaitable[_T]],
         *args: Any,
         **kwargs: Any,
     ) -> _T:
-        """Helper for calling a coroutine with the current app set to this instance."""
+        """Call a coroutine with the current app set to this instance."""
         set_current_app(self)
         return await coro(*args, **kwargs)
 

@@ -4,9 +4,9 @@ from typing import Callable, Optional, Union
 
 from prompt_toolkit.completion import Completer
 
-from .commands import CommandBase, MutableCommand
-from .types import CommandCoroutine
+from ..commands import CommandBase, MutableCommand
 from ..errors import NoSuchArgumentError
+from ..types import CommandCoroutine
 
 CommandDecorator = Callable[[Union[MutableCommand, CommandCoroutine]], CommandBase]
 

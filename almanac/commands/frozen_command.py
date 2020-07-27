@@ -6,8 +6,8 @@ from typing import Any, Dict, Iterable, Iterator, Mapping, Optional, Tuple, Unio
 
 from .command_base import CommandBase
 from ..arguments import FrozenArgument
+from ..errors import FrozenAccessError, NoSuchArgumentError
 from ..types import CommandCoroutine
-from ...errors import FrozenAccessError, NoSuchArgumentError
 
 
 class FrozenCommand(CommandBase, Mapping[str, FrozenArgument]):

@@ -4,7 +4,7 @@ import pyparsing as pp
 
 from typing import List, MutableMapping, Tuple
 
-from .commands import FrozenCommand
+from ..commands import FrozenCommand
 from ..errors import CommandNameCollisionError, NoSuchCommandError
 from ..utils import FuzzyMatcher
 

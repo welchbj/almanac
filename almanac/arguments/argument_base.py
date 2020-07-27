@@ -6,7 +6,7 @@ from typing import Any, Optional
 
 from prompt_toolkit.completion import Completer, DummyCompleter
 
-from ...constants import CommandLineDefaults
+from ..constants import CommandLineDefaults
 
 
 class ArgumentBase(ABC):

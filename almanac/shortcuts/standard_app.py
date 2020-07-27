@@ -1,9 +1,7 @@
 """Shortcuts for initializing a pre-built application."""
 
-from .application import Application
-from ..command_line.builtins import cd, help, ls, quit
-
-# TODO: below will probably be decorators soon
+from .builtins import cd, help, ls, quit
+from ..core import Application
 
 
 def make_standard_app(

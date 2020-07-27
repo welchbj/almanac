@@ -40,11 +40,7 @@ def test() -> None:
     )
 
     doctest_modules = [
-        almanac.core.application,
-        almanac.core.shortcuts,
-
-        # TODO: almanac.commands
-        # TODO: almanac.errors
+        # TODO
 
         almanac.pages.abstract_page,
         almanac.pages.directory_page,
