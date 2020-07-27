@@ -203,7 +203,7 @@ class PagePath:
         if isinstance(other, (str, PagePath,)):
             return self._path == str(other)
 
-        return False
+        return NotImplemented
 
     def __hash__(
         self
