@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod, abstractproperty
-from typing import Optional, Set
+from typing import Any, Optional, Set
 
 from .page_path import PagePath, PagePathLike
 
 
 class AbstractPage(ABC):
-    """The base page class."""
+    """The base page interface."""
 
     def __init__(
         self,
@@ -88,10 +88,10 @@ class AbstractPage(ABC):
 
     def __eq__(
         self,
-        other: object
+        other: Any
     ) -> bool:
         if not isinstance(other, AbstractPage):
-            return False
+            return NotImplemented
 
         return self._path == other._path
 
