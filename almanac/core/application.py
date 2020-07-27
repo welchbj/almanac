@@ -1,7 +1,5 @@
 """Implementation of the ``Application`` class."""
 
-import sys
-
 from contextlib import contextmanager
 from typing import (
     Any,
@@ -10,7 +8,6 @@ from typing import (
     Iterable,
     Iterator,
     List,
-    NoReturn,
     Optional,
     TypeVar,
     Union
@@ -50,6 +47,9 @@ class Application:
             StandardConsoleIoContext()
         ]
 
+        self._is_running = False
+        self._do_quit = False
+
         self._command_engine = CommandEngine()
         self._page_navigator = PageNavigator()
         self._session = PromptSession(
@@ -58,6 +58,13 @@ class Application:
             complete_while_typing=True,
             complete_in_thread=True
         )
+
+    @property
+    def is_running(
+        self
+    ) -> bool:
+        """"Whether this application is currently runnnig."""
+        return self._is_running
 
     @property
     def page_navigator(
@@ -138,9 +145,14 @@ class Application:
             The exit code of the application's execution.
 
         """
+        self._is_running = True
+
         with patch_stdout():
             while True:
                 try:
+                    if self._do_quit:
+                        break
+
                     line = (await self._session.prompt_async()).strip()
                     if not line:
                         continue
@@ -152,7 +164,7 @@ class Application:
                     break
                 finally:
                     # TODO: this needs to clean up running tasks
-                    pass
+                    self._is_running = False
 
             return ExitCodes.OK
 
@@ -177,11 +189,10 @@ class Application:
         return await coro(*args, **kwargs)
 
     def quit(
-        self,
-        exit_code: int
-    ) -> NoReturn:
-        # TODO: this should really not be sys.exit-ing... just need the app to stop
-        sys.exit(exit_code)
+        self
+    ) -> None:
+        """Cause this application to cleanly stop running."""
+        self._do_quit = True
 
     def command(
         self,
