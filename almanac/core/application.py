@@ -14,7 +14,9 @@ from typing import (
 )
 
 from prompt_toolkit import PromptSession
+from prompt_toolkit.lexers import PygmentsLexer
 from prompt_toolkit.patch_stdout import patch_stdout
+from prompt_toolkit.styles import Style
 
 from .command_completer import CommandCompleter
 from .command_engine import CommandEngine
@@ -31,7 +33,8 @@ from ..constants import ExitCodes
 from ..errors import BaseArgumentError, NoSuchCommandError
 from ..io import AbstractIoContext, StandardConsoleIoContext
 from ..pages import PageNavigator
-from ..parsing import parse_cmd_line, ParseState
+from ..parsing import get_lexer_cls_for_app, parse_cmd_line, ParseState
+from ..style import DARK_MODE_STYLE
 from ..types import CommandCoroutine
 
 _T = TypeVar('_T')
@@ -41,7 +44,10 @@ class Application:
     """The core class of ``almanac``, wrapping everything together."""
 
     def __init__(
-        self
+        self,
+        with_completion: bool = True,
+        with_style: bool = True,
+        style: Style = DARK_MODE_STYLE
     ) -> None:
         self._io_stack: List[AbstractIoContext] = [
             StandardConsoleIoContext()
@@ -52,12 +58,21 @@ class Application:
 
         self._command_engine = CommandEngine()
         self._page_navigator = PageNavigator()
-        self._session = PromptSession(
-            message=self._prompt_callback,
-            completer=CommandCompleter(self),
-            complete_while_typing=True,
-            complete_in_thread=True
-        )
+
+        self._session_opts = {}
+        self._session_opts['message'] = self._prompt_callback
+
+        if with_completion:
+            self._session_opts['completer'] = CommandCompleter(self)
+            self._session_opts['complete_while_typing'] = True
+            self._session_opts['complete_in_thread'] = True
+
+        if with_style:
+            lexer_cls = get_lexer_cls_for_app(self)
+            self._session_opts['lexer'] = PygmentsLexer(lexer_cls)
+            self._session_opts['style'] = style
+
+        self._session = PromptSession(**self._session_opts)
 
     @property
     def is_running(

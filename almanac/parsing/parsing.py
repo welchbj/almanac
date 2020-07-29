@@ -47,7 +47,22 @@ from prompt_toolkit.document import Document
 
 from ..errors import PartialParseError, TotalParseError
 
-allowed_symbols_in_string = r'-_/#@£$€%*+~|<>?.'
+
+class Patterns:
+    ALLOWED_SYMBOLS_IN_STRING = r'-_/#@£$€%*+~|<>?.'
+    IDENTIFIER = r'([a-zA-Z_][a-zA-Z0-9_\-]*)'
+    WHITESPACE = r'\s+'
+
+    UNQUOTED_STRING = r'([a-zA-Z0-9' + ALLOWED_SYMBOLS_IN_STRING + r']+)'
+    STRING_SINGLE_QUOTE = r"\'([^\\\']|\\.)*\'"
+    STRING_DOUBLE_QUOTE = r'\"([^\\\"]|\\.)*\"'
+
+    BOOLEAN = r'(True|true|False|false)'
+    FLOAT = r'\-?\d+\.\d*([eE]\d+)?'
+    INTEGER = r'\-?\d+'
+
+    KWARG = IDENTIFIER + r'(\s*=\s*)'
+    COMMAND = r'^' + IDENTIFIER + r'(\s+|$)'
 
 
 def _no_transform(x):
@@ -84,9 +99,9 @@ def _parse_type(data_type):
 identifier = pp.Word(pp.alphas + '_-', pp.alphanums + '_-')
 
 # XXX: allow for hex?
-int_value = pp.Regex(r'\-?\d+').setParseAction(_parse_type('int'))
+int_value = pp.Regex(Patterns.INTEGER).setParseAction(_parse_type('int'))
 
-float_value = pp.Regex(r'\-?\d+\.\d*([eE]\d+)?').setParseAction(_parse_type('float'))
+float_value = pp.Regex(Patterns.FLOAT).setParseAction(_parse_type('float'))
 
 bool_value = (
     pp.Literal('True') ^ pp.Literal('true') ^
@@ -96,7 +111,7 @@ bool_value = (
 quoted_string = pp.quotedString.setParseAction(_parse_type('str'))
 
 unquoted_string = pp.Word(
-    pp.alphanums + allowed_symbols_in_string
+    pp.alphanums + Patterns.ALLOWED_SYMBOLS_IN_STRING
 ).setParseAction(_parse_type('str'))
 
 string_value = quoted_string | unquoted_string

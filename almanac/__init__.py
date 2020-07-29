@@ -8,5 +8,6 @@ from .io import *  # noqa
 from .pages import * # noqa
 from .parsing import * # noqa
 from .shortcuts import * # noqa
+from .style import *  # noqa
 from .utils import *  # noqa
 from .version import *  # noqa
