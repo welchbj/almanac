@@ -11,13 +11,10 @@ from almanac import current_app, make_standard_app, WordCompleter
 async def main():
     app = make_standard_app()
 
-    @app.command(aliases=['leval'])
-    @app.cmd_aliases('literal_eval', 'eval')
-    @app.arg_completer('expr', WordCompleter(['0x10', '["a"]']))
-    @app.arg_completer('verbose', WordCompleter(['True', 'False', '1']))
-    async def liteval(
-        expr: str, verbose: Optional[bool] = False
-    ) -> int:
+    @app.cmd.register()
+    @app.cmd(aliases=['literal_eval'])
+    @app.arg.expr(completer=WordCompleter(['0x10', '["a"]']))
+    async def liteval(expr: str, verbose: Optional[bool] = False) -> int:
         """Evaluation of a Python literal."""
         app = current_app()
 
