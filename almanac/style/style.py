@@ -5,18 +5,18 @@ from pygments.token import Keyword, Name, Number, Operator, String, Text
 
 
 DARK_MODE_STYLE = style_from_pygments_dict({
-    Operator: '#C27FF5',
+    Operator: 'ansicyan',
 
     Name.RealCommand: 'ansimagenta',
     Name.NonexistentCommand: 'ansired',
     Name.Kwarg: 'ansibrightmagenta',
 
-    Keyword.Boolean: 'ansiyellow',
+    Keyword.Boolean: 'ansibrightyellow',
     Number.Integer: 'ansiyellow',
     Number.Float: 'ansiyellow',
 
-    String.SingleQuote: 'ansiyellow',
-    String.DoubleQuote: 'ansiyellow',
+    String.SingleQuote: 'ansibrightgreen',
+    String.DoubleQuote: 'ansibrightgreen',
 
     Text: '',
 })
