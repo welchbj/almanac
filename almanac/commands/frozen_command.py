@@ -49,9 +49,13 @@ class FrozenCommand(CommandBase, Mapping[str, FrozenArgument]):
         definition, we must swap out these argument names to match the wrapped
         coroutine signature.
 
+        Any keys in the :param:`kwarg_dict` argument that do not map to valid argument
+        names will be omitted from the returned dictionary.
+
         """
         return {
             self[name].real_name: value for name, value in kwarg_dict.items()
+            if name in self.keys()
         }
 
     def _abstract_description_setter(
