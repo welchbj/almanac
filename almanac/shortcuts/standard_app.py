@@ -16,7 +16,7 @@ def make_standard_app(
     """
     app = Application()
 
-    register_command = app.command()
+    register_command = app.cmd.register()
 
     register_command(help)
     register_command(quit)
