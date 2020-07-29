@@ -8,7 +8,8 @@ from prompt_toolkit.completion import Completer
 
 from ..arguments import MutableArgument
 from ..commands import CommandBase, FrozenCommand, MutableCommand
-from ..errors import NoSuchArgumentError
+from ..errors import InvalidArgumentNameError, NoSuchArgumentError
+from ..parsing import Patterns
 from ..types import CommandCoroutine
 
 CommandDecorator = Callable[[Union[MutableCommand, CommandCoroutine]], CommandBase]
@@ -44,6 +45,9 @@ class ArgumentDecoratorProxy:
                     raise e
 
                 if name is not None:
+                    if not Patterns.is_valid_identifier(name):
+                        raise InvalidArgumentNameError(f'Invalid identifier {name}')
+
                     argument.display_name = name
 
                 if description is not None:
@@ -104,6 +108,9 @@ class CommandDecoratorProxy:
             command: MutableCommand = MutableCommand.ensure_command(command_or_coro)
 
             if name is not None:
+                if not Patterns.is_valid_identifier(name):
+                    raise InvalidArgumentNameError(f'Invalid identifier {name}')
+
                 command.name = name
 
             if description is not None:
