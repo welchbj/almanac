@@ -37,6 +37,8 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+import re
+
 import pyparsing as pp
 
 from enum import auto, Enum
@@ -63,6 +65,13 @@ class Patterns:
 
     KWARG = IDENTIFIER + r'(\s*=\s*)'
     COMMAND = r'^' + IDENTIFIER + r'(\s+|$)'
+
+    @staticmethod
+    def is_valid_identifier(
+        s: str
+    ) -> bool:
+        """Whether the specified string is a valid command name or kwarg identifier."""
+        return bool(re.fullmatch(Patterns.IDENTIFIER, s))
 
 
 def _no_transform(x):
