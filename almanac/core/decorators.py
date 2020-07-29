@@ -30,7 +30,7 @@ class ArgumentDecoratorProxy:
             *,
             name: Optional[str] = None,
             description: Optional[str] = None,
-            completer: Optional[str] = None
+            completer: Optional[Completer] = None
         ) -> CommandDecorator:
 
             def wrapped(
@@ -115,36 +115,3 @@ class CommandDecoratorProxy:
             return command
 
         return wrapped
-
-
-def argument(
-    argument_name: str,
-    *,
-    name: Optional[str] = None,
-    description: Optional[str] = None,
-    completer: Optional[Completer] = None
-) -> CommandDecorator:
-    """Decorator for modifying the fields of a specific argument of a command."""
-
-    def wrapped(
-        command_or_coro: Union[MutableCommand, CommandCoroutine]
-    ) -> MutableCommand:
-        command: MutableCommand = MutableCommand.ensure_command(command_or_coro)
-
-        try:
-            argument = command[argument_name]
-        except NoSuchArgumentError as e:
-            raise e
-
-        if name is not None:
-            argument.display_name = name
-
-        if description is not None:
-            argument.description = description
-
-        if completer is not None:
-            argument.completer = completer
-
-        return command
-
-    return wrapped
