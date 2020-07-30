@@ -192,16 +192,17 @@ class Application:
 
             return ExitCodes.OK
 
-    def add_completer_for_type(
+    def add_completers_for_type(
         self,
         _type: Type,
-        completer: Completer
+        *completers: Completer
     ) -> None:
         """Register a completer for all arguments of a specified type (globally)."""
         if _type not in self._type_completer_mapping.keys():
             self._type_completer_mapping[_type] = []
 
-        self._type_completer_mapping[_type].append(completer)
+        for completer in completers:
+            self._type_completer_mapping[_type].append(completer)
 
     def call_as_current_app(
         self,
