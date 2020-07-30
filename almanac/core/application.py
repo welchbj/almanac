@@ -14,7 +14,11 @@ from .command_engine import CommandEngine
 from .decorators import ArgumentDecoratorProxy, CommandDecoratorProxy
 from ..constants import ExitCodes
 from ..context import set_current_app
-from ..errors import BaseArgumentError, NoSuchCommandError
+from ..errors import (
+    BaseArgumentError,
+    ConflictingPromoterTypesError,
+    NoSuchCommandError
+)
 from ..io import AbstractIoContext, StandardConsoleIoContext
 from ..pages import PageNavigator
 from ..parsing import get_lexer_cls_for_app, parse_cmd_line, ParseState
@@ -43,6 +47,7 @@ class Application:
         self._page_navigator = PageNavigator()
 
         self._type_completer_mapping: Dict[Type, List[Completer]] = {}
+        self._type_promoter_mapping: Dict[Type, Callable] = {}
 
         self._command_decorator_proxy = CommandDecoratorProxy(self)
         self._argument_decorator_proxy = ArgumentDecoratorProxy()
@@ -89,6 +94,13 @@ class Application:
     ) -> Dict[Type, List[Completer]]:
         """A mapping of types to registered global completers."""
         return self._type_completer_mapping
+
+    @property
+    def type_promoter_mapping(
+        self
+    ) -> Dict[Type, Callable[[Any], Any]]:
+        """A mapping of types to callables that convert raw arguments to those types."""
+        return self._type_promoter_mapping
 
     @property
     def page_navigator(
@@ -203,6 +215,20 @@ class Application:
 
         for completer in completers:
             self._type_completer_mapping[_type].append(completer)
+
+    def add_promoter_for_type(
+        self,
+        _type: Type,
+        promoter_callable: Callable
+    ) -> None:
+        """Register a promotion callable for a specific argument type."""
+        if _type in self._type_promoter_mapping.keys():
+            raise ConflictingPromoterTypesError(
+                f'Type {_type} already has a registered promoter callable '
+                f'{promoter_callable}'
+            )
+
+        self._type_promoter_mapping[_type] = promoter_callable
 
     def call_as_current_app(
         self,
