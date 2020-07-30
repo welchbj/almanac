@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import typing
-
 from typing import Any, Iterable, TYPE_CHECKING
 
 from prompt_toolkit.document import Document
@@ -11,11 +9,12 @@ from prompt_toolkit.completion import (
     CompleteEvent,
     Completion,
     Completer,
+    merge_completers
 )
 
 from ..commands import FrozenCommand
-from ..completion import WordCompleter
 from ..parsing import IncompleteToken, last_incomplete_token, parse_cmd_line, ParseState
+from ..types import is_matching_type
 
 if TYPE_CHECKING:
     from .application import Application
@@ -43,14 +42,15 @@ class CommandCompleter(Completer):
 
     def _maybe_complete_for_type(
         self,
-        annotation: Any
+        annotation: Any,
+        document: Document,
+        complete_event: CompleteEvent
     ) -> Iterable[Completion]:
-        origin_cls = typing.get_origin(annotation)
-        if origin_cls is not None:
-            # TODO
-            pass
-
-        return []
+        for _type, completers in self._app.type_completer_mapping.items():
+            if is_matching_type(_type, annotation):
+                yield from merge_completers(completers).get_completions(
+                    document, complete_event
+                )
 
     def get_completions(
         self,
@@ -119,7 +119,8 @@ class CommandCompleter(Completer):
 
             # Completions from any matching application-global type completers.
             yield from self._app.call_as_current_app(
-                self._maybe_complete_for_type, next_pos_arg.annotation
+                self._maybe_complete_for_type,
+                next_pos_arg.annotation, document, complete_event
             )
 
         # Yield possible values for the current keyword argument.
@@ -134,7 +135,8 @@ class CommandCompleter(Completer):
 
             # Completions from any matching application-global type completers.
             yield from self._app.call_as_current_app(
-                self._maybe_complete_for_type, matching_kw_arg.annotation
+                self._maybe_complete_for_type,
+                matching_kw_arg.annotation, document, complete_event
             )
 
         # TODO: completions based on the history of the argument?

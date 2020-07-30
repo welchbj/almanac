@@ -28,8 +28,8 @@ def make_standard_app(
         style=style
     )
 
-    app.add_completer_for_type(bool, WordCompleter(['True', 'False']))
-    app.add_completer_for_type(PagePath, PagePathCompleter())
+    app.add_completers_for_type(bool, WordCompleter(['True', 'False']))
+    app.add_completers_for_type(PagePath, PagePathCompleter())
 
     register_command = app.cmd.register()
 
