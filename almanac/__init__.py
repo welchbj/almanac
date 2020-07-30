@@ -2,6 +2,7 @@ from .arguments import *  # noqa
 from .commands import *  # noqa
 from .completion import *  # noqa
 from .constants import *  # noqa
+from .context import *  # noqa
 from .core import *  # noqa
 from .errors import *  # noqa
 from .io import *  # noqa

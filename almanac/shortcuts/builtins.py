@@ -3,8 +3,8 @@
 from typing import Optional
 
 from ..constants import ExitCodes
-from ..core import current_app
 from ..pages import PagePath
+from ..context import current_app
 
 
 async def cd(path: Optional[PagePath] = None) -> int:

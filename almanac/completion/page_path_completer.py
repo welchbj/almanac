@@ -6,7 +6,7 @@ from prompt_toolkit.completion import CompleteEvent, Completer
 from prompt_toolkit.completion.base import Completion
 from prompt_toolkit.document import Document
 
-from ..core import current_app
+from ..context import current_app
 
 
 class PagePathCompleter(Completer):
