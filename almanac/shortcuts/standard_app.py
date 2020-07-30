@@ -29,7 +29,6 @@ def make_standard_app(
     )
 
     app.add_completers_for_type(bool, WordCompleter(['True', 'False']))
-    app.add_completers_for_type(PagePath, PagePathCompleter())
 
     register_command = app.cmd.register()
 
@@ -37,6 +36,9 @@ def make_standard_app(
     register_command(quit)
 
     if with_pages:
+        app.add_completers_for_type(PagePath, PagePathCompleter())
+        app.add_promoter_for_type(PagePath, PagePath)
+
         register_command(cd)
         register_command(ls)
 
