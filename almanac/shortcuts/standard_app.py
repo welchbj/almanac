@@ -1,11 +1,19 @@
 """Shortcuts for initializing a pre-built application."""
 
+from prompt_toolkit.styles import Style
+
 from .builtins import cd, help, ls, quit
+from ..completion import PagePathCompleter, WordCompleter
 from ..core import Application
+from ..pages import PagePath
+from ..style import DARK_MODE_STYLE
 
 
 def make_standard_app(
-    with_pages: bool = True
+    with_completion: bool = True,
+    with_pages: bool = True,
+    with_style: bool = True,
+    style: Style = DARK_MODE_STYLE
 ) -> Application:
     """Instantiate and configure a standard application.
 
@@ -14,7 +22,14 @@ def make_standard_app(
     registered (quit, help, etc.).
 
     """
-    app = Application()
+    app = Application(
+        with_completion=with_completion,
+        with_style=with_style,
+        style=style
+    )
+
+    app.add_completer_for_type(bool, WordCompleter(['True', 'False']))
+    app.add_completer_for_type(PagePath, PagePathCompleter())
 
     register_command = app.cmd.register()
 

@@ -1,18 +1,19 @@
 """Implementation of the ``Application`` class."""
 
 from contextlib import contextmanager
-from typing import Any, Awaitable, Callable, Dict, Iterator, List, TypeVar
+from typing import Any, Awaitable, Callable, Dict, Iterator, List, Type, TypeVar
 
 from prompt_toolkit import PromptSession
+from prompt_toolkit.completion import Completer
 from prompt_toolkit.lexers import PygmentsLexer
 from prompt_toolkit.patch_stdout import patch_stdout
 from prompt_toolkit.styles import Style
 
 from .command_completer import CommandCompleter
 from .command_engine import CommandEngine
-from .context import set_current_app
 from .decorators import ArgumentDecoratorProxy, CommandDecoratorProxy
 from ..constants import ExitCodes
+from ..context import set_current_app
 from ..errors import BaseArgumentError, NoSuchCommandError
 from ..io import AbstractIoContext, StandardConsoleIoContext
 from ..pages import PageNavigator
@@ -40,6 +41,8 @@ class Application:
 
         self._command_engine = CommandEngine()
         self._page_navigator = PageNavigator()
+
+        self._type_completer_mapping: Dict[Type, List[Completer]] = {}
 
         self._command_decorator_proxy = CommandDecoratorProxy(self)
         self._argument_decorator_proxy = ArgumentDecoratorProxy()
@@ -79,6 +82,13 @@ class Application:
     ) -> bool:
         """"Whether this application is currently runnnig."""
         return self._is_running
+
+    @property
+    def type_completer_mapping(
+        self
+    ) -> Dict[Type, List[Completer]]:
+        """A mapping of types to registered global completers."""
+        return self._type_completer_mapping
 
     @property
     def page_navigator(
@@ -181,6 +191,17 @@ class Application:
                     self._is_running = False
 
             return ExitCodes.OK
+
+    def add_completer_for_type(
+        self,
+        _type: Type,
+        completer: Completer
+    ) -> None:
+        """Register a completer for all arguments of a specified type (globally)."""
+        if _type not in self._type_completer_mapping.keys():
+            self._type_completer_mapping[_type] = []
+
+        self._type_completer_mapping[_type].append(completer)
 
     def call_as_current_app(
         self,

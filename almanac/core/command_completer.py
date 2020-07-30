@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
-from typing import Iterable, TYPE_CHECKING
+import typing
+
+from typing import Any, Iterable, TYPE_CHECKING
 
 from prompt_toolkit.document import Document
 from prompt_toolkit.completion import (
@@ -12,6 +14,7 @@ from prompt_toolkit.completion import (
 )
 
 from ..commands import FrozenCommand
+from ..completion import WordCompleter
 from ..parsing import IncompleteToken, last_incomplete_token, parse_cmd_line, ParseState
 
 if TYPE_CHECKING:
@@ -37,6 +40,17 @@ class CommandCompleter(Completer):
     ) -> None:
         self._app = app
         self._command_engine = app.command_engine
+
+    def _maybe_complete_for_type(
+        self,
+        annotation: Any
+    ) -> Iterable[Completion]:
+        origin_cls = typing.get_origin(annotation)
+        if origin_cls is not None:
+            # TODO
+            pass
+
+        return []
 
     def get_completions(
         self,
@@ -96,24 +110,32 @@ class CommandCompleter(Completer):
 
         # Yield possible values for the next positional argument.
         if unbound_pos_args and (could_be_key_or_pos_value or last_token.is_pos_arg):
-            next_pos_arg_completer = unbound_pos_args[0].completer
+            next_pos_arg = unbound_pos_args[0]
 
+            # Completions from any per-argument registered completer.
             yield from self._app.call_as_current_app(
-                next_pos_arg_completer.get_completions, document, complete_event
+                next_pos_arg.completer.get_completions, document, complete_event
             )
 
-            # TODO: get completions if configured as global type
+            # Completions from any matching application-global type completers.
+            yield from self._app.call_as_current_app(
+                self._maybe_complete_for_type, next_pos_arg.annotation
+            )
 
         # Yield possible values for the current keyword argument.
         kwarg_name = last_token.key
         if last_token.is_kw_arg and kwarg_name in unbound_kw_arg_display_names:
-            kwarg_completer = command[kwarg_name].completer
+            matching_kw_arg = command[kwarg_name]
 
+            # Completions from any per-argument registered completer.
             yield from self._app.call_as_current_app(
-                kwarg_completer.get_completions, document, complete_event
+                matching_kw_arg.completer.get_completions, document, complete_event
             )
 
-            # TODO: get completions if configured as global type
+            # Completions from any matching application-global type completers.
+            yield from self._app.call_as_current_app(
+                self._maybe_complete_for_type, matching_kw_arg.annotation
+            )
 
         # TODO: completions based on the history of the argument?
         #       will probably be a mechanism implemented on the CommandEngine
