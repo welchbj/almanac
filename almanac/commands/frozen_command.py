@@ -127,9 +127,7 @@ class FrozenCommand(CommandBase, Mapping[str, FrozenArgument]):
         try:
             return self._argument_map[argument_display_name]
         except KeyError:
-            raise NoSuchArgumentError(
-                f'No such argument with display name {argument_display_name}'
-            )
+            raise NoSuchArgumentError(argument_display_name)
 
     def __len__(
         self
