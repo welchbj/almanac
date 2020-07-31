@@ -97,9 +97,9 @@ class Application:
     @property
     def type_promoter_mapping(
         self
-    ) -> Dict[Type, Callable[[Any], Any]]:
+    ) -> Dict[Type, Callable]:
         """A mapping of types to callables that convert raw arguments to those types."""
-        return self._.command_engine.type_promoter_mapping
+        return self._command_engine.type_promoter_mapping
 
     @property
     def page_navigator(
