@@ -13,7 +13,7 @@ class NoSuchArgumentError(BaseArgumentError, KeyError):
         *names: str
     ) -> None:
         if not names:
-            msg = f'No such argument with specified name.'
+            msg = 'No such argument with specified name.'
         elif len(names) == 1:
             msg = f'No such argument with name {names[0]}'
         elif len(names) == 2:
@@ -28,6 +28,6 @@ class NoSuchArgumentError(BaseArgumentError, KeyError):
     @property
     def names(
         self
-    ) -> Tuple[str]:
+    ) -> Tuple[str, ...]:
         """A list of argument names that spawned this error."""
         return self._names
