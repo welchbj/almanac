@@ -33,9 +33,9 @@ class CommandEngine:
     @property
     def type_promoter_mapping(
         self
-    ) -> Dict[Type, Callable[[Any], Any]]:
+    ) -> Dict[Type, Callable]:
         """A mapping of types to callables that convert raw arguments to those types."""
-        return self._.command_engine.type_promoter_mapping
+        return self._type_promoter_mapping
 
     def add_promoter_for_type(
         self,
@@ -134,6 +134,7 @@ class CommandEngine:
                     if not is_matching_type(_type, arg_annotation):
                         continue
 
+                    new_value: Any
                     if param.kind == param.VAR_POSITIONAL:
                         # Promote over all entries in a *args variant.
                         new_value = tuple(promoter_callable(x) for x in value)
