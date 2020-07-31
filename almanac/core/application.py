@@ -47,7 +47,6 @@ class Application:
         self._page_navigator = PageNavigator()
 
         self._type_completer_mapping: Dict[Type, List[Completer]] = {}
-        self._type_promoter_mapping: Dict[Type, Callable] = {}
 
         self._command_decorator_proxy = CommandDecoratorProxy(self)
         self._argument_decorator_proxy = ArgumentDecoratorProxy()
@@ -100,7 +99,7 @@ class Application:
         self
     ) -> Dict[Type, Callable[[Any], Any]]:
         """A mapping of types to callables that convert raw arguments to those types."""
-        return self._type_promoter_mapping
+        return self._.command_engine.type_promoter_mapping
 
     @property
     def page_navigator(
@@ -222,13 +221,10 @@ class Application:
         promoter_callable: Callable
     ) -> None:
         """Register a promotion callable for a specific argument type."""
-        if _type in self._type_promoter_mapping.keys():
-            raise ConflictingPromoterTypesError(
-                f'Type {_type} already has a registered promoter callable '
-                f'{promoter_callable}'
-            )
-
-        self._type_promoter_mapping[_type] = promoter_callable
+        try:
+            self._command_engine.add_promoter_for_type(_type, promoter_callable)
+        except ConflictingPromoterTypesError as e:
+            raise e
 
     def call_as_current_app(
         self,

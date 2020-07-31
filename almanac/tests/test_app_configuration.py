@@ -1,6 +1,5 @@
 """Tests for application configuration."""
 
-import almanac
 from unittest import TestCase
 
 from almanac import Application
