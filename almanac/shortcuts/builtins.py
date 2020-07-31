@@ -1,9 +1,7 @@
 """Implementation of builtin commands."""
 
-from typing import Optional
-
 from ..constants import ExitCodes
-from ..pages import PagePath
+from ..pages import PagePath, PagePathLike
 from ..context import current_app
 
 
@@ -26,12 +24,9 @@ async def help() -> int:
     return ExitCodes.OK
 
 
-async def ls(path: Optional[PagePath] = None) -> int:
+async def ls(path: PagePathLike = '.') -> int:
     """List files in a directory."""
     app = current_app()
-
-    if path is None:
-        path = app.page_navigator.explode('.')
 
     for child_page in app.page_navigator[path].children:
         app.io.print_raw(child_page.path)
