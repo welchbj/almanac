@@ -1,11 +1,18 @@
 """Implementation of the ``CommandEngine`` class."""
 
+import inspect
+
 import pyparsing as pp
 
-from typing import List, MutableMapping, Tuple
+from typing import Any, Callable, Dict, List, MutableMapping, Tuple, Type
 
 from ..commands import FrozenCommand
-from ..errors import CommandNameCollisionError, NoSuchCommandError
+from ..errors import (
+    CommandNameCollisionError,
+    ConflictingPromoterTypesError,
+    NoSuchCommandError
+)
+from ..types import is_matching_type
 from ..utils import FuzzyMatcher
 
 
@@ -18,9 +25,31 @@ class CommandEngine:
     ) -> None:
         self._registered_commands: List[FrozenCommand] = []
         self._command_lookup_table: MutableMapping[str, FrozenCommand] = {}
+        self._type_promoter_mapping: Dict[Type, Callable] = {}
 
         for command in commands_to_register:
             self.register(command)
+
+    @property
+    def type_promoter_mapping(
+        self
+    ) -> Dict[Type, Callable[[Any], Any]]:
+        """A mapping of types to callables that convert raw arguments to those types."""
+        return self._.command_engine.type_promoter_mapping
+
+    def add_promoter_for_type(
+        self,
+        _type: Type,
+        promoter_callable: Callable
+    ) -> None:
+        """Register a promotion callable for a specific argument type."""
+        if _type in self._type_promoter_mapping.keys():
+            raise ConflictingPromoterTypesError(
+                f'Type {_type} already has a registered promoter callable '
+                f'{promoter_callable}'
+            )
+
+        self._type_promoter_mapping[_type] = promoter_callable
 
     def register(
         self,
@@ -77,32 +106,71 @@ class CommandEngine:
         parsed_args: pp.ParseResults
     ) -> int:
         """Run a command, validating the specified arguments."""
-        args = parsed_args.positionals
-        kwargs = parsed_args.kv
-
-        # TODO: we need to update kwargs to reflect the names of the actual coro args
-
         try:
             command: FrozenCommand = self[name_or_alias]
+            coro_signature: inspect.Signature = command.signature
         except NoSuchCommandError as e:
             raise e
 
+        args = [x for x in parsed_args.positionals]
+        raw_kwargs = {k: v for k, v in parsed_args.kv.asDict().items()}
+        resolved_kwargs = command.resolved_kwarg_names(raw_kwargs)
+        merged_kwarg_dicts = {**raw_kwargs, **resolved_kwargs}
+
         try:
-            bound_args = command.signature.bind(*args, **kwargs)
+            bound_args = command.signature.bind(*args, **merged_kwarg_dicts)
             can_bind = True
         except TypeError:
             can_bind = False
 
-        # TODO: Attempt to promote arguments to their desired type, if the argument is
-        # not of the expected type and promotion callback exists.
-
-        # If we can call our function, we do so.
+        # If we can call our function, we next promote all promotable arguments and
+        # execute the call.
         if can_bind:
-            return await command.run(*args, **kwargs)
+            for arg_name, value in bound_args.arguments.items():
+                param = coro_signature.parameters[arg_name]
+                arg_annotation = param.annotation
 
-        # Otherwise, we need to figure out what went wrong.
+                for _type, promoter_callable in self._type_promoter_mapping.items():
+                    if not is_matching_type(_type, arg_annotation):
+                        continue
+
+                    if param.kind == param.VAR_POSITIONAL:
+                        # Promote over all entries in a *args variant.
+                        new_value = tuple(promoter_callable(x) for x in value)
+                    elif param.kind == param.VAR_KEYWORD:
+                        # Promote over all values in a **kwargs variant.
+                        new_value = {
+                            k: promoter_callable(v) for k, v in value.items()
+                        }
+                    else:
+                        # Promote a single value.
+                        new_value = promoter_callable(value)
+
+                    bound_args.arguments[arg_name] = new_value
+
+            return await command.run(*bound_args.args, **bound_args.kwargs)
+
+        # Otherwise, we do some inspection to generate an informative error.
+        try:
+            partially_bound_args = command.signature.bind_partial(
+                *args, **merged_kwarg_dicts
+            )
+            partially_bound_args.apply_defaults()
+            can_partially_bind = True
+        except TypeError:
+            can_partially_bind = False
+
+        if not can_partially_bind:
+            # If we can't even partially bind, the failure is likely due to using an
+            # invalid kwarg name or specifying too many positional arguments.
+
+            # TODO
+            pass
+
+        # If we got this far, then we could at least partially bind to the coroutine
+        # signature. This means we are likely just missing some required arguments,
+        # which we can now enumerate.
         # TODO
-        raise NotImplementedError('Need to implement error generation here')
 
     def get_suggestions(
         self,
