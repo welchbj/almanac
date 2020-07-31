@@ -226,6 +226,20 @@ class Application:
         except ConflictingPromoterTypesError as e:
             raise e
 
+    def promoter_for(
+        self,
+        _type: Type[_T]
+    ) -> Callable[[Any], Callable[[Any], _T]]:
+        """A decorator for specifying inline promotion callbacks."""
+
+        def decorator(
+            f: Callable[[Any], _T]
+        ) -> Callable[[Any], _T]:
+            self.add_promoter_for_type(_type, f)
+            return f
+
+        return decorator
+
     def call_as_current_app(
         self,
         func: Callable[..., _T],

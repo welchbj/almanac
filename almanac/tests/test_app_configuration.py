@@ -14,3 +14,11 @@ class TestAppConfiguration(TestCase):
 
         with self.assertRaises(ConflictingPromoterTypesError):
             app.add_promoter_for_type(bool, str)
+
+        app = Application()
+        app.add_promoter_for_type(int, str)
+
+        with self.assertRaises(ConflictingPromoterTypesError):
+            @app.promoter_for(int)
+            def promoter_callback(x: int) -> str:
+                return str(x)
