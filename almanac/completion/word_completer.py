@@ -2,8 +2,7 @@
 
 from typing import Callable, Iterable, List, Union
 
-from prompt_toolkit.completion import CompleteEvent, Completer
-from prompt_toolkit.completion.base import Completion
+from prompt_toolkit.completion import CompleteEvent, Completion, Completer
 from prompt_toolkit.document import Document
 
 from ..parsing import parse_cmd_line, last_incomplete_token
