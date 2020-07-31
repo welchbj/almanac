@@ -106,9 +106,7 @@ class MutableCommand(CommandBase, MutableMapping[str, MutableArgument]):
         try:
             del self._argument_map[argument_real_name]
         except KeyError:
-            raise NoSuchArgumentError(
-                f'No such argument with real name {argument_real_name}'
-            )
+            raise NoSuchArgumentError(argument_real_name)
 
     def __iter__(
         self
@@ -122,9 +120,7 @@ class MutableCommand(CommandBase, MutableMapping[str, MutableArgument]):
         try:
             return self._argument_map[argument_real_name]
         except KeyError:
-            raise NoSuchArgumentError(
-                f'No such argument with real name {argument_real_name}'
-            )
+            raise NoSuchArgumentError(argument_real_name)
 
     def __len__(
         self
