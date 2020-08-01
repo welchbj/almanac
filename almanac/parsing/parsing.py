@@ -125,7 +125,7 @@ unquoted_string = pp.Word(
 
 string_value = quoted_string | unquoted_string
 
-single_value = bool_value | float_value | string_value | int_value
+single_value = bool_value | float_value | int_value | string_value
 
 list_value = pp.Group(
     pp.Suppress('[') +
