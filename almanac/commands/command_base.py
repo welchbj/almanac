@@ -41,6 +41,29 @@ class CommandBase(ABC):
         self._impl_signature = inspect.signature(coroutine)
         self._impl_coroutine = coroutine
 
+        self._has_var_kw_arg = any(
+            p.kind == p.VAR_KEYWORD for _, p in
+            self._impl_signature.parameters.items()
+        )
+        self._has_var_pos_arg = any(
+            p.kind == p.VAR_POSITIONAL for _, p in
+            self._impl_signature.parameters.items()
+        )
+
+    @property
+    def has_var_kw_arg(
+        self
+    ) -> bool:
+        """Whether this command has a **kwargs argument."""
+        return self._has_var_kw_arg
+
+    @property
+    def has_var_pos_arg(
+        self
+    ) -> bool:
+        """Whether this command has a *args argument."""
+        return self._has_var_kw_arg
+
     @property
     def name(
         self
