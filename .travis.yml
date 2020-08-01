@@ -16,5 +16,5 @@ install:
 script:
 - pwd; which python
 - python tasks.py test
-- python flake8 .
-- python mypy .
+- flake8 .
+- mypy .
