@@ -1,62 +1,108 @@
 """Implementation of the ``Application`` class."""
 
-import asyncio
-import shlex
+from contextlib import contextmanager
+from typing import Any, Awaitable, Callable, Dict, Iterator, List, Type, TypeVar
 
-from contextlib import (
-    contextmanager)
-from typing import (
-    Iterator,
-    List,
-    Union)
+from prompt_toolkit import PromptSession
+from prompt_toolkit.completion import Completer
+from prompt_toolkit.lexers import PygmentsLexer
+from prompt_toolkit.patch_stdout import patch_stdout
+from prompt_toolkit.styles import Style
 
-from docopt import (
-    docopt,
-    DocoptExit)
-from prompt_toolkit import (
-    PromptSession)
-from prompt_toolkit.patch_stdout import (
-    patch_stdout)
-
-from ..commands import (
-    Command,
-    CommandCallable,
-    CommandEngine)
+from .command_completer import CommandCompleter
+from .command_engine import CommandEngine
+from .decorators import ArgumentDecoratorProxy, CommandDecoratorProxy
+from ..constants import ExitCodes
+from ..context import set_current_app
 from ..errors import (
-    CommandRegistrationError)
-from ..pages import (
-    PageNavigator)
-from ..io import (
-    AbstractIoContext,
-    StandardConsoleIoContext)
+    BaseArgumentError,
+    ConflictingPromoterTypesError,
+    NoSuchCommandError
+)
+from ..io import AbstractIoContext, StandardConsoleIoContext
+from ..pages import PageNavigator
+from ..parsing import get_lexer_cls_for_app, parse_cmd_line, ParseState
+from ..style import DARK_MODE_STYLE
+
+_T = TypeVar('_T')
 
 
 class Application:
-    """The core class of ``almanac``, wrapping everything together.
-
-    Attributes:
-        TODO
-
-    TODO: examples
-
-    """
+    """The core class of ``almanac``, wrapping everything together."""
 
     def __init__(
-        self
+        self,
+        *,
+        with_completion: bool = True,
+        with_style: bool = True,
+        style: Style = DARK_MODE_STYLE,
+        io_context_cls: Type[AbstractIoContext] = StandardConsoleIoContext,
+        propagate_runtime_exceptions: bool = False
     ) -> None:
-        # TODO: load some configuration options and put them into the session
+        self._io_stack: List[AbstractIoContext] = [io_context_cls()]
 
-        self._io_stack: List[AbstractIoContext] = [
-            StandardConsoleIoContext()
-        ]
+        self._is_running = False
+        self._do_quit = False
+
+        self._propagate_runtime_exceptions = propagate_runtime_exceptions
 
         self._command_engine = CommandEngine()
         self._page_navigator = PageNavigator()
-        self._session = PromptSession(
-            message=self._prompt_callback,
-            # completer=TODO
-            complete_while_typing=True,
-            complete_in_thread=True)
+
+        self._type_completer_mapping: Dict[Type, List[Completer]] = {}
+
+        self._command_decorator_proxy = CommandDecoratorProxy(self)
+        self._argument_decorator_proxy = ArgumentDecoratorProxy()
+
+        self._session_opts: Dict[str, Any] = {}
+        self._session_opts['message'] = self._prompt_callback
+
+        if with_completion:
+            self._session_opts['completer'] = CommandCompleter(self)
+            self._session_opts['complete_while_typing'] = True
+            self._session_opts['complete_in_thread'] = True
+
+        if with_style:
+            lexer_cls = get_lexer_cls_for_app(self)
+            self._session_opts['lexer'] = PygmentsLexer(lexer_cls)
+            self._session_opts['style'] = style
+
+        self._session = PromptSession(**self._session_opts)
+
+    @property
+    def cmd(
+        self
+    ) -> CommandDecoratorProxy:
+        """The interface for command-mutating decorators."""
+        return self._command_decorator_proxy
+
+    @property
+    def arg(
+        self
+    ) -> ArgumentDecoratorProxy:
+        """The interface for argument-mutating decorators."""
+        return self._argument_decorator_proxy
+
+    @property
+    def is_running(
+        self
+    ) -> bool:
+        """"Whether this application is currently runnnig."""
+        return self._is_running
+
+    @property
+    def type_completer_mapping(
+        self
+    ) -> Dict[Type, List[Completer]]:
+        """A mapping of types to registered global completers."""
+        return self._type_completer_mapping
+
+    @property
+    def type_promoter_mapping(
+        self
+    ) -> Dict[Type, Callable]:
+        """A mapping of types to callables that convert raw arguments to those types."""
+        return self._command_engine.type_promoter_mapping
 
     @property
     def page_navigator(
@@ -94,28 +140,41 @@ class Application:
         line: str
     ) -> int:
         """Evaluate a line passed to the application by the user."""
-        args = shlex.split(line)
-        if not args:
-            return 0
+        parse_status = parse_cmd_line(line)
 
-        name_or_alias = args[0]
+        if parse_status.state == ParseState.PARTIAL:
+            self.io.print_err(
+                'Error in command parsing. Suspected error position marked below:'
+            )
+            self.io.print_err(line)
+            self.io.print_err(' ' * parse_status.unparsed_start_pos + '^')
+
+            return ExitCodes.ERR_COMMAND_PARSING
+        elif parse_status.state == ParseState.NONE:
+            self.io.print_err('Error in command parsing.')
+            return ExitCodes.ERR_COMMAND_PARSING
+
+        parsed_args = parse_status.results
+        if not parsed_args:
+            return ExitCodes.OK
+
+        name_or_alias = parsed_args.command
         try:
-            command = self._command_engine[name_or_alias]
-            opts = docopt(command.doc, argv=args[1:])
-            await command.run(self, self.io, opts)
-        except KeyError:
+            return await self.call_as_current_app_async(
+                self._command_engine.run, name_or_alias, parsed_args
+            )
+        except BaseArgumentError as e:
+            self.io.print_err(e)
+            # TODO: handle the finer grained argument exeception types
+
+            self._maybe_propagate_runtime_exc(e)
+            return ExitCodes.ERR_COMMAND_INVALID_ARGUMENTS
+        except NoSuchCommandError as e:
             self.io.print_err(f'Command {name_or_alias} does not exist')
             self._print_command_suggestions(name_or_alias)
-            return 1
-        except DocoptExit as e:
-            self.io.print_err(f'Invalid arguments for command {command.name}')
-            self.io.print_raw(e)
-            return 1
-        except SystemExit:
-            # raised by docopt for -h/--help
-            pass
 
-        return 0
+            self._maybe_propagate_runtime_exc(e)
+            return ExitCodes.ERR_COMMAND_NONEXISTENT
 
     async def run(
         self
@@ -126,9 +185,14 @@ class Application:
             The exit code of the application's execution.
 
         """
+        self._is_running = True
+
         with patch_stdout():
             while True:
                 try:
+                    if self._do_quit:
+                        break
+
                     line = (await self._session.prompt_async()).strip()
                     if not line:
                         continue
@@ -140,42 +204,80 @@ class Application:
                     break
                 finally:
                     # TODO: this needs to clean up running tasks
-                    pass
+                    self._is_running = False
 
-            return 0
+            return ExitCodes.OK
 
-    def command(
+    def add_completers_for_type(
         self,
-        new_command: Union[Command, CommandCallable]
-    ) -> Command:
-        """Register a command on this application.
+        _type: Type,
+        *completers: Completer
+    ) -> None:
+        """Register a completer for all arguments of a specified type (globally)."""
+        if _type not in self._type_completer_mapping.keys():
+            self._type_completer_mapping[_type] = []
 
-        TODO
+        for completer in completers:
+            self._type_completer_mapping[_type].append(completer)
 
-        Args:
-            new_command: Either a :class:`Command` instance or a
-                :class:`CommandCallable` function. This will be registered
-                on this class's :data:`command_engine` attribute.
+    def add_promoter_for_type(
+        self,
+        _type: Type,
+        promoter_callable: Callable
+    ) -> None:
+        """Register a promotion callable for a specific argument type."""
+        try:
+            self._command_engine.add_promoter_for_type(_type, promoter_callable)
+        except ConflictingPromoterTypesError as e:
+            raise e
 
-        Returns:
-            The created :class:`Command` instance.
+    def promoter_for(
+        self,
+        *types: Type[_T]
+    ) -> Callable[[Any], Callable[[Any], _T]]:
+        """A decorator for specifying inline promotion callbacks."""
 
-        Raises:
-            CommandNameCollisionError: If an attempt is made to register a
-                command with a name or alias(es) that conflict with already-
-                registered commands.
+        def decorator(
+            f: Callable[[Any], _T]
+        ) -> Callable[[Any], _T]:
+            for _type in types:
+                self.add_promoter_for_type(_type, f)
+            return f
 
-        """
-        if not isinstance(new_command, Command):
-            if not asyncio.iscoroutinefunction(new_command):
-                raise CommandRegistrationError(
-                    'Attempted to register a command with non-async '
-                    f'function {new_command.__name__}')
+        return decorator
 
-            new_command = Command.from_callable(new_command)
+    def call_as_current_app(
+        self,
+        func: Callable[..., _T],
+        *args: Any,
+        **kwargs: Any,
+    ) -> _T:
+        """Call a synchronous function with the current app set to this instance."""
+        set_current_app(self)
+        return func(*args, **kwargs)
 
-        self._command_engine.register_command(new_command)
-        return new_command
+    async def call_as_current_app_async(
+        self,
+        coro: Callable[..., Awaitable[_T]],
+        *args: Any,
+        **kwargs: Any,
+    ) -> _T:
+        """Call a coroutine with the current app set to this instance."""
+        set_current_app(self)
+        return await coro(*args, **kwargs)
+
+    def quit(
+        self
+    ) -> None:
+        """Cause this application to cleanly stop running."""
+        self._do_quit = True
+
+    def _maybe_propagate_runtime_exc(
+        self,
+        exc: Exception
+    ) -> None:
+        if self._propagate_runtime_exceptions:
+            raise exc
 
     def _print_command_suggestions(
         self,
