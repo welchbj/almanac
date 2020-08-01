@@ -32,16 +32,19 @@ class Application:
 
     def __init__(
         self,
+        *,
         with_completion: bool = True,
         with_style: bool = True,
-        style: Style = DARK_MODE_STYLE
+        style: Style = DARK_MODE_STYLE,
+        io_ctx_cls: Type[AbstractIoContext] = StandardConsoleIoContext,
+        propagate_runtime_exceptions: bool = False
     ) -> None:
-        self._io_stack: List[AbstractIoContext] = [
-            StandardConsoleIoContext()
-        ]
+        self._io_stack: List[AbstractIoContext] = [io_ctx_cls()]
 
         self._is_running = False
         self._do_quit = False
+
+        self._propagate_runtime_exceptions = propagate_runtime_exceptions
 
         self._command_engine = CommandEngine()
         self._page_navigator = PageNavigator()
@@ -162,13 +165,15 @@ class Application:
             )
         except BaseArgumentError as e:
             self.io.print_err(e)
+            # TODO: handle the finer grained exeception types
 
-            # TODO
-
+            self._maybe_propagate_runtime_exc(e)
             return ExitCodes.ERR_COMMAND_INVALID_ARGUMENTS
-        except NoSuchCommandError:
+        except NoSuchCommandError as e:
             self.io.print_err(f'Command {name_or_alias} does not exist')
             self._print_command_suggestions(name_or_alias)
+
+            self._maybe_propagate_runtime_exc(e)
             return ExitCodes.ERR_COMMAND_NONEXISTENT
 
     async def run(
@@ -228,14 +233,15 @@ class Application:
 
     def promoter_for(
         self,
-        _type: Type[_T]
+        *types: Type[_T]
     ) -> Callable[[Any], Callable[[Any], _T]]:
         """A decorator for specifying inline promotion callbacks."""
 
         def decorator(
             f: Callable[[Any], _T]
         ) -> Callable[[Any], _T]:
-            self.add_promoter_for_type(_type, f)
+            for _type in types:
+                self.add_promoter_for_type(_type, f)
             return f
 
         return decorator
@@ -265,6 +271,13 @@ class Application:
     ) -> None:
         """Cause this application to cleanly stop running."""
         self._do_quit = True
+
+    def _maybe_propagate_runtime_exc(
+        self,
+        exc: Exception
+    ) -> None:
+        if self._propagate_runtime_exceptions:
+            raise exc
 
     def _print_command_suggestions(
         self,
