@@ -41,7 +41,7 @@ class FrozenCommand(CommandBase, Mapping[str, FrozenArgument]):
     def resolved_kwarg_names(
         self,
         kwarg_dict: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
         """Transform keyword argument names from their display to real values.
 
         Argument display names are those that may have been overriden by the user. To
@@ -50,13 +50,20 @@ class FrozenCommand(CommandBase, Mapping[str, FrozenArgument]):
         coroutine signature.
 
         Any keys in the :param:`kwarg_dict` argument that do not map to valid argument
-        names will be omitted from the returned dictionary.
+        names will be present in the second dictionary returned.
 
         """
-        return {
-            self[name].real_name: value for name, value in kwarg_dict.items()
-            if name in self.keys()
-        }
+        resolved: Dict[str, Any] = {}
+        unresolved: Dict[str, Any] = {}
+
+        for display_name, value in kwarg_dict.items():
+            if display_name in self.keys():
+                real_name = self[display_name].real_name
+                resolved[real_name] = value
+            else:
+                unresolved[display_name] = value
+
+        return resolved, unresolved
 
     def _abstract_description_setter(
         self,
