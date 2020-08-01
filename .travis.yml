@@ -4,17 +4,32 @@
 
 matrix:
   include:
-    - name: CPython 3.8.1 -- Ubuntu 18.04
+    - name: CPython 3.8 -- Ubuntu 18.04
       language: python
       os: linux
       dist: bionic
       python: 3.8
 
+    - name: CPython nightly -- Ubuntu 18.04
+      language: python
+      os: linux
+      dist: bionic
+      python: nightly
+
+    - name: CPython 3.8 -- Windows 10 (64-bit)
+      language: shell
+      os: windows
+      before_install:
+        - choco install python --version 3.8.5
+        - python -m pip install --upgrade pip
+      env: PATH=/c/Python38:/c/Python38/Scripts:$PATH
+
 install:
+- pip --version
 - pip install -r deps/dev-requirements.txt
 
 script:
-- pwd; which python
+- python --version
 - python tasks.py test
 - flake8 .
 - mypy .
