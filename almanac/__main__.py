@@ -1,23 +1,27 @@
 """Run an example application."""
 
+import ast
 import asyncio
 
-from almanac import make_standard_app
+from typing import Optional
+
+from almanac import current_app, make_standard_app, WordCompleter
 
 
 async def main():
     app = make_standard_app()
 
-    @app.command
-    async def liteval(app, io, opts) -> int:
-        """Literal eval of Python code.
+    @app.cmd.register()
+    @app.cmd(aliases=['literal_eval'])
+    @app.arg.expr(completer=WordCompleter(['0x10', '["a"]']))
+    async def liteval(expr: str, verbose: Optional[bool] = False) -> int:
+        """Evaluation of a Python literal."""
+        app = current_app()
 
-        Usage:
-            liteval <expr>
+        if verbose:
+            app.io.print_info('Verbose mode is on!')
 
-        """
-        # TODO
-        io.print_info('Called liteval')
+        app.io.print_raw(ast.literal_eval(expr))
         return 0
 
     await app.run()
