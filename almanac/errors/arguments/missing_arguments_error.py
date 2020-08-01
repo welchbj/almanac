@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Iterable, Tuple
+from typing import Tuple
 
 from .base_argument_error import BaseArgumentError
 
@@ -12,9 +12,9 @@ class MissingArgumentsError(BaseArgumentError):
 
     def __init__(
         self,
-        *missing_args: Iterable[str]
+        *missing_args: str
     ) -> None:
-        self._missing_args = tuple(missing_args)
+        self._missing_args = missing_args
 
     @property
     def missing_args(
