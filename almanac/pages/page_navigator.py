@@ -1,31 +1,15 @@
 """Implementation of the ``PageNavigator`` class."""
 
-from enum import (
-    auto,
-    Enum)
-from fnmatch import (
-    filter as fn_filter)
-from itertools import (
-    chain)
-from typing import (
-    Iterable,
-    Iterator,
-    List,
-    MutableMapping,
-    Optional,
-    Type)
+from enum import auto, Enum
+from fnmatch import filter as fn_filter
+from itertools import chain
+from typing import Iterable, Iterator, List, MutableMapping, Optional, Type
 
-from .abstract_page import (
-    AbstractPage)
-from .directory_page import (
-    DirectoryPage)
-from .page_path import (
-    PagePath,
-    PagePathLike)
-from ..errors import (
-    PositionalValueError)
-from ..utils import (
-    pairwise)
+from .abstract_page import AbstractPage
+from .directory_page import DirectoryPage
+from .page_path import PagePath, PagePathLike
+from ..errors import PositionalValueError
+from ..utils import pairwise
 
 
 class _PathExplodeState(Enum):
@@ -72,8 +56,9 @@ class PageNavigator(MutableMapping[PagePathLike, AbstractPage]):
         """
         full_path: str = self.explode(destination)
         if full_path not in self:
-            raise ValueError(f'Exploded path {str(full_path)} not present in '
-                             'this navigator')
+            raise ValueError(
+                f'Exploded path {str(full_path)} not present in this navigator'
+            )
         elif full_path == self.current_page.path:
             return
 
@@ -85,7 +70,7 @@ class PageNavigator(MutableMapping[PagePathLike, AbstractPage]):
     ) -> None:
         """Move forward in the page history."""
         if not self._forward_page_history_stack:
-            # do nothing if there is no forward page history
+            # Do nothing if there is no forward page history.
             return
 
         self._back_page_history_stack.append(self._current_page)
@@ -96,7 +81,7 @@ class PageNavigator(MutableMapping[PagePathLike, AbstractPage]):
     ) -> None:
         """Move backward in the page history."""
         if not self._back_page_history_stack:
-            # do nothing if there is back page no history
+            # Do nothing if there is no backward page history.
             return
 
         self._forward_page_history_stack.append(self._current_page)
@@ -116,8 +101,6 @@ class PageNavigator(MutableMapping[PagePathLike, AbstractPage]):
         path: PagePathLike
     ) -> str:
         """Parse a user-specified path into an existing page.
-
-        TODO: example
 
         Args:
             path: The path to explode (i.e., expand ``.`` and ``..``) into an
@@ -140,7 +123,7 @@ class PageNavigator(MutableMapping[PagePathLike, AbstractPage]):
             return str(self._current_page.path)
 
         if path == '/':
-            # guaranteed to exist, so we can short-circuit this
+            # Guaranteed to exist, so we can short-circuit this.
             return '/'
         elif path.startswith('/'):
             exploded_path = ''
@@ -158,7 +141,7 @@ class PageNavigator(MutableMapping[PagePathLike, AbstractPage]):
                 elif c == '.':
                     state = _PathExplodeState.ATE_ONE_DOT
                 elif c is None:
-                    # this shouldn't be possible
+                    # This shouldn't be possible.
                     pass
                 else:
                     exploded_path += c
@@ -200,19 +183,22 @@ class PageNavigator(MutableMapping[PagePathLike, AbstractPage]):
                         exploded_path)
                     if exploded_path not in self:
                         raise ValueError(
-                            'Attempted to reference non-existent directory')
+                            'Attempted to reference non-existent directory'
+                        )
 
                     referenced_page = self[exploded_path]
                     if referenced_page.parent is None:
                         raise ValueError(
                             'Attempted to reference parent directory beyond '
-                            'application scope')
+                            'application scope'
+                        )
 
                     exploded_path = str(referenced_page.parent.path)
                     state = _PathExplodeState.ATE_SLASH
                 elif c == '.':
                     raise PositionalValueError(
-                        'You can\'t have three dots in a row!', i)
+                        'You can\'t have three dots in a row!', i
+                    )
                 else:
                     raise PositionalValueError('Expected a slash!', i)
 
@@ -281,9 +267,10 @@ class PageNavigator(MutableMapping[PagePathLike, AbstractPage]):
         elif not allow_overwrite:
             raise ValueError(
                 f'Attempted to overwrite page at {path} with'
-                'allow_overwrite kwarg set to False')
+                'allow_overwrite kwarg set to False'
+            )
         else:
-            # overwriting an existing page
+            # Overwriting an existing page.
             old_page = self[path]
             new_page = value
             new_page.children.update(old_page.children)
@@ -337,7 +324,8 @@ class PageNavigator(MutableMapping[PagePathLike, AbstractPage]):
         self.set_page(
             PagePath(path),
             dir_page,
-            allow_overwrite=False)
+            allow_overwrite=False
+        )
         return dir_page
 
     def __delitem__(
@@ -349,9 +337,10 @@ class PageNavigator(MutableMapping[PagePathLike, AbstractPage]):
         page_path = PagePath(key)
         if page_path not in self:
             raise KeyError(
-                f'Path {page_path} does not exist in this navigator')
+                f'Path {page_path} does not exist in this navigator'
+            )
 
-        # delete all children of the specified path
+        # Delete all children of the specified path.
         for child in self.match(page_path.path + '/*'):
             child_path: PagePath = child.path
             child_page = self._page_table[child_path]

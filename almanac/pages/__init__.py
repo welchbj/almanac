@@ -1,12 +1,4 @@
-from .abstract_page import (  # noqa
-    AbstractPage)
-from .directory_page import (  # noqa
-    DirectoryPage)
-from .page_navigator import (  # noqa
-    PageNavigator)
-from .page_path import (  # noqa
-    PagePath,
-    PagePathLike)
-from .search import (  # noqa
-    AbstractSearchablePageIndex,
-    InMemorySearchablePageIndex)
+from .abstract_page import AbstractPage  # noqa
+from .directory_page import DirectoryPage  # noqa
+from .page_navigator import PageNavigator  # noqa
+from .page_path import PagePath, PagePathLike  # noqa
