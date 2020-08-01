@@ -10,7 +10,9 @@ from ..commands import FrozenCommand
 from ..errors import (
     CommandNameCollisionError,
     ConflictingPromoterTypesError,
-    NoSuchCommandError
+    NoSuchArgumentError,
+    NoSuchCommandError,
+    UnknownArgumentBindingError
 )
 from ..types import is_matching_type
 from ..utils import FuzzyMatcher
@@ -114,8 +116,8 @@ class CommandEngine:
 
         args = [x for x in parsed_args.positionals]
         raw_kwargs = {k: v for k, v in parsed_args.kv.asDict().items()}
-        resolved_kwargs = command.resolved_kwarg_names(raw_kwargs)
-        merged_kwarg_dicts = {**raw_kwargs, **resolved_kwargs}
+        resolved_kwargs, unresolved_kwargs = command.resolved_kwarg_names(raw_kwargs)
+        merged_kwarg_dicts = {**resolved_kwargs, **unresolved_kwargs}
 
         try:
             bound_args = command.signature.bind(*args, **merged_kwarg_dicts)
@@ -162,11 +164,22 @@ class CommandEngine:
             can_partially_bind = False
 
         if not can_partially_bind:
-            # If we can't even partially bind, the failure is likely due to using an
-            # invalid kwarg name or specifying too many positional arguments.
+            # Check if the failure is due to an invalid kwarg name.
+            if not command.has_var_kw_arg:
+                possible_kwargs = set(command.keys())
+                extra_kwargs = [
+                    x for x in merged_kwarg_dicts if x not in possible_kwargs
+                ]
 
-            # TODO
-            pass
+                if extra_kwargs:
+                    raise NoSuchArgumentError(*extra_kwargs)
+
+            # Otherwise, it's possible that too many positional arguments were provided.
+            if not command.has_var_pos_arg:
+                pass
+
+            # Something else went wrong.
+            raise UnknownArgumentBindingError('Unknown argument binding error')
 
         # If we got this far, then we could at least partially bind to the coroutine
         # signature. This means we are likely just missing some required arguments,

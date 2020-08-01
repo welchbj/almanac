@@ -84,7 +84,7 @@ class CommandCompleter(Completer):
         last_token: IncompleteToken = last_incomplete_token(document, unparsed_text)
 
         args = [x for x in parse_results.positionals]
-        kwargs = command.resolved_kwarg_names(parse_results.kv.asDict())
+        kwargs, _ = command.resolved_kwarg_names(parse_results.kv.asDict())
 
         # Check if we want to avoid binding this argument, since we might not know if
         # really a positional argument or actually an incomplete keyword argument.
