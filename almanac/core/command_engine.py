@@ -117,7 +117,15 @@ class CommandEngine:
         args = [x for x in parsed_args.positionals]
         raw_kwargs = {k: v for k, v in parsed_args.kv.asDict().items()}
         resolved_kwargs, unresolved_kwargs = command.resolved_kwarg_names(raw_kwargs)
-        merged_kwarg_dicts = {**resolved_kwargs, **unresolved_kwargs}
+
+        # Check if we have any extra/unresolvable kwargs.
+        if not command.has_var_kw_arg and unresolved_kwargs:
+            extra_kwargs = list(unresolved_kwargs.keys())
+            raise NoSuchArgumentError(*extra_kwargs)
+
+        # We can safely merged these kwarg dicts now since we know any unresolvable
+        # arguments must be due to a **kwargs variant.
+        merged_kwarg_dicts = {**unresolved_kwargs, **resolved_kwargs}
 
         try:
             bound_args = command.signature.bind(*args, **merged_kwarg_dicts)
@@ -125,8 +133,8 @@ class CommandEngine:
         except TypeError:
             can_bind = False
 
-        # If we can call our function, we next promote all promotable arguments and
-        # execute the call.
+        # If we can call our function, we next promote all eligible arguments and
+        # execute the coroutine call.
         if can_bind:
             for arg_name, value in bound_args.arguments.items():
                 param = coro_signature.parameters[arg_name]
@@ -164,18 +172,9 @@ class CommandEngine:
             can_partially_bind = False
 
         if not can_partially_bind:
-            # Check if the failure is due to an invalid kwarg name.
-            if not command.has_var_kw_arg:
-                possible_kwargs = set(command.keys())
-                extra_kwargs = [
-                    x for x in merged_kwarg_dicts if x not in possible_kwargs
-                ]
-
-                if extra_kwargs:
-                    raise NoSuchArgumentError(*extra_kwargs)
-
-            # Otherwise, it's possible that too many positional arguments were provided.
+            # Check if too many positional arguments were provided.
             if not command.has_var_pos_arg:
+                # TODO
                 pass
 
             # Something else went wrong.

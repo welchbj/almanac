@@ -2,20 +2,21 @@
 
 from unittest import TestCase
 
-from almanac import Application
 from almanac import ConflictingPromoterTypesError
 
+from .utils import AlmanacTextMixin
 
-class TestAppConfiguration(TestCase):
+
+class TestAppConfiguration(TestCase, AlmanacTextMixin):
 
     def test_conflicting_type_promoters(self):
-        app = Application()
+        app = self.get_test_app()
         app.add_promoter_for_type(bool, bool)
 
         with self.assertRaises(ConflictingPromoterTypesError):
             app.add_promoter_for_type(bool, str)
 
-        app = Application()
+        app = self.get_test_app()
         app.add_promoter_for_type(int, str)
 
         with self.assertRaises(ConflictingPromoterTypesError):
