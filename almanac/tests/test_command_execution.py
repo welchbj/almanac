@@ -1,7 +1,12 @@
 """Tests for execution of various command lines."""
 
-from almanac.errors.arguments.no_such_argument_error import NoSuchArgumentError
 from unittest import IsolatedAsyncioTestCase
+
+from almanac import (
+    MissingArgumentsError,
+    NoSuchArgumentError,
+    TooManyPositionalArgumentsError
+)
 
 from .utils import AlmanacTextMixin
 
@@ -40,16 +45,57 @@ class TestCommandExecution(IsolatedAsyncioTestCase, AlmanacTextMixin):
         await app.eval_line('cmd_var_kw_args one=18 two=18 three=18')
 
     async def test_missing_pos_args(self):
-        # TODO
-        assert False
+        app = self.get_test_app()
+
+        @app.cmd.register()
+        async def some_command(arg1: int, arg2: int, arg3: int = 3, *, arg4: int):
+            pass
+
+        with self.assertRaises(MissingArgumentsError) as ctx:
+            await app.eval_line('some_command 1 arg3=3 arg4=4')
+        self.assertTupleEqual(ctx.exception.missing_args, ('arg2',))
+
+        with self.assertRaises(MissingArgumentsError) as ctx:
+            await app.eval_line('some_command 1')
+        self.assertTupleEqual(ctx.exception.missing_args, ('arg2', 'arg4',))
+
+        with self.assertRaises(MissingArgumentsError) as ctx:
+            await app.eval_line('some_command arg4=4')
+        self.assertTupleEqual(ctx.exception.missing_args, ('arg1', 'arg2',))
 
     async def test_missing_kw_args(self):
-        # TODO
-        assert False
+        app = self.get_test_app()
+
+        @app.cmd.register()
+        async def some_command(arg1: int, arg2: int = 2, *, arg3: int, arg4: int):
+            pass
+
+        with self.assertRaises(MissingArgumentsError) as ctx:
+            await app.eval_line('some_command 1 arg3=3')
+        self.assertTupleEqual(ctx.exception.missing_args, ('arg4',))
+
+        with self.assertRaises(MissingArgumentsError) as ctx:
+            await app.eval_line('some_command 1 arg4=4')
+        self.assertTupleEqual(ctx.exception.missing_args, ('arg3',))
+
+        with self.assertRaises(MissingArgumentsError) as ctx:
+            await app.eval_line('some_command 1 arg2=2')
+        self.assertTupleEqual(ctx.exception.missing_args, ('arg3', 'arg4',))
 
     async def test_too_many_pos_args(self):
-        # TODO
-        assert False
+        app = self.get_test_app()
+
+        @app.cmd.register()
+        async def some_command(arg1: int, arg2: int, arg3: int = 3, *, arg4: int):
+            pass
+
+        with self.assertRaises(TooManyPositionalArgumentsError) as ctx:
+            await app.eval_line('some_command 1 2 3 4 arg4=4')
+        self.assertTupleEqual(ctx.exception.values, (4,))
+
+        with self.assertRaises(TooManyPositionalArgumentsError) as ctx:
+            await app.eval_line('some_command 1 2 3 4 5 arg4=4')
+        self.assertTupleEqual(ctx.exception.values, (4, 5,))
 
     async def test_extra_kw_args(self):
         app = self.get_test_app()

@@ -29,5 +29,5 @@ class NoSuchArgumentError(BaseArgumentError, KeyError):
     def names(
         self
     ) -> Tuple[str, ...]:
-        """A list of argument names that spawned this error."""
+        """A tuple of argument names that spawned this error."""
         return self._names

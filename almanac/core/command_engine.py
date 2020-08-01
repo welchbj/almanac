@@ -1,5 +1,6 @@
 """Implementation of the ``CommandEngine`` class."""
 
+from almanac.errors.arguments.missing_arguments_error import MissingArgumentsError
 import inspect
 
 import pyparsing as pp
@@ -12,6 +13,7 @@ from ..errors import (
     ConflictingPromoterTypesError,
     NoSuchArgumentError,
     NoSuchCommandError,
+    TooManyPositionalArgumentsError,
     UnknownArgumentBindingError
 )
 from ..types import is_matching_type
@@ -107,14 +109,20 @@ class CommandEngine:
         name_or_alias: str,
         parsed_args: pp.ParseResults
     ) -> int:
-        """Run a command, validating the specified arguments."""
+        """Run a command, validating the specified arguments.
+
+        In the event of coroutine-binding failure, this method will do quite a bit of
+        signature introspection to determine why a binding of user-specified arguments
+        to the coroutine signature might fail.
+
+        """
         try:
             command: FrozenCommand = self[name_or_alias]
             coro_signature: inspect.Signature = command.signature
         except NoSuchCommandError as e:
             raise e
 
-        args = [x for x in parsed_args.positionals]
+        pos_arg_values = [x for x in parsed_args.positionals]
         raw_kwargs = {k: v for k, v in parsed_args.kv.asDict().items()}
         resolved_kwargs, unresolved_kwargs = command.resolved_kwarg_names(raw_kwargs)
 
@@ -128,7 +136,7 @@ class CommandEngine:
         merged_kwarg_dicts = {**unresolved_kwargs, **resolved_kwargs}
 
         try:
-            bound_args = command.signature.bind(*args, **merged_kwarg_dicts)
+            bound_args = command.signature.bind(*pos_arg_values, **merged_kwarg_dicts)
             can_bind = True
         except TypeError:
             can_bind = False
@@ -164,7 +172,7 @@ class CommandEngine:
         # Otherwise, we do some inspection to generate an informative error.
         try:
             partially_bound_args = command.signature.bind_partial(
-                *args, **merged_kwarg_dicts
+                *pos_arg_values, **merged_kwarg_dicts
             )
             partially_bound_args.apply_defaults()
             can_partially_bind = True
@@ -174,16 +182,38 @@ class CommandEngine:
         if not can_partially_bind:
             # Check if too many positional arguments were provided.
             if not command.has_var_pos_arg:
-                # TODO
-                pass
+                pos_arg_types = (
+                    inspect.Parameter.POSITIONAL_ONLY,
+                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                )
+                unbound_pos_args = [
+                    param for name, param in command.signature.parameters.items()
+                    if param.kind in pos_arg_types and name not in merged_kwarg_dicts
+                ]
+
+                if len(pos_arg_values) > len(unbound_pos_args):
+                    unbound_values = pos_arg_values[len(unbound_pos_args):]
+                    raise TooManyPositionalArgumentsError(*unbound_values)
 
             # Something else went wrong.
-            raise UnknownArgumentBindingError('Unknown argument binding error')
+            # XXX: should we be collecting more information here?
+            raise UnknownArgumentBindingError(
+                command.signature, pos_arg_values, merged_kwarg_dicts
+            )
 
         # If we got this far, then we could at least partially bind to the coroutine
         # signature. This means we are likely just missing some required arguments,
         # which we can now enumerate.
-        # TODO
+        missing_arguments = (
+            x for x in command.signature.parameters
+            if x not in partially_bound_args.arguments.keys()
+        )
+        if not missing_arguments:
+            raise UnknownArgumentBindingError(
+                command.signature, pos_arg_values, merged_kwarg_dicts
+            )
+
+        raise MissingArgumentsError(*missing_arguments)
 
     def get_suggestions(
         self,
