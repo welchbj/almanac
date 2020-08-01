@@ -1,10 +1,7 @@
 """Implementation of the ``AbstractIoContext`` class."""
 
-from abc import (
-    ABC,
-    abstractmethod)
-from typing import (
-    Any)
+from abc import ABC, abstractmethod
+from typing import Any
 
 
 class AbstractIoContext(ABC):
@@ -41,3 +38,6 @@ class AbstractIoContext(ABC):
         **kwargs
     ) -> None:
         """Print raw, un-formatted text."""
+
+    # TODO: need read/write-esque stuff if supporting files
+    #       all print_* style commands could just be variations on write

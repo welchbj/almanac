@@ -1,13 +1,7 @@
 """Utilities for iteration."""
 
-from itertools import (
-    tee)
-from typing import (
-    Iterable,
-    Iterator,
-    Tuple,
-    TypeVar)
-
+from itertools import tee
+from typing import Iterable, Iterator, Tuple, TypeVar
 
 T = TypeVar('T')
 
