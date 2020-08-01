@@ -36,10 +36,10 @@ class Application:
         with_completion: bool = True,
         with_style: bool = True,
         style: Style = DARK_MODE_STYLE,
-        io_ctx_cls: Type[AbstractIoContext] = StandardConsoleIoContext,
+        io_context_cls: Type[AbstractIoContext] = StandardConsoleIoContext,
         propagate_runtime_exceptions: bool = False
     ) -> None:
-        self._io_stack: List[AbstractIoContext] = [io_ctx_cls()]
+        self._io_stack: List[AbstractIoContext] = [io_context_cls()]
 
         self._is_running = False
         self._do_quit = False
@@ -165,7 +165,7 @@ class Application:
             )
         except BaseArgumentError as e:
             self.io.print_err(e)
-            # TODO: handle the finer grained exeception types
+            # TODO: handle the finer grained argument exeception types
 
             self._maybe_propagate_runtime_exc(e)
             return ExitCodes.ERR_COMMAND_INVALID_ARGUMENTS
