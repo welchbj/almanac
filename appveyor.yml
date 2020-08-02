@@ -1,0 +1,13 @@
+environment:
+    matrix:
+        - PYTHON: "C:\\Python38-x64"
+
+install:
+    - "%PYTHON%\\python.exe -m pip install -r deps\\dev-requirements.txt"
+
+build: off
+
+test_script:
+    - "%PYTHON%\\python.exe ttasks.py test"
+    - "%PYTHON%\\Scripts\\flake8.exe ."
+    - "%PYTHON%\\Scripts\\mypy.exe ."
