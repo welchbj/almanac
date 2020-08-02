@@ -22,6 +22,12 @@ class MutableArgument(ArgumentBase):
     ) -> None:
         self._description = new_description
 
+    def _abstract_hidden_setter(
+        self,
+        new_value: bool
+    ) -> None:
+        self._hidden = new_value
+
     @property
     def completers(
         self
@@ -35,5 +41,6 @@ class MutableArgument(ArgumentBase):
             self.param,
             name=self.display_name,
             description=self.description,
-            completers=self.completers
+            completers=self.completers,
+            hidden=self.hidden
         )

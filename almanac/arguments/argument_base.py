@@ -19,6 +19,7 @@ class ArgumentBase(ABC):
         name: Optional[str] = None,
         description: Optional[str] = None,
         completers: Optional[Union[Completer, Iterable[Completer]]] = None,
+        hidden: bool = False
     ) -> None:
         self._param = param
 
@@ -36,6 +37,8 @@ class ArgumentBase(ABC):
         else:
             # Assume we have iterable of completers.
             self._completers = [x for x in completers]
+
+        self._hidden = hidden
 
     @property
     def display_name(
@@ -84,6 +87,27 @@ class ArgumentBase(ABC):
         new_description: str
     ) -> None:
         """Abstract description setter to allow for access control."""
+
+    @property
+    def hidden(
+        self
+    ) -> bool:
+        """Whether this argument should be hidden in the interactive prompt."""
+        return self._hidden
+
+    @hidden.setter
+    def hidden(
+        self,
+        new_value: bool
+    ) -> None:
+        self._abstract_hidden_setter(new_value)
+
+    @abstractmethod
+    def _abstract_hidden_setter(
+        self,
+        new_value: bool
+    ) -> None:
+        """Abstract hidden setter to allow for access control."""
 
     @property
     def real_name(
