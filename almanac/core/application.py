@@ -41,7 +41,6 @@ class Application:
     ) -> None:
         self._io_stack: List[AbstractIoContext] = [io_context_cls()]
 
-        self._is_running = False
         self._do_quit = False
 
         self._propagate_runtime_exceptions = propagate_runtime_exceptions
@@ -67,8 +66,6 @@ class Application:
             self._session_opts['lexer'] = PygmentsLexer(lexer_cls)
             self._session_opts['style'] = style
 
-        self._session = PromptSession(**self._session_opts)
-
     @property
     def cmd(
         self
@@ -82,13 +79,6 @@ class Application:
     ) -> ArgumentDecoratorProxy:
         """The interface for argument-mutating decorators."""
         return self._argument_decorator_proxy
-
-    @property
-    def is_running(
-        self
-    ) -> bool:
-        """"Whether this application is currently runnnig."""
-        return self._is_running
 
     @property
     def type_completer_mapping(
@@ -176,24 +166,24 @@ class Application:
             self._maybe_propagate_runtime_exc(e)
             return ExitCodes.ERR_COMMAND_NONEXISTENT
 
-    async def run(
+    async def prompt(
         self
     ) -> int:
-        """Run the application's event loop.
+        """Run the application's interactive prompt.
 
         Returns:
             The exit code of the application's execution.
 
         """
-        self._is_running = True
-
         with patch_stdout():
+            session = PromptSession(**self._session_opts)
+
             while True:
                 try:
                     if self._do_quit:
                         break
 
-                    line = (await self._session.prompt_async()).strip()
+                    line = (await session.prompt_async()).strip()
                     if not line:
                         continue
 
@@ -204,7 +194,7 @@ class Application:
                     break
                 finally:
                     # TODO: this needs to clean up running tasks
-                    self._is_running = False
+                    pass
 
             return ExitCodes.OK
 
