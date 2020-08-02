@@ -316,8 +316,11 @@ class Application:
             they were registered.
 
         """
-        awaitable_callbacks = [x() for x in self._on_exit_callbacks]
-        return await asyncio.gather(*awaitable_callbacks)
+        wrapped_awaitable_callbacks = [
+            self.call_as_current_app_async(exit_coro)
+            for exit_coro in self._on_exit_callbacks
+        ]
+        return await asyncio.gather(*wrapped_awaitable_callbacks)
 
     async def run_on_init_callbacks(
         self
@@ -329,8 +332,11 @@ class Application:
             they were registered.
 
         """
-        awaitable_callbacks = [x() for x in self._on_init_callbacks]
-        return await asyncio.gather(*awaitable_callbacks)
+        wrapped_awaitable_callbacks = [
+            self.call_as_current_app_async(init_coro)
+            for init_coro in self._on_init_callbacks
+        ]
+        return await asyncio.gather(*wrapped_awaitable_callbacks)
 
     def call_as_current_app(
         self,
