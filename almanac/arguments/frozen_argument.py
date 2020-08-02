@@ -14,13 +14,19 @@ class FrozenArgument(ArgumentBase):
         self,
         new_display_name: str
     ) -> None:
-        raise FrozenAccessError('Cannot change the display name of a FrozenCommand')
+        raise FrozenAccessError('Cannot change the display name of a FrozenArgument')
 
     def _abstract_description_setter(
         self,
         new_description: str
     ) -> None:
-        raise FrozenAccessError('Cannot change the description of a FrozenCommand')
+        raise FrozenAccessError('Cannot change the description of a FrozenArgument')
+
+    def _abstract_hidden_setter(
+        self,
+        new_value: bool
+    ) -> None:
+        raise FrozenAccessError('Cannot change the hidden status of a FrozenArgument')
 
     @property
     def completers(
