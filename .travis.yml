@@ -1,0 +1,27 @@
+# Travis matrix for cross-platform and cross-version testing.
+#
+# See: https://github.com/brandtbucher/travis-python-matrix
+
+matrix:
+  include:
+    - name: CPython 3.8 -- Ubuntu 18.04
+      language: python
+      os: linux
+      dist: bionic
+      python: 3.8
+
+    - name: CPython nightly -- Ubuntu 18.04
+      language: python
+      os: linux
+      dist: bionic
+      python: nightly
+
+install:
+- pip --version
+- pip install -r deps/dev-requirements.txt
+
+script:
+- python --version
+- python tasks.py test
+- flake8 .
+- mypy .

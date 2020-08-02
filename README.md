@@ -5,6 +5,12 @@
   <em>a framework for interactive, page-based console applications</em>
 </p>
 <p align="center">
+  <a href="https://travis-ci.org/welchbj/almanac">
+    <img src="https://img.shields.io/travis/welchbj/almanac/devel.svg?style=flat-square&label=linux%20build" alt="linux build status">
+  </a>
+  <a href="https://ci.appveyor.com/project/welchbj/almanac">
+    <img src="https://img.shields.io/appveyor/ci/welchbj/almanac/devel.svg?style=flat-square&label=windows%20build" alt="windows build status">
+  </a>
   <a href="https://pypi.org/project/almanac/">
     <img src="https://img.shields.io/pypi/v/almanac.svg?style=flat-square&label=pypi" alt="pypi">
   </a>
