@@ -24,7 +24,7 @@ async def main():
         app.io.print_raw(ast.literal_eval(expr))
         return 0
 
-    await app.run()
+    await app.prompt()
 
 
 if __name__ == '__main__':
