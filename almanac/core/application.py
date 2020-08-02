@@ -1,5 +1,7 @@
 """Implementation of the ``Application`` class."""
 
+import asyncio
+
 from contextlib import contextmanager
 from typing import Any, Awaitable, Callable, Dict, Iterator, List, Type, TypeVar
 
@@ -11,7 +13,7 @@ from prompt_toolkit.styles import Style
 
 from .command_completer import CommandCompleter
 from .command_engine import CommandEngine
-from .decorators import ArgumentDecoratorProxy, CommandDecoratorProxy
+from .decorators import ArgumentDecoratorProxy, CommandDecoratorProxy, CoroutineCallback
 from ..constants import ExitCodes
 from ..context import set_current_app
 from ..errors import (
@@ -44,6 +46,9 @@ class Application:
         self._do_quit = False
 
         self._propagate_runtime_exceptions = propagate_runtime_exceptions
+
+        self._on_exit_callbacks: List[CoroutineCallback] = []
+        self._on_init_callbacks: List[CoroutineCallback] = []
 
         self._command_engine = CommandEngine()
         self._page_navigator = PageNavigator()
@@ -79,6 +84,20 @@ class Application:
     ) -> ArgumentDecoratorProxy:
         """The interface for argument-mutating decorators."""
         return self._argument_decorator_proxy
+
+    @property
+    def on_exit_callbacks(
+        self
+    ) -> List[CoroutineCallback]:
+        """Registered coroutines to be executed on application exit."""
+        return self._on_exit_callbacks
+
+    @property
+    def on_init_callbacks(
+        self
+    ) -> List[CoroutineCallback]:
+        """Registered coroutines to be executed on application prompt initialization."""
+        return self._on_init_callbacks
 
     @property
     def type_completer_mapping(
@@ -171,11 +190,16 @@ class Application:
     ) -> int:
         """Run the application's interactive prompt.
 
+        This method will fire all registered on-init callbacks when it first begins,
+        and fire all registered on-exit callbacks when it completes execution.
+
         Returns:
             The exit code of the application's execution.
 
         """
         with patch_stdout():
+            await self.run_on_init_callbacks()
+
             session = PromptSession(**self._session_opts)
 
             while True:
@@ -193,8 +217,7 @@ class Application:
                 except EOFError:
                     break
                 finally:
-                    # TODO: this needs to clean up running tasks
-                    pass
+                    await self.run_on_exit_callbacks()
 
             return ExitCodes.OK
 
@@ -235,6 +258,70 @@ class Application:
             return f
 
         return decorator
+
+    def on_exit(
+        self
+    ) -> Callable[[CoroutineCallback], CoroutineCallback]:
+        """A decorator for specifying a callback to be executed when the app exits.
+
+        These callbacks will only be implicitly executed at the end of :method:`prompt`
+        execution. Otherwise, the programmer must manually call
+        :method:`run_on_init_callbacks`.
+
+        """
+
+        def decorator(
+            callback_coro: CoroutineCallback
+        ) -> CoroutineCallback:
+            self._on_exit_callbacks.append(callback_coro)
+            return callback_coro
+
+        return decorator
+
+    def on_init(
+        self
+    ) -> Callable[[CoroutineCallback], CoroutineCallback]:
+        """A decorator for specifying a callback to be executed when the prompt begins.
+
+        These callbacks will only be implicitly executed at the beginning of
+        :method:`prompt` execution. Otherwise, the programmer must manually call
+        :method:`run_on_init_callbacks`.
+
+        """
+
+        def decorator(
+            callback_coro: CoroutineCallback
+        ) -> CoroutineCallback:
+            self._on_init_callbacks.append(callback_coro)
+            return callback_coro
+
+        return decorator
+
+    async def run_on_exit_callbacks(
+        self
+    ) -> List[Any]:
+        """Run all of the registered on-exit callbacks.
+
+        Returns:
+            The return value of each of the registered callbacks, in the order that
+            they were registered.
+
+        """
+        awaitable_callbacks = [x() for x in self._on_exit_callbacks]
+        return await asyncio.gather(*awaitable_callbacks)
+
+    async def run_on_init_callbacks(
+        self
+    ) -> List[Any]:
+        """Run all of the registered on-init callbacks.
+
+        Returns:
+            The return value of each of the registered callbacks, in the order that
+            they were registered.
+
+        """
+        awaitable_callbacks = [x() for x in self._on_init_callbacks]
+        return await asyncio.gather(*awaitable_callbacks)
 
     def call_as_current_app(
         self,
