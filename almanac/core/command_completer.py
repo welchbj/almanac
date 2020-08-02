@@ -113,9 +113,10 @@ class CommandCompleter(Completer):
             next_pos_arg = unbound_pos_args[0]
 
             # Completions from any per-argument registered completer.
-            yield from self._app.call_as_current_app(
-                next_pos_arg.completer.get_completions, document, complete_event
-            )
+            for completer in next_pos_arg.completers:
+                yield from self._app.call_as_current_app(
+                    completer.get_completions, document, complete_event
+                )
 
             # Completions from any matching application-global type completers.
             yield from self._app.call_as_current_app(
@@ -129,9 +130,10 @@ class CommandCompleter(Completer):
             matching_kw_arg = command[kwarg_name]
 
             # Completions from any per-argument registered completer.
-            yield from self._app.call_as_current_app(
-                matching_kw_arg.completer.get_completions, document, complete_event
-            )
+            for completer in matching_kw_arg.completers:
+                yield from self._app.call_as_current_app(
+                    completer.get_completions, document, complete_event
+                )
 
             # Completions from any matching application-global type completers.
             yield from self._app.call_as_current_app(

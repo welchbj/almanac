@@ -1,5 +1,7 @@
 """Abstraction over an argument with immutable properties."""
 
+from typing import Tuple
+
 from prompt_toolkit.completion import Completer
 
 from .argument_base import ArgumentBase
@@ -14,14 +16,14 @@ class FrozenArgument(ArgumentBase):
     ) -> None:
         raise FrozenAccessError('Cannot change the display name of a FrozenCommand')
 
-    def _abstract_completer_setter(
-        self,
-        new_completer: Completer
-    ) -> None:
-        raise FrozenAccessError('Cannot change the completer of a FrozenCommand')
-
     def _abstract_description_setter(
         self,
         new_description: str
     ) -> None:
         raise FrozenAccessError('Cannot change the description of a FrozenCommand')
+
+    @property
+    def completers(
+        self
+    ) -> Tuple[Completer, ...]:
+        return tuple(self._completers)

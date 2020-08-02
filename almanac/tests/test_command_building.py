@@ -51,8 +51,8 @@ class TestCommandBuilding(IsolatedAsyncioTestCase):
             app = Application()
 
             @app.cmd.register()
-            @app.arg.c(completer=DummyCompleter())
-            @app.arg.a(completer=DummyCompleter())
+            @app.arg.c(completers=DummyCompleter())
+            @app.arg.a(completers=DummyCompleter())
             async def j(a: int, b: str):
                 pass
 

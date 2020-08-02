@@ -31,7 +31,8 @@ class ArgumentDecoratorProxy:
             *,
             name: Optional[str] = None,
             description: Optional[str] = None,
-            completer: Optional[Completer] = None
+            choices: Optional[Iterable[str]] = None,
+            completers: Optional[Union[Completer, Iterable[Completer]]] = None
         ) -> CommandDecorator:
 
             def wrapped(
@@ -53,8 +54,13 @@ class ArgumentDecoratorProxy:
                 if description is not None:
                     argument.description = description
 
-                if completer is not None:
-                    argument.completer = completer
+                # XXX: choices
+
+                if completers is not None:
+                    if isinstance(completers, Completer):
+                        argument.completers.append(completers)
+                    else:
+                        argument.completers.extend(completers)
 
                 return command
 
