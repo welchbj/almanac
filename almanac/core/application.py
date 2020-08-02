@@ -5,6 +5,7 @@ import asyncio
 from contextlib import contextmanager
 from typing import Any, Awaitable, Callable, Dict, Iterator, List, Type, TypeVar
 
+from munch import Munch
 from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import Completer
 from prompt_toolkit.lexers import PygmentsLexer
@@ -50,6 +51,7 @@ class Application:
         self._on_exit_callbacks: List[CoroutineCallback] = []
         self._on_init_callbacks: List[CoroutineCallback] = []
 
+        self._bag = Munch()
         self._command_engine = CommandEngine()
         self._page_navigator = PageNavigator()
 
@@ -84,6 +86,13 @@ class Application:
     ) -> ArgumentDecoratorProxy:
         """The interface for argument-mutating decorators."""
         return self._argument_decorator_proxy
+
+    @property
+    def bag(
+        self
+    ) -> Munch:
+        """A mutable container for storing data for global access."""
+        return self._bag
 
     @property
     def on_exit_callbacks(
@@ -202,22 +211,23 @@ class Application:
 
             session = PromptSession(**self._session_opts)
 
-            while True:
-                try:
-                    if self._do_quit:
-                        break
+            try:
+                while True:
+                    try:
+                        if self._do_quit:
+                            break
 
-                    line = (await session.prompt_async()).strip()
-                    if not line:
+                        line = (await session.prompt_async()).strip()
+                        if not line:
+                            continue
+
+                        await self.eval_line(line)
+                    except KeyboardInterrupt:
                         continue
-
-                    await self.eval_line(line)
-                except KeyboardInterrupt:
-                    continue
-                except EOFError:
-                    break
-                finally:
-                    await self.run_on_exit_callbacks()
+                    except EOFError:
+                        break
+            finally:
+                await self.run_on_exit_callbacks()
 
             return ExitCodes.OK
 
