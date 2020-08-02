@@ -207,11 +207,10 @@ class Application:
 
         """
         with patch_stdout():
-            await self.run_on_init_callbacks()
-
-            session = PromptSession(**self._session_opts)
-
             try:
+                await self.run_on_init_callbacks()
+                session = PromptSession(**self._session_opts)
+
                 while True:
                     try:
                         if self._do_quit:
