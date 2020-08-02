@@ -25,6 +25,7 @@ from ..context import set_current_app
 from ..errors import (
     BaseArgumentError,
     ConflictingPromoterTypesError,
+    InvalidCallbackTypeError,
     NoSuchCommandError
 )
 from ..io import AbstractIoContext, StandardConsoleIoContext
@@ -100,6 +101,13 @@ class Application:
     ) -> Munch:
         """A mutable container for storing data for global access."""
         return self._bag
+
+    @property
+    def current_prompt_str(
+        self
+    ) -> str:
+        """The current prompt string."""
+        return self._prompt_callback_wrapper()
 
     @property
     def on_exit_callbacks(
@@ -283,6 +291,7 @@ class Application:
         def decorator(
             callback_func: SyncCallback[str]
         ) -> SyncCallback[str]:
+            self._assert_sync_callback(callback_func)
             self._prompt_callback = callback_func
             return callback_func
 
@@ -302,6 +311,7 @@ class Application:
         def decorator(
             callback_coro: AsyncCallback[Any]
         ) -> AsyncCallback[Any]:
+            self._assert_async_callback(callback_coro)
             self._on_exit_callbacks.append(callback_coro)
             return callback_coro
 
@@ -321,6 +331,7 @@ class Application:
         def decorator(
             callback_coro: AsyncCallback[Any]
         ) -> AsyncCallback[Any]:
+            self._assert_async_callback(callback_coro)
             self._on_init_callbacks.append(callback_coro)
             return callback_coro
 
@@ -383,6 +394,24 @@ class Application:
     ) -> None:
         """Cause this application to cleanly stop running."""
         self._do_quit = True
+
+    @staticmethod
+    def _assert_sync_callback(
+        candidate: Any
+    ) -> None:
+        if not callable(candidate) or asyncio.iscoroutinefunction(candidate):
+            raise InvalidCallbackTypeError(
+                f'Invalid synchronous callback {candidate}'
+            )
+
+    @staticmethod
+    def _assert_async_callback(
+        candidate: Any
+    ) -> None:
+        if not asyncio.iscoroutinefunction(candidate):
+            raise InvalidCallbackTypeError(
+                f'Invalid asynchronous callback {candidate}'
+            )
 
     def _maybe_propagate_runtime_exc(
         self,
