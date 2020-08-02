@@ -3,11 +3,12 @@ environment:
         - PYTHON: "C:\\Python38-x64"
 
 install:
-    - "%PYTHON%\\python.exe -m pip install -r deps\\dev-requirements.txt"
+    - "set PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
+    - "pip install -r deps\\dev-requirements.txt"
 
 build: off
 
 test_script:
-    - "cmd.exe /c \"%PYTHON%\\python.exe tasks.py test\""
-    - "cmd.exe /c \"%PYTHON%\\Scripts\\flake8.exe .\""
-    - "cmd.exe /c \"%PYTHON%\\Scripts\\mypy.exe .\""
+    - "python tasks.py test"
+    - "flake8 ."
+    - "mypy ."
