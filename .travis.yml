@@ -6,12 +6,14 @@ matrix:
   include:
     - name: CPython 3.8 -- Ubuntu 18.04
       language: python
+      cache: pip
       os: linux
       dist: bionic
       python: 3.8
 
     - name: CPython nightly -- Ubuntu 18.04
       language: python
+      cache: pip
       os: linux
       dist: bionic
       python: nightly
