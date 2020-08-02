@@ -4,7 +4,16 @@ from __future__ import annotations
 
 import functools
 
-from typing import Callable, cast, Iterable, Optional, TYPE_CHECKING, Union
+from typing import (
+    Any,
+    Callable,
+    cast,
+    Coroutine,
+    Iterable,
+    Optional,
+    TYPE_CHECKING,
+    Union
+)
 
 from prompt_toolkit.completion import Completer
 
@@ -19,6 +28,9 @@ CommandDecorator = Callable[[Union[MutableCommand, CommandCoroutine]], CommandBa
 
 if TYPE_CHECKING:
     from .application import Application
+
+
+CoroutineCallback = Callable[[], Coroutine[Any, Any, Any]]
 
 
 class ArgumentDecoratorProxy:
