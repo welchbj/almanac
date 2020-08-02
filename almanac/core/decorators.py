@@ -11,7 +11,9 @@ from typing import (
     Coroutine,
     Iterable,
     Optional,
+    Protocol,
     TYPE_CHECKING,
+    TypeVar,
     Union
 )
 
@@ -29,8 +31,17 @@ CommandDecorator = Callable[[Union[MutableCommand, CommandCoroutine]], CommandBa
 if TYPE_CHECKING:
     from .application import Application
 
+_T = TypeVar('_T', covariant=True)
 
-CoroutineCallback = Callable[[], Coroutine[Any, Any, Any]]
+
+class AsyncCallback(Protocol[_T]):
+    def __call__(self) -> Coroutine[Any, Any, _T]:
+        ...
+
+
+class SyncCallback(Protocol[_T]):
+    def __call__(self) -> _T:
+        ...
 
 
 class ArgumentDecoratorProxy:

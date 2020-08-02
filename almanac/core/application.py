@@ -14,7 +14,12 @@ from prompt_toolkit.styles import Style
 
 from .command_completer import CommandCompleter
 from .command_engine import CommandEngine
-from .decorators import ArgumentDecoratorProxy, CommandDecoratorProxy, CoroutineCallback
+from .decorators import (
+    ArgumentDecoratorProxy,
+    AsyncCallback,
+    CommandDecoratorProxy,
+    SyncCallback
+)
 from ..constants import ExitCodes
 from ..context import set_current_app
 from ..errors import (
@@ -48,8 +53,8 @@ class Application:
 
         self._propagate_runtime_exceptions = propagate_runtime_exceptions
 
-        self._on_exit_callbacks: List[CoroutineCallback] = []
-        self._on_init_callbacks: List[CoroutineCallback] = []
+        self._on_exit_callbacks: List[AsyncCallback[Any]] = []
+        self._on_init_callbacks: List[AsyncCallback[Any]] = []
 
         self._bag = Munch()
         self._command_engine = CommandEngine()
@@ -60,8 +65,10 @@ class Application:
         self._command_decorator_proxy = CommandDecoratorProxy(self)
         self._argument_decorator_proxy = ArgumentDecoratorProxy()
 
+        self._prompt_callback: SyncCallback[str] = self._default_prompt_callback
+
         self._session_opts: Dict[str, Any] = {}
-        self._session_opts['message'] = self._prompt_callback
+        self._session_opts['message'] = self._prompt_callback_wrapper
 
         if with_completion:
             self._session_opts['completer'] = CommandCompleter(self)
@@ -97,14 +104,14 @@ class Application:
     @property
     def on_exit_callbacks(
         self
-    ) -> List[CoroutineCallback]:
+    ) -> List[AsyncCallback[Any]]:
         """Registered coroutines to be executed on application exit."""
         return self._on_exit_callbacks
 
     @property
     def on_init_callbacks(
         self
-    ) -> List[CoroutineCallback]:
+    ) -> List[AsyncCallback[Any]]:
         """Registered coroutines to be executed on application prompt initialization."""
         return self._on_init_callbacks
 
@@ -268,9 +275,22 @@ class Application:
 
         return decorator
 
+    def prompt_str(
+        self
+    ) -> Callable[[SyncCallback[str]], SyncCallback[str]]:
+        """A decorator for specifying an application's prompt."""
+
+        def decorator(
+            callback_func: SyncCallback[str]
+        ) -> SyncCallback[str]:
+            self._prompt_callback = callback_func
+            return callback_func
+
+        return decorator
+
     def on_exit(
         self
-    ) -> Callable[[CoroutineCallback], CoroutineCallback]:
+    ) -> Callable[[AsyncCallback[Any]], AsyncCallback[Any]]:
         """A decorator for specifying a callback to be executed when the app exits.
 
         These callbacks will only be implicitly executed at the end of :method:`prompt`
@@ -280,8 +300,8 @@ class Application:
         """
 
         def decorator(
-            callback_coro: CoroutineCallback
-        ) -> CoroutineCallback:
+            callback_coro: AsyncCallback[Any]
+        ) -> AsyncCallback[Any]:
             self._on_exit_callbacks.append(callback_coro)
             return callback_coro
 
@@ -289,7 +309,7 @@ class Application:
 
     def on_init(
         self
-    ) -> Callable[[CoroutineCallback], CoroutineCallback]:
+    ) -> Callable[[AsyncCallback[Any]], AsyncCallback[Any]]:
         """A decorator for specifying a callback to be executed when the prompt begins.
 
         These callbacks will only be implicitly executed at the beginning of
@@ -299,8 +319,8 @@ class Application:
         """
 
         def decorator(
-            callback_coro: CoroutineCallback
-        ) -> CoroutineCallback:
+            callback_coro: AsyncCallback[Any]
+        ) -> AsyncCallback[Any]:
             self._on_init_callbacks.append(callback_coro)
             return callback_coro
 
@@ -320,7 +340,7 @@ class Application:
             self.call_as_current_app_async(exit_coro)
             for exit_coro in self._on_exit_callbacks
         ]
-        return await asyncio.gather(*wrapped_awaitable_callbacks)
+        return list(await asyncio.gather(*wrapped_awaitable_callbacks))
 
     async def run_on_init_callbacks(
         self
@@ -336,9 +356,9 @@ class Application:
             self.call_as_current_app_async(init_coro)
             for init_coro in self._on_init_callbacks
         ]
-        return await asyncio.gather(*wrapped_awaitable_callbacks)
+        return list(await asyncio.gather(*wrapped_awaitable_callbacks))
 
-    def call_as_current_app(
+    def call_as_current_app_sync(
         self,
         func: Callable[..., _T],
         *args: Any,
@@ -389,8 +409,14 @@ class Application:
         for suggestion in suggestions:
             self.io.print_raw('    ', suggestion, sep='')
 
-    def _prompt_callback(
+    def _prompt_callback_wrapper(
         self
     ) -> str:
         """A callback for getting the current page's prompt."""
+        return self.call_as_current_app_sync(self._prompt_callback)
+
+    def _default_prompt_callback(
+        self
+    ) -> str:
         return self._page_navigator.current_page.get_prompt()
+        return '> '

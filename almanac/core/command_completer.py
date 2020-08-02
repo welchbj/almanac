@@ -114,12 +114,12 @@ class CommandCompleter(Completer):
 
             # Completions from any per-argument registered completer.
             for completer in next_pos_arg.completers:
-                yield from self._app.call_as_current_app(
+                yield from self._app.call_as_current_app_sync(
                     completer.get_completions, document, complete_event
                 )
 
             # Completions from any matching application-global type completers.
-            yield from self._app.call_as_current_app(
+            yield from self._app.call_as_current_app_sync(
                 self._maybe_complete_for_type,
                 next_pos_arg.annotation, document, complete_event
             )
@@ -131,12 +131,12 @@ class CommandCompleter(Completer):
 
             # Completions from any per-argument registered completer.
             for completer in matching_kw_arg.completers:
-                yield from self._app.call_as_current_app(
+                yield from self._app.call_as_current_app_sync(
                     completer.get_completions, document, complete_event
                 )
 
             # Completions from any matching application-global type completers.
-            yield from self._app.call_as_current_app(
+            yield from self._app.call_as_current_app_sync(
                 self._maybe_complete_for_type,
                 matching_kw_arg.annotation, document, complete_event
             )
