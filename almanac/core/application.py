@@ -418,5 +418,4 @@ class Application:
     def _default_prompt_callback(
         self
     ) -> str:
-        return self._page_navigator.current_page.get_prompt()
         return '> '
