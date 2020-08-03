@@ -176,15 +176,15 @@ class Application:
         parse_status = parse_cmd_line(line)
 
         if parse_status.state == ParseState.PARTIAL:
-            self.io.print_err(
+            self.io.error(
                 'Error in command parsing. Suspected error position marked below:'
             )
-            self.io.print_err(line)
-            self.io.print_err(' ' * parse_status.unparsed_start_pos + '^')
+            self.io.error(line)
+            self.io.error(' ' * parse_status.unparsed_start_pos + '^')
 
             return ExitCodes.ERR_COMMAND_PARSING
         elif parse_status.state == ParseState.NONE:
-            self.io.print_err('Error in command parsing.')
+            self.io.error('Error in command parsing.')
             return ExitCodes.ERR_COMMAND_PARSING
 
         parsed_args = parse_status.results
@@ -197,13 +197,13 @@ class Application:
                 self._command_engine.run, name_or_alias, parsed_args
             )
         except BaseArgumentError as e:
-            self.io.print_err(e)
+            self.io.error(e)
             # TODO: handle the finer grained argument exeception types
 
             self._maybe_propagate_runtime_exc(e)
             return ExitCodes.ERR_COMMAND_INVALID_ARGUMENTS
         except NoSuchCommandError as e:
-            self.io.print_err(f'Command {name_or_alias} does not exist')
+            self.io.error(f'Command {name_or_alias} does not exist')
             self._print_command_suggestions(name_or_alias)
 
             self._maybe_propagate_runtime_exc(e)
@@ -434,9 +434,9 @@ class Application:
         if not suggestions:
             return
 
-        self.io.print_info('Perhaps you meant one of these:')
+        self.io.info('Perhaps you meant one of these:')
         for suggestion in suggestions:
-            self.io.print_raw('    ', suggestion, sep='')
+            self.io.raw('    ', suggestion, sep='')
 
     def _prompt_callback_wrapper(
         self

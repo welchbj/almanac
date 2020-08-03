@@ -19,9 +19,9 @@ async def main():
         app = current_app()
 
         if verbose:
-            app.io.print_info('Verbose mode is on!')
+            app.io.info('Verbose mode is on!')
 
-        app.io.print_raw(ast.literal_eval(expr))
+        app.io.raw(ast.literal_eval(expr))
         return 0
 
     await app.prompt()
