@@ -8,28 +8,28 @@ from .abstract_io_context import AbstractIoContext
 class NullIoContext(AbstractIoContext):
     """An input/output context for not actually printing anything."""
 
-    def print_info(
+    def info(
         self,
         *args: Any,
         **kwargs: Any
     ) -> None:
         pass
 
-    def print_warn(
+    def warn(
         self,
         *args: Any,
         **kwargs: Any
     ) -> None:
         pass
 
-    def print_err(
+    def error(
         self,
         *args: Any,
         **kwargs: Any
     ) -> None:
         pass
 
-    def print_raw(
+    def raw(
         self,
         *args,
         **kwargs
