@@ -3,7 +3,17 @@
 import asyncio
 
 from contextlib import contextmanager
-from typing import Any, Awaitable, Callable, Dict, Iterator, List, Type, TypeVar
+from typing import (
+    Any,
+    Awaitable,
+    Callable,
+    Dict,
+    Iterable,
+    Iterator,
+    List,
+    Type,
+    TypeVar
+)
 
 from munch import Munch
 from prompt_toolkit import PromptSession
@@ -16,9 +26,12 @@ from .command_completer import CommandCompleter
 from .command_engine import CommandEngine
 from .decorators import (
     ArgumentDecoratorProxy,
-    AsyncCallback,
+    assert_async_callback,
+    assert_sync_callback,
+    AsyncNoArgsCallback,
     CommandDecoratorProxy,
-    SyncCallback
+    CommandHookDecoratorProxy,
+    SyncNoArgsCallback
 )
 from ..constants import ExitCodes
 from ..context import set_current_app
@@ -54,19 +67,20 @@ class Application:
 
         self._propagate_runtime_exceptions = propagate_runtime_exceptions
 
-        self._on_exit_callbacks: List[AsyncCallback[Any]] = []
-        self._on_init_callbacks: List[AsyncCallback[Any]] = []
+        self._on_exit_callbacks: List[AsyncNoArgsCallback[Any]] = []
+        self._on_init_callbacks: List[AsyncNoArgsCallback[Any]] = []
 
         self._bag = Munch()
-        self._command_engine = CommandEngine()
+        self._command_engine = CommandEngine(self)
         self._page_navigator = PageNavigator()
 
         self._type_completer_mapping: Dict[Type, List[Completer]] = {}
 
         self._command_decorator_proxy = CommandDecoratorProxy(self)
+        self._command_hook_decorator_proxy = CommandHookDecoratorProxy(self)
         self._argument_decorator_proxy = ArgumentDecoratorProxy()
 
-        self._prompt_callback: SyncCallback[str] = self._default_prompt_callback
+        self._prompt_callback: SyncNoArgsCallback[str] = self._default_prompt_callback
 
         self._session_opts: Dict[str, Any] = {}
         self._session_opts['message'] = self._prompt_callback_wrapper
@@ -96,6 +110,13 @@ class Application:
         return self._argument_decorator_proxy
 
     @property
+    def hook(
+        self
+    ) -> CommandHookDecoratorProxy:
+        """The interface for registering hooks on different commands."""
+        return self._command_hook_decorator_proxy
+
+    @property
     def bag(
         self
     ) -> Munch:
@@ -112,14 +133,14 @@ class Application:
     @property
     def on_exit_callbacks(
         self
-    ) -> List[AsyncCallback[Any]]:
+    ) -> List[AsyncNoArgsCallback[Any]]:
         """Registered coroutines to be executed on application exit."""
         return self._on_exit_callbacks
 
     @property
     def on_init_callbacks(
         self
-    ) -> List[AsyncCallback[Any]]:
+    ) -> List[AsyncNoArgsCallback[Any]]:
         """Registered coroutines to be executed on application prompt initialization."""
         return self._on_init_callbacks
 
@@ -285,13 +306,17 @@ class Application:
 
     def prompt_str(
         self
-    ) -> Callable[[SyncCallback[str]], SyncCallback[str]]:
+    ) -> Callable[[SyncNoArgsCallback[str]], SyncNoArgsCallback[str]]:
         """A decorator for specifying an application's prompt."""
 
         def decorator(
-            callback_func: SyncCallback[str]
-        ) -> SyncCallback[str]:
-            self._assert_sync_callback(callback_func)
+            callback_func: SyncNoArgsCallback[str]
+        ) -> SyncNoArgsCallback[str]:
+            try:
+                assert_sync_callback(callback_func)
+            except InvalidCallbackTypeError as e:
+                raise e
+
             self._prompt_callback = callback_func
             return callback_func
 
@@ -299,7 +324,7 @@ class Application:
 
     def on_exit(
         self
-    ) -> Callable[[AsyncCallback[Any]], AsyncCallback[Any]]:
+    ) -> Callable[[AsyncNoArgsCallback[Any]], AsyncNoArgsCallback[Any]]:
         """A decorator for specifying a callback to be executed when the app exits.
 
         These callbacks will only be implicitly executed at the end of :method:`prompt`
@@ -309,9 +334,13 @@ class Application:
         """
 
         def decorator(
-            callback_coro: AsyncCallback[Any]
-        ) -> AsyncCallback[Any]:
-            self._assert_async_callback(callback_coro)
+            callback_coro: AsyncNoArgsCallback[Any]
+        ) -> AsyncNoArgsCallback[Any]:
+            try:
+                assert_async_callback(callback_coro)
+            except InvalidCallbackTypeError as e:
+                raise e
+
             self._on_exit_callbacks.append(callback_coro)
             return callback_coro
 
@@ -319,7 +348,7 @@ class Application:
 
     def on_init(
         self
-    ) -> Callable[[AsyncCallback[Any]], AsyncCallback[Any]]:
+    ) -> Callable[[AsyncNoArgsCallback[Any]], AsyncNoArgsCallback[Any]]:
         """A decorator for specifying a callback to be executed when the prompt begins.
 
         These callbacks will only be implicitly executed at the beginning of
@@ -329,45 +358,49 @@ class Application:
         """
 
         def decorator(
-            callback_coro: AsyncCallback[Any]
-        ) -> AsyncCallback[Any]:
-            self._assert_async_callback(callback_coro)
+            callback_coro: AsyncNoArgsCallback[Any]
+        ) -> AsyncNoArgsCallback[Any]:
+            try:
+                assert_async_callback(callback_coro)
+            except InvalidCallbackTypeError as e:
+                raise e
+
             self._on_init_callbacks.append(callback_coro)
             return callback_coro
 
         return decorator
 
-    async def run_on_exit_callbacks(
-        self
-    ) -> List[Any]:
-        """Run all of the registered on-exit callbacks.
+    async def run_async_callbacks(
+        self,
+        async_callbacks: Iterable[AsyncNoArgsCallback[_T]],
+        *args: Any,
+        **kwargs: Any
+    ) -> List[_T]:
+        """Run a collection of asynchronous callbacks with the specified arguments.
 
         Returns:
             The return value of each of the registered callbacks, in the order that
-            they were registered.
+            they were registed.
 
         """
         wrapped_awaitable_callbacks = [
-            self.call_as_current_app_async(exit_coro)
-            for exit_coro in self._on_exit_callbacks
+            self.call_as_current_app_async(async_callback, *args, **kwargs)
+            for async_callback in async_callbacks
         ]
+
         return list(await asyncio.gather(*wrapped_awaitable_callbacks))
+
+    async def run_on_exit_callbacks(
+        self
+    ) -> List[Any]:
+        """Run all of the registered on-exit callbacks."""
+        return await self.run_async_callbacks(self._on_exit_callbacks)
 
     async def run_on_init_callbacks(
         self
     ) -> List[Any]:
-        """Run all of the registered on-init callbacks.
-
-        Returns:
-            The return value of each of the registered callbacks, in the order that
-            they were registered.
-
-        """
-        wrapped_awaitable_callbacks = [
-            self.call_as_current_app_async(init_coro)
-            for init_coro in self._on_init_callbacks
-        ]
-        return list(await asyncio.gather(*wrapped_awaitable_callbacks))
+        """Run all of the registered on-init callbacks."""
+        return await self.run_async_callbacks(self._on_init_callbacks)
 
     def call_as_current_app_sync(
         self,
@@ -394,24 +427,6 @@ class Application:
     ) -> None:
         """Cause this application to cleanly stop running."""
         self._do_quit = True
-
-    @staticmethod
-    def _assert_sync_callback(
-        candidate: Any
-    ) -> None:
-        if not callable(candidate) or asyncio.iscoroutinefunction(candidate):
-            raise InvalidCallbackTypeError(
-                f'Invalid synchronous callback {candidate}'
-            )
-
-    @staticmethod
-    def _assert_async_callback(
-        candidate: Any
-    ) -> None:
-        if not asyncio.iscoroutinefunction(candidate):
-            raise InvalidCallbackTypeError(
-                f'Invalid asynchronous callback {candidate}'
-            )
 
     def _maybe_propagate_runtime_exc(
         self,

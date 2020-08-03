@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import functools
 
 from typing import (
@@ -10,6 +11,7 @@ from typing import (
     cast,
     Coroutine,
     Iterable,
+    List,
     Optional,
     Protocol,
     TYPE_CHECKING,
@@ -22,26 +24,59 @@ from prompt_toolkit.completion import Completer
 from ..arguments import MutableArgument
 from ..commands import CommandBase, FrozenCommand, MutableCommand
 from ..completion import WordCompleter
-from ..errors import InvalidArgumentNameError, NoSuchArgumentError
+from ..errors import (
+    InvalidArgumentNameError,
+    InvalidCallbackTypeError,
+    NoSuchArgumentError,
+    NoSuchCommandError
+)
 from ..parsing import Patterns
 from ..types import CommandCoroutine
 
-CommandDecorator = Callable[[Union[MutableCommand, CommandCoroutine]], CommandBase]
-
 if TYPE_CHECKING:
     from .application import Application
+    from .command_engine import CommandEngine
 
 _T = TypeVar('_T', covariant=True)
 
+CommandDecorator = Callable[[Union[MutableCommand, CommandCoroutine]], CommandBase]
 
-class AsyncCallback(Protocol[_T]):
+# In the future, would like to make AsyncHookCallback a generic protocol-based type. In
+# the meantime, we'll settle for the ambiguous return type of Any.
+#
+# Seems to depend on this issue:
+# https://github.com/python/mypy/issues/5876
+AsyncHookCallback = Callable[..., Coroutine[Any, Any, Any]]
+
+
+class AsyncNoArgsCallback(Protocol[_T]):
     def __call__(self) -> Coroutine[Any, Any, _T]:
         ...
 
 
-class SyncCallback(Protocol[_T]):
+class SyncNoArgsCallback(Protocol[_T]):
     def __call__(self) -> _T:
         ...
+
+
+def assert_sync_callback(
+    candidate: Any
+) -> None:
+    """Assert that the candidate is a valid synchronous callback."""
+    if not callable(candidate) or asyncio.iscoroutinefunction(candidate):
+        raise InvalidCallbackTypeError(
+            f'Invalid synchronous callback {candidate}'
+        )
+
+
+def assert_async_callback(
+    candidate: Any
+) -> None:
+    """Assert that the candidate is a valid asynchronous."""
+    if not asyncio.iscoroutinefunction(candidate):
+        raise InvalidCallbackTypeError(
+            f'Invalid asynchronous callback {candidate}'
+        )
 
 
 class ArgumentDecoratorProxy:
@@ -188,3 +223,81 @@ class CommandDecoratorProxy:
             return command
 
         return wrapped
+
+
+class CommandHookDecoratorProxy:
+    """A simple proxy for hooking actions before and after commands.
+
+    Note:
+        Command hook callbacks will be called with the same arguments as the command
+        that they are hooking.
+
+    """
+
+    def __init__(
+        self,
+        app: Application
+    ) -> None:
+        self._app = app
+
+    @property
+    def command_engine(
+        self
+    ) -> CommandEngine:
+        return self._app.command_engine
+
+    def _resolved_commands(
+        self,
+        *command_names: str
+    ) -> List[FrozenCommand]:
+        nonexistent_command_names = [
+            name for name in command_names
+            if name not in self._app.command_engine.keys()
+        ]
+
+        if nonexistent_command_names:
+            raise NoSuchCommandError(*nonexistent_command_names)
+
+        return [self._app.command_engine[name] for name in command_names]
+
+    def before(
+        self,
+        *command_names: str
+    ) -> Callable[[AsyncHookCallback], AsyncHookCallback]:
+        """A decorator for adding a callback to fire before commands execute."""
+        frozen_commands = self._resolved_commands(*command_names)
+
+        def decorator(
+            hook_coro: AsyncHookCallback
+        ) -> AsyncHookCallback:
+            try:
+                assert_async_callback(hook_coro)
+            except InvalidCallbackTypeError as e:
+                raise e
+
+            for command in frozen_commands:
+                self.command_engine.add_before_command_callback(command, hook_coro)
+            return hook_coro
+
+        return decorator
+
+    def after(
+        self,
+        *command_names: str
+    ) -> Callable[[AsyncHookCallback], AsyncHookCallback]:
+        """A decorator for adding a callback to fire after commands execute."""
+        frozen_commands = self._resolved_commands(*command_names)
+
+        def decorator(
+            hook_coro: AsyncHookCallback
+        ) -> AsyncHookCallback:
+            try:
+                assert_async_callback(hook_coro)
+            except InvalidCallbackTypeError as e:
+                raise e
+
+            for command in frozen_commands:
+                self.command_engine.add_after_command_callback(command, hook_coro)
+            return hook_coro
+
+        return decorator

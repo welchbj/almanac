@@ -122,6 +122,25 @@ class FrozenCommand(CommandBase, Mapping[str, FrozenArgument]):
         """
         return await self._impl_coroutine(*args, **kwargs)
 
+    def _hash_basis(
+        self
+    ) -> Tuple[Any, ...]:
+        return (self.name, self.description, self.aliases, self.coroutine,)
+
+    def __hash__(
+        self
+    ) -> int:
+        return hash(self._hash_basis())
+
+    def __eq__(
+        self,
+        other: Any
+    ) -> bool:
+        if not isinstance(other, FrozenCommand):
+            return NotImplemented
+
+        return self._hash_basis() == other._hash_basis()
+
     def __iter__(
         self
     ) -> Iterator[str]:
