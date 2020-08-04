@@ -8,7 +8,12 @@ from typing import Iterable, Iterator, List, MutableMapping, Optional, Type
 from .abstract_page import AbstractPage
 from .directory_page import DirectoryPage
 from .page_path import PagePath, PagePathLike
-from ..errors import PositionalValueError
+from ..errors import (
+    BlockedPageOverwriteError,
+    NoSuchPageError,
+    OutOfBoundsPageError,
+    PathSyntaxError
+)
 from ..utils import pairwise
 
 
@@ -44,21 +49,23 @@ class PageNavigator(MutableMapping[PagePathLike, AbstractPage]):
         """Change the current directory of this navigator.
 
         Args:
-            destination: The page to change to, which will be exploded into
-                an absolute path.
+            destination: The page to change to, which will be exploded into an absolute
+                path.
 
         Raises:
-            PositionalValueError: If a synactical error occured during the
-                path parsing.
-            ValueError: If the specified destination is invalid or does not
-                exist.
+            NoSuchPageError: If the specified destination is invalid or does not exist.
+            OutOfBoundsPageError: If the specified destination attempts to go above the
+                root directory.
+            PathSyntaxError: If a syntactical error occured during the path parsing.
 
         """
-        full_path: str = self.explode(destination)
+        try:
+            full_path: str = self.explode(destination)
+        except (NoSuchPageError, OutOfBoundsPageError, PathSyntaxError,) as e:
+            raise e
+
         if full_path not in self:
-            raise ValueError(
-                f'Exploded path {str(full_path)} not present in this navigator'
-            )
+            raise NoSuchPageError(full_path)
         elif full_path == self.current_page.path:
             return
 
@@ -107,14 +114,15 @@ class PageNavigator(MutableMapping[PagePathLike, AbstractPage]):
                 absolute path.
 
         Returns:
-            The exploded absolute path. This value is not guaranteed to exist
-            within this :class:`PageNavigator`.
+            The exploded absolute path. This value is not guaranteed to exist within
+            this :class:`PageNavigator`.
 
         Raises:
-            ValueError: If a malformed path is received or invalid parent
-                directories are referenced via the ``..`` operator.
-            PositionalValueError: If an invalid character sequence is
-                encountered, such as dots in the middle of of a path segment.
+            NoSuchPageError: If a malformed path is received.
+            OutOfBoundsPageError: If invalid parent directors are referenced via the
+                `..` operator.
+            PathSyntaxError: If an invalid character sequence is encountered, such as
+                dots in the middle of of a path segment.
 
         """
         path = str(path)
@@ -149,8 +157,7 @@ class PageNavigator(MutableMapping[PagePathLike, AbstractPage]):
                 if c == '/':
                     state = _PathExplodeState.ATE_SLASH
                 elif c == '.':
-                    raise PositionalValueError(
-                        'Invalid dot position in path', i)
+                    raise PathSyntaxError('Invalid dot position in path', i)
                 elif c is None:
                     pass
                 else:
@@ -175,32 +182,23 @@ class PageNavigator(MutableMapping[PagePathLike, AbstractPage]):
                 elif c is None:
                     pass
                 else:
-                    raise PositionalValueError(
-                        'Invalid dot position in path', i - 1)
+                    raise PathSyntaxError('Invalid dot position in path', i - 1)
             elif state == _PathExplodeState.ATE_TWO_DOTS:
                 if c == '/' or c is None:
-                    exploded_path = PagePath.un_trailing_slashify(
-                        exploded_path)
+                    exploded_path = PagePath.un_trailing_slashify(exploded_path)
                     if exploded_path not in self:
-                        raise ValueError(
-                            'Attempted to reference non-existent directory'
-                        )
+                        raise NoSuchPageError(exploded_path)
 
                     referenced_page = self[exploded_path]
                     if referenced_page.parent is None:
-                        raise ValueError(
-                            'Attempted to reference parent directory beyond '
-                            'application scope'
-                        )
+                        raise OutOfBoundsPageError(path)
 
                     exploded_path = str(referenced_page.parent.path)
                     state = _PathExplodeState.ATE_SLASH
                 elif c == '.':
-                    raise PositionalValueError(
-                        'You can\'t have three dots in a row!', i
-                    )
+                    raise PathSyntaxError('You can\'t have three dots in a row!', i)
                 else:
-                    raise PositionalValueError('Expected a slash!', i)
+                    raise PathSyntaxError('Expected a slash!', i)
 
         if not exploded_path:
             exploded_path = '/'
@@ -265,10 +263,7 @@ class PageNavigator(MutableMapping[PagePathLike, AbstractPage]):
                 parent_page.children.add(child_page)
                 child_page.parent = parent_page
         elif not allow_overwrite:
-            raise ValueError(
-                f'Attempted to overwrite page at {path} with'
-                'allow_overwrite kwarg set to False'
-            )
+            raise BlockedPageOverwriteError(path)
         else:
             # Overwriting an existing page.
             old_page = self[path]
@@ -290,15 +285,15 @@ class PageNavigator(MutableMapping[PagePathLike, AbstractPage]):
     ) -> DirectoryPage:
         """Add a directory page at the specified path.
 
-        This method is only used for adding pages that do not already exist. It
-        will also create any intermediate directories within the path that do
-        not already exist.
+        This method is only used for adding pages that do not already exist. It will
+        also create any intermediate directories within the path that do not already
+        exist.
 
         Returns:
             The created :class:`DirectoryPage`.
 
         Raises:
-            ValueError: If an existing page would be overwritten by the
+            BlockedPageOverwriteError: If an existing page would be overwritten by the
                 operation.
 
         .. code-block:: python
@@ -321,11 +316,12 @@ class PageNavigator(MutableMapping[PagePathLike, AbstractPage]):
 
         """
         dir_page = self.directory_page_cls(path)
-        self.set_page(
-            PagePath(path),
-            dir_page,
-            allow_overwrite=False
-        )
+
+        try:
+            self.set_page(PagePath(path), dir_page, allow_overwrite=False)
+        except BlockedPageOverwriteError as e:
+            raise e
+
         return dir_page
 
     def __delitem__(
@@ -336,9 +332,7 @@ class PageNavigator(MutableMapping[PagePathLike, AbstractPage]):
 
         page_path = PagePath(key)
         if page_path not in self:
-            raise KeyError(
-                f'Path {page_path} does not exist in this navigator'
-            )
+            raise NoSuchPageError(page_path)
 
         # Delete all children of the specified path.
         for child in self.match(page_path.path + '/*'):
@@ -362,8 +356,8 @@ class PageNavigator(MutableMapping[PagePathLike, AbstractPage]):
         try:
             path = PagePath(self.explode(key))
             return self._page_table[path]
-        except KeyError as e:
-            raise KeyError(f'Path {str(key)} does not exist!') from e
+        except KeyError:
+            raise NoSuchPageError(key)
 
     def __str__(
         self

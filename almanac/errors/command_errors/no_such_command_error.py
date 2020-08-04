@@ -3,7 +3,7 @@
 from typing import Tuple
 
 from .base_command_error import BaseCommandError
-from ..configuration import BaseConfigurationError
+from ..configuration_errors import BaseConfigurationError
 
 
 class NoSuchCommandError(BaseCommandError, BaseConfigurationError, KeyError):
