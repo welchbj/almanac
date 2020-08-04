@@ -44,6 +44,7 @@ def make_standard_app(
         style=style,
         io_context_cls=io_context_cls,
         propagate_runtime_exceptions=propagate_runtime_exceptions,
+        print_all_exception_tracebacks=print_all_exception_tracebacks,
         print_unknown_exception_tracebacks=print_unknown_exception_tracebacks
     )
 
