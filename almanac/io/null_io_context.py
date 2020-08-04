@@ -35,3 +35,10 @@ class NullIoContext(AbstractIoContext):
         **kwargs
     ) -> None:
         pass
+
+    def ansi(
+        self,
+        *args,
+        **kwargs
+    ) -> None:
+        pass

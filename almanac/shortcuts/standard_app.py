@@ -5,6 +5,7 @@ from typing import Type
 from prompt_toolkit.styles import Style
 
 from .builtins import cd, help, ls, quit
+from .promoters import promote_to_page_path
 from ..completion import PagePathCompleter, WordCompleter
 from ..context import current_app
 from ..core import Application
@@ -26,7 +27,8 @@ def make_standard_app(
     with_style: bool = True,
     style: Style = DARK_MODE_STYLE,
     io_context_cls: Type[AbstractIoContext] = StandardConsoleIoContext,
-    propagate_runtime_exceptions: bool = False
+    propagate_runtime_exceptions: bool = False,
+    print_unknown_exception_tracebacks: bool = True
 ) -> Application:
     """Instantiate and configure a standard application.
 
@@ -40,7 +42,8 @@ def make_standard_app(
         with_style=with_style,
         style=style,
         io_context_cls=io_context_cls,
-        propagate_runtime_exceptions=propagate_runtime_exceptions
+        propagate_runtime_exceptions=propagate_runtime_exceptions,
+        print_unknown_exception_tracebacks=print_unknown_exception_tracebacks
     )
 
     app.add_completers_for_type(bool, WordCompleter(['True', 'False']))
@@ -52,7 +55,7 @@ def make_standard_app(
 
     if with_pages:
         app.add_completers_for_type(PagePath, PagePathCompleter())
-        app.add_promoter_for_type(PagePath, PagePath)
+        app.add_promoter_for_type(PagePath, promote_to_page_path)
 
         register_prompt_str = app.prompt_str()
         register_prompt_str(_current_page_prompt_str)
