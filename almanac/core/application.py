@@ -270,6 +270,11 @@ class Application:
                         # KeyboardInterrupt is a special exception case, since it is not
                         # a descendant of the Exception base class.
                         continue
+                    except EOFError:
+                        # EOFError is also a special case, since it will be raised by
+                        # prompt-toolkit on ^D sequences. Since this is outside of
+                        # command implementations, we have to handle it out here.
+                        break
             finally:
                 await self.run_on_exit_callbacks()
 
@@ -443,6 +448,13 @@ class Application:
     ) -> None:
         if self._propagate_runtime_exceptions:
             raise exc
+
+    def _maybe_handle_exc(
+        self,
+        exc: Exception
+    ) -> None:
+        # TODO
+        pass
 
     def print_exception_info(
         self,
