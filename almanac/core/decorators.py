@@ -49,6 +49,11 @@ CommandDecorator = Callable[[Union[MutableCommand, CommandCoroutine]], CommandBa
 AsyncHookCallback = Callable[..., Coroutine[Any, Any, Any]]
 
 
+class PromoterFunction(Protocol[_T]):
+    def __call__(self, __raw_value: Any) -> _T:
+        ...
+
+
 class AsyncNoArgsCallback(Protocol[_T]):
     def __call__(self) -> Coroutine[Any, Any, _T]:
         ...

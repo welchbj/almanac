@@ -15,10 +15,11 @@ from typing import (
     Tuple,
     Type,
     TYPE_CHECKING,
+    TypeVar,
     Union
 )
 
-from .decorators import AsyncHookCallback
+from .decorators import AsyncHookCallback, PromoterFunction
 from ..commands import FrozenCommand
 from ..errors import (
     CommandNameCollisionError,
@@ -36,6 +37,8 @@ if TYPE_CHECKING:
     from .application import Application
 
 HookCallbackMapping = MutableMapping[FrozenCommand, List[AsyncHookCallback]]
+
+_T = TypeVar('_T')
 
 
 class CommandEngine:
@@ -75,8 +78,8 @@ class CommandEngine:
 
     def add_promoter_for_type(
         self,
-        _type: Type,
-        promoter_callable: Callable
+        _type: Type[_T],
+        promoter_callable: PromoterFunction[_T]
     ) -> None:
         """Register a promotion callable for a specific argument type."""
         if _type in self._type_promoter_mapping.keys():

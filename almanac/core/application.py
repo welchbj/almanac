@@ -35,6 +35,7 @@ from .decorators import (
     AsyncNoArgsCallback,
     CommandDecoratorProxy,
     CommandHookDecoratorProxy,
+    PromoterFunction,
     SyncNoArgsCallback
 )
 from ..constants import ExitCodes
@@ -163,7 +164,7 @@ class Application:
     @property
     def type_promoter_mapping(
         self
-    ) -> Dict[Type, Callable]:
+    ) -> Dict[Type[_T], PromoterFunction[_T]]:
         """A mapping of types to callables that convert raw arguments to those types."""
         return self._command_engine.type_promoter_mapping
 
@@ -293,8 +294,8 @@ class Application:
 
     def add_promoter_for_type(
         self,
-        _type: Type,
-        promoter_callable: Callable
+        _type: Type[_T],
+        promoter_callable: PromoterFunction[_T]
     ) -> None:
         """Register a promotion callable for a specific argument type."""
         try:
@@ -305,12 +306,12 @@ class Application:
     def promoter_for(
         self,
         *types: Type[_T]
-    ) -> Callable[[Any], Callable[[Any], _T]]:
+    ) -> Callable[[PromoterFunction[_T]], PromoterFunction[_T]]:
         """A decorator for specifying inline promotion callbacks."""
 
         def decorator(
-            f: Callable[[Any], _T]
-        ) -> Callable[[Any], _T]:
+            f: PromoterFunction[_T]
+        ) -> PromoterFunction[_T]:
             for _type in types:
                 self.add_promoter_for_type(_type, f)
             return f
