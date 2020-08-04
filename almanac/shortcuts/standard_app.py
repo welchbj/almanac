@@ -28,6 +28,7 @@ def make_standard_app(
     style: Style = DARK_MODE_STYLE,
     io_context_cls: Type[AbstractIoContext] = StandardConsoleIoContext,
     propagate_runtime_exceptions: bool = False,
+    print_all_exception_tracebacks: bool = False,
     print_unknown_exception_tracebacks: bool = True
 ) -> Application:
     """Instantiate and configure a standard application.

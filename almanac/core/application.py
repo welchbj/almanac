@@ -41,6 +41,7 @@ from ..constants import ExitCodes
 from ..context import set_current_app
 from ..errors import (
     BaseArgumentError,
+    BasePageError,
     ConflictingPromoterTypesError,
     InvalidCallbackTypeError,
     NoSuchCommandError
@@ -64,6 +65,7 @@ class Application:
         style: Style = DARK_MODE_STYLE,
         io_context_cls: Type[AbstractIoContext] = StandardConsoleIoContext,
         propagate_runtime_exceptions: bool = False,
+        print_all_exception_tracebacks: bool = False,
         print_unknown_exception_tracebacks: bool = True
     ) -> None:
         self._io_stack: List[AbstractIoContext] = [io_context_cls()]
@@ -71,6 +73,7 @@ class Application:
         self._do_quit = False
 
         self._propagate_runtime_exceptions = propagate_runtime_exceptions
+        self._print_all_exception_tracebacks = print_all_exception_tracebacks
         self._print_unknown_exception_tracebacks = print_unknown_exception_tracebacks
 
         self._on_exit_callbacks: List[AsyncNoArgsCallback[Any]] = []
@@ -267,8 +270,10 @@ class Application:
                         continue
                     except EOFError:
                         break
+                    except BasePageError as e:
+                        self._print_exc(e)
                     except Exception as e:
-                        self._maybe_print_exc_traceback(e)
+                        self._print_exc(e, unknown=True)
             finally:
                 await self.run_on_exit_callbacks()
 
@@ -443,13 +448,20 @@ class Application:
         if self._propagate_runtime_exceptions:
             raise exc
 
-    def _maybe_print_exc_traceback(
+    def _print_exc(
         self,
-        exc: Exception
+        exc: Exception,
+        unknown=False
     ) -> None:
-        self.io.error('Unknown exception occurred:\n')
+        if (
+            self._print_all_exception_tracebacks or
+            (unknown and self._print_unknown_exception_tracebacks)
+        ):
+            if unknown:
+                self.io.error('Unknown exception occurred:\n')
+            else:
+                self.io.error('Exception occurred:\n')
 
-        if self._print_unknown_exception_tracebacks:
             tb = ''.join(traceback.format_exception(
                 etype=type(exc),
                 value=exc,
@@ -460,7 +472,7 @@ class Application:
             )
             self.io.ansi(highlighted_tb)
         else:
-            self.io.error(exc)
+            self.io.error(str(exc))
 
     def _print_command_suggestions(
         self,
