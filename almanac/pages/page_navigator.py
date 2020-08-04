@@ -1,8 +1,8 @@
 """Implementation of the ``PageNavigator`` class."""
 
-from enum import auto, Enum
 from fnmatch import filter as fn_filter
 from itertools import chain
+from pathlib import PurePosixPath
 from typing import Iterable, Iterator, List, MutableMapping, Optional, Type
 
 from .abstract_page import AbstractPage
@@ -11,18 +11,9 @@ from .page_path import PagePath, PagePathLike
 from ..errors import (
     BlockedPageOverwriteError,
     NoSuchPageError,
-    OutOfBoundsPageError,
-    PathSyntaxError
+    OutOfBoundsPageError
 )
 from ..utils import pairwise
-
-
-class _PathExplodeState(Enum):
-    BEGIN = auto()
-    IN_SEGMENT = auto()
-    ATE_SLASH = auto()
-    ATE_ONE_DOT = auto()
-    ATE_TWO_DOTS = auto()
 
 
 class PageNavigator(MutableMapping[PagePathLike, AbstractPage]):
@@ -61,7 +52,7 @@ class PageNavigator(MutableMapping[PagePathLike, AbstractPage]):
         """
         try:
             full_path: str = self.explode(destination)
-        except (NoSuchPageError, OutOfBoundsPageError, PathSyntaxError,) as e:
+        except OutOfBoundsPageError as e:
             raise e
 
         if full_path not in self:
@@ -107,103 +98,48 @@ class PageNavigator(MutableMapping[PagePathLike, AbstractPage]):
         self,
         path: PagePathLike
     ) -> str:
-        """Parse a user-specified path into an existing page.
+        """Parse a user-specified path into an absolute path.
 
         Args:
             path: The path to explode (i.e., expand ``.`` and ``..``) into an
-                absolute path.
+                absolute path. If this is not an absolute path, the navigator's
+                current path will be used as the starting point.
 
         Returns:
             The exploded absolute path. This value is not guaranteed to exist within
             this :class:`PageNavigator`.
 
         Raises:
-            NoSuchPageError: If a malformed path is received.
             OutOfBoundsPageError: If invalid parent directors are referenced via the
                 `..` operator.
-            PathSyntaxError: If an invalid character sequence is encountered, such as
-                dots in the middle of of a path segment.
 
         """
         path = str(path)
 
-        if not path:
+        # We rely on pathlib for parsing all of the path segments. An important note in
+        # pathlib's parsing behavior is that any segments that would be equivalent to
+        # '.' will be ommitted from the returned parts tuple.
+        segments = PurePosixPath(path).parts
+
+        if not segments:
             return str(self._current_page.path)
 
-        if path == '/':
-            # Guaranteed to exist, so we can short-circuit this.
-            return '/'
-        elif path.startswith('/'):
-            exploded_path = ''
-        else:
-            exploded_path = str(self._current_page.path)
-            if exploded_path[-1] != '/':
-                exploded_path += '/'
+        accumulated_segments: List[str] = []
+        if segments[0] != '/':
+            # If we were given a relative path, we start building from this navigator's
+            # current page.
+            accumulated_segments.extend(self._current_page.path.segments)
 
-        state = _PathExplodeState.BEGIN
-
-        for i, c in enumerate(chain(path, (None,))):
-            if state == _PathExplodeState.BEGIN:
-                if c == '/':
-                    state = _PathExplodeState.ATE_SLASH
-                elif c == '.':
-                    state = _PathExplodeState.ATE_ONE_DOT
-                elif c is None:
-                    # This shouldn't be possible.
-                    pass
+        for segment in segments:
+            if segment == '..':
+                if len(accumulated_segments) == 1:
+                    raise OutOfBoundsPageError(path)
                 else:
-                    exploded_path += c
-            elif state == _PathExplodeState.IN_SEGMENT:
-                if c == '/':
-                    state = _PathExplodeState.ATE_SLASH
-                elif c == '.':
-                    raise PathSyntaxError('Invalid dot position in path', i)
-                elif c is None:
-                    pass
-                else:
-                    exploded_path += c
-            elif state == _PathExplodeState.ATE_SLASH:
-                if c == '/':
-                    pass
-                elif c == '.':
-                    state = _PathExplodeState.ATE_ONE_DOT
-                elif c is None:
-                    pass
-                else:
-                    if not exploded_path or exploded_path[-1] != '/':
-                        exploded_path += '/'
-                    exploded_path += c
-                    state = _PathExplodeState.IN_SEGMENT
-            elif state == _PathExplodeState.ATE_ONE_DOT:
-                if c == '/':
-                    state = _PathExplodeState.ATE_SLASH
-                elif c == '.':
-                    state = _PathExplodeState.ATE_TWO_DOTS
-                elif c is None:
-                    pass
-                else:
-                    raise PathSyntaxError('Invalid dot position in path', i - 1)
-            elif state == _PathExplodeState.ATE_TWO_DOTS:
-                if c == '/' or c is None:
-                    exploded_path = PagePath.un_trailing_slashify(exploded_path)
-                    if exploded_path not in self:
-                        raise NoSuchPageError(exploded_path)
+                    accumulated_segments.pop()
+            else:
+                accumulated_segments.append(segment)
 
-                    referenced_page = self[exploded_path]
-                    if referenced_page.parent is None:
-                        raise OutOfBoundsPageError(path)
-
-                    exploded_path = str(referenced_page.parent.path)
-                    state = _PathExplodeState.ATE_SLASH
-                elif c == '.':
-                    raise PathSyntaxError('You can\'t have three dots in a row!', i)
-                else:
-                    raise PathSyntaxError('Expected a slash!', i)
-
-        if not exploded_path:
-            exploded_path = '/'
-
-        return PagePath.un_trailing_slashify(exploded_path)
+        return '/' + '/'.join(accumulated_segments[1:])
 
     @property
     def directory_page_cls(
