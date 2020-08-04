@@ -31,12 +31,7 @@ from .command_engine import CommandEngine
 from .decorators import ArgumentDecoratorProxy, CommandDecoratorProxy
 from ..constants import ExitCodes
 from ..context import set_current_app
-from ..errors import (
-    BaseArgumentError,
-    ConflictingPromoterTypesError,
-    InvalidCallbackTypeError,
-    NoSuchCommandError
-)
+from ..errors import ConflictingPromoterTypesError, InvalidCallbackTypeError
 from ..hooks import (
     AsyncNoArgsCallback,
     assert_async_callback,
@@ -232,18 +227,17 @@ class Application:
             return await self.call_as_current_app_async(
                 self._command_engine.run, name_or_alias, parsed_args
             )
-        except BaseArgumentError as e:
-            self.io.error(e)
-            # TODO: handle the finer grained argument exeception types
+        except Exception as e:
+            exc_hook_table = self._hook_proxy.exception
+            exc_hook_coro = exc_hook_table.get_hook_for_exc_type(type(e))
+
+            if exc_hook_coro is None:
+                self.print_exception_info(e, unknown=True)
+            else:
+                await self.call_as_current_app_async(exc_hook_coro, e)
 
             self._maybe_propagate_runtime_exc(e)
-            return ExitCodes.ERR_COMMAND_INVALID_ARGUMENTS
-        except NoSuchCommandError as e:
-            self.io.error(f'Command {name_or_alias} does not exist')
-            self._print_command_suggestions(name_or_alias)
-
-            self._maybe_propagate_runtime_exc(e)
-            return ExitCodes.ERR_COMMAND_NONEXISTENT
+            return ExitCodes.ERR_RUNTIME_EXC
 
     async def prompt(
         self
@@ -260,8 +254,8 @@ class Application:
         with patch_stdout():
             try:
                 await self.run_on_init_callbacks()
-                session = PromptSession(**self._session_opts)
 
+                session = PromptSession(**self._session_opts)
                 while True:
                     try:
                         if self._do_quit:
@@ -273,16 +267,9 @@ class Application:
 
                         await self.eval_line(line)
                     except KeyboardInterrupt:
+                        # KeyboardInterrupt is a special exception case, since it is not
+                        # a descendant of the Exception base class.
                         continue
-                    except EOFError:
-                        break
-                    except Exception as e:
-                        exc_hook_table = self._hook_proxy.exception
-                        exc_hook_coro = exc_hook_table.hook_for_exc_type(type(e))
-                        if exc_hook_coro is None:
-                            self.print_exception_info(e, unknown=True)
-                        else:
-                            await self.call_as_current_app_async(exc_hook_coro, e)
             finally:
                 await self.run_on_exit_callbacks()
 
@@ -483,7 +470,7 @@ class Application:
         else:
             self.io.error(str(exc))
 
-    def _print_command_suggestions(
+    def print_command_suggestions(
         self,
         name_or_alias: str
     ) -> None:

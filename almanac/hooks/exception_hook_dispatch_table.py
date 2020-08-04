@@ -6,10 +6,14 @@ from typing import Callable, MutableMapping, Optional, Type
 
 from .assertions import assert_async_callback
 from .types import AsyncExceptionHookCallback
-from ..errors import ConflictingExceptionCallbacksError, InvalidCallbackTypeError
+from ..errors import (
+    ConflictingExceptionCallbacksError,
+    InvalidCallbackTypeError,
+    MissingRequiredParameterError
+)
 
 
-HookMapping = MutableMapping[Type[Exception], AsyncExceptionHookCallback]
+_HookMapping = MutableMapping[Type[Exception], AsyncExceptionHookCallback]
 
 
 class ExceptionHookDispatchTable:
@@ -18,7 +22,7 @@ class ExceptionHookDispatchTable:
     def __init__(
         self
     ) -> None:
-        self._callback_table: HookMapping = {}
+        self._callback_table: _HookMapping = {}
 
     def __call__(
         self,
@@ -27,28 +31,44 @@ class ExceptionHookDispatchTable:
     ) -> Callable[[AsyncExceptionHookCallback], AsyncExceptionHookCallback]:
         """A decorator for adding a callback for when exceptions occur."""
 
+        if not exception_types:
+            raise MissingRequiredParameterError(
+                'Must specify at least one exception_type'
+            )
+
         def decorator(
             hook_coro: AsyncExceptionHookCallback
         ) -> AsyncExceptionHookCallback:
-            try:
-                assert_async_callback(hook_coro)
-            except InvalidCallbackTypeError as e:
-                raise e
-
             for exc_type in exception_types:
-                if exc_type in self._callback_table.keys() and not allow_overwrite:
-                    raise ConflictingExceptionCallbacksError(
-                        'Attempted to overwrite existing exception handler for '
-                        f'{exc_type} without explicit allow_overwrite=True'
-                    )
-
-                self._callback_table[exc_type] = hook_coro
+                self.set_hook_for_exc_type(
+                    exc_type, hook_coro, allow_overwrite=allow_overwrite
+                )
 
             return hook_coro
 
         return decorator
 
-    def hook_for_exc_type(
+    def set_hook_for_exc_type(
+        self,
+        exc_type: Type[Exception],
+        hook_coro: AsyncExceptionHookCallback,
+        allow_overwrite: bool = False
+    ) -> None:
+        """Set a hook for an exception type."""
+        try:
+            assert_async_callback(hook_coro)
+        except InvalidCallbackTypeError as e:
+            raise e
+
+        if exc_type in self._callback_table.keys() and not allow_overwrite:
+            raise ConflictingExceptionCallbacksError(
+                'Attempted to overwrite existing exception handler for '
+                f'{exc_type} without explicit allow_overwrite=True'
+            )
+
+        self._callback_table[exc_type] = hook_coro
+
+    def get_hook_for_exc_type(
         self,
         exc_type: Type[Exception]
     ) -> Optional[AsyncExceptionHookCallback]:

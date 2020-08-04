@@ -1,7 +1,7 @@
 """Exception type for trying to implicitly overwrite an exception hook callback."""
 
-from ..almanac_error import AlmanacError
+from .base_configuration_error import BaseConfigurationError
 
 
-class ConflictingExceptionCallbacksError(AlmanacError):
+class ConflictingExceptionCallbacksError(BaseConfigurationError):
     """Exception type for trying to implicitly overwrite an exception hook callback."""
