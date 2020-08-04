@@ -59,27 +59,27 @@ class PagePathTestCase(TestCase):
     def test_path_segments(self):
         self.assert_segments(
             '/a/b/c/d/e/f/g',
-            ('a', 'b', 'c', 'd', 'e', 'f', 'g',)
+            ('/', 'a', 'b', 'c', 'd', 'e', 'f', 'g',)
         )
 
         self.assert_segments(
             '/a--//-//b',
-            ('a--', '-', 'b',)
+            ('/', 'a--', '-', 'b',)
         )
 
         self.assert_segments(
             '/a/b/c/d/',
-            ('a', 'b', 'c', 'd',)
+            ('/', 'a', 'b', 'c', 'd',)
         )
 
         self.assert_segments(
             '/',
-            tuple()
+            ('/',)
         )
 
         self.assert_segments(
             '/////',
-            tuple()
+            ('/',)
         )
 
     def test_parent_directories(self):
@@ -108,22 +108,3 @@ class PagePathTestCase(TestCase):
                 '/a/b/c/d',
             )
         )
-
-    def test_invalid_characters(self):
-        invalid_paths = (
-            '/1/2/3 ',
-            ' /1/2/3',
-            '/ 1/2/3',
-            './a/b',
-            '/.a/b',
-            '/a/.b',
-            '/a/b.',
-            '/a/b./',
-            '/a/b/.',
-            '/a---b/!',
-            '/a_@b/',
-        )
-
-        for path in invalid_paths:
-            with self.assertRaises(PositionalValueError):
-                PagePath(path)

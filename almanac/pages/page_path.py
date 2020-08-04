@@ -2,25 +2,14 @@
 
 from __future__ import annotations
 
-import string
-
-from enum import auto, Enum
+from pathlib import PurePosixPath
 from typing import Any, Tuple, Union
 
-from ..errors import PositionalValueError
-
-
-VALID_PATH_CHARS: str = string.ascii_letters + string.digits + '-_/'
-
-
-class _CollapseSlashState(Enum):
-    BEGIN = auto()
-    IN_SEGMENT = auto()
-    IN_SLASHES = auto()
+from ..errors import PathSyntaxError
 
 
 class PagePath:
-    """An encapsulation of a file-system path."""
+    """An encapsulation of an absolute pseudo-filesystem path."""
 
     def __init__(
         self,
@@ -28,24 +17,13 @@ class PagePath:
     ) -> None:
         candidate_path: str = str(path)
         self.__class__.assert_absolute_path(candidate_path)
-        self.__class__.assert_only_valid_chars(candidate_path)
 
-        candidate_path = self.__class__.collapse_slashes(candidate_path)
-        candidate_path = self.__class__.un_trailing_slashify(candidate_path)
-
-        self._path: str = candidate_path
-        self._segments: Tuple[str, ...]
-        self._parent_dirs: Tuple[str, ...]
-
-        if self._path == '/':
-            self._segments = tuple()
-            self._parent_dirs = tuple()
-        else:
-            self._segments = tuple(self._path.split('/')[1:])
-            self._parent_dirs = tuple(
-                '/' + '/'.join(self._segments[:i]) for i in
-                range(len(self._segments))
-            )
+        self._segments: Tuple[str, ...] = PurePosixPath(candidate_path).parts
+        self._path: str = '/' + '/'.join(self._segments[1:])
+        self._parent_dirs = tuple(
+            '/' + '/'.join(self._segments[1:i]) for i in
+            range(1, len(self._segments))
+        )
 
     @staticmethod
     def assert_absolute_path(
@@ -54,97 +32,11 @@ class PagePath:
         """Assert that the specified path is absolut.
 
         Raises:
-            PositionalValueError: If the path is not absolute.
+            PathSyntaxError: If the path is not absolute.
 
         """
         if not str(path).startswith('/'):
-            raise PositionalValueError('Not an absolute path', 0)
-
-    @staticmethod
-    def assert_only_valid_chars(
-        path: PagePathLike
-    ) -> None:
-        """Assert that the specified path contains only allowable characters.
-
-        Valid characters include the following:
-
-            * Letters
-            * Numbers
-            * Dashes (``-``)
-            * Underscores (``_``)
-            * Forward slashes (``/``), which act as path delimiters
-
-        Raises:
-            PositionalValueError: If any invalid characters are encountered.
-
-        """
-        for i, c in enumerate(str(path)):
-            if c not in VALID_PATH_CHARS:
-                raise PositionalValueError('Invalid path character', i)
-
-    @staticmethod
-    def collapse_slashes(
-        path: str
-    ) -> str:
-        """Collapse consecutive slashes into single slashes.
-
-        .. code-block:: python
-
-            >>> from almanac import PagePath
-            >>> PagePath.collapse_slashes('/my///awesome////path')
-            '/my/awesome/path'
-
-        """
-        collapsed_path: str = ''
-        state: _CollapseSlashState = _CollapseSlashState.BEGIN
-
-        for c in path:
-            if state == _CollapseSlashState.BEGIN:
-                if c == '/':
-                    state = _CollapseSlashState.IN_SLASHES
-                else:
-                    state = _CollapseSlashState.IN_SEGMENT
-            elif state == _CollapseSlashState.IN_SEGMENT:
-                if c == '/':
-                    state = _CollapseSlashState.IN_SLASHES
-                else:
-                    collapsed_path += c
-            elif state == _CollapseSlashState.IN_SLASHES:
-                if c == '/':
-                    pass
-                else:
-                    collapsed_path += '/'
-                    collapsed_path += c
-                    state = _CollapseSlashState.IN_SEGMENT
-            else:
-                # this should never happen!
-                raise ValueError('Invalid state in collapse_slashes()')
-
-        if state == _CollapseSlashState.IN_SLASHES:
-            collapsed_path += '/'
-
-        return collapsed_path
-
-    @staticmethod
-    def un_trailing_slashify(
-        path: PagePathLike
-    ) -> str:
-        """Remove the trailing slash from a path.
-
-        .. code-block:: python
-
-            >>> from almanac import PagePath
-            >>> PagePath.un_trailing_slashify('/')
-            '/'
-            >>> PagePath.un_trailing_slashify('/a/b/c/')
-            '/a/b/c'
-
-        """
-        path_str = str(path)
-        if path_str == '/':
-            return '/'
-
-        return path_str.rstrip('/')
+            raise PathSyntaxError('Not an absolute path', 0)
 
     @property
     def path(
@@ -163,9 +55,9 @@ class PagePath:
 
             >>> from almanac import PagePath
             >>> PagePath('/a/b/c').segments
-            ('a', 'b', 'c')
+            ('/', 'a', 'b', 'c')
             >>> PagePath('/').segments
-            ()
+            ('/',)
 
         """
         return self._segments
