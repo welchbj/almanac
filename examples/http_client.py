@@ -5,8 +5,25 @@ created as you cd into them.
 
 Here's an example:
 
-    TODO
+    > pwd
+    /
+    > cd checkip.amazonaws.com
+    checkip.amazonaws.com> get
+    [*] Sending GET request to https://checkip.amazonaws.com...
+    [*] Status 200 response from https://checkip.amazonaws.com
+    [*] Here's the content:
+    x.x.x.x
 
+    checkip.amazonaws.com> cd ../api.ipify.org
+    api.ipify.org> get format=json
+    [*] Sending GET request to https://api.ipify.org...
+    [*] Status 200 response from https://api.ipify.org/?format=json
+    [*] Here's the content:
+    {"ip":"x.x.x.x"}
+
+    api.ipify.org> ls /
+    /checkip.amazonaws.com
+    /api.ipify.org
 """
 
 #
@@ -78,6 +95,9 @@ async def request(*, method: str, proto: str = 'https', **params: str):
             lexer = get_lexer_for_mimetype(resp.content_type)
         except Exception:
             lexer = get_lexer_for_mimetype('text/plain')
+
+        app.io.info(f'Status {resp.status} response from {resp.url}')
+        app.io.info('Here\'s the content:')
 
         text = await resp.text()
         highlighted_text = highlight(text, lexer, TerminalFormatter())
