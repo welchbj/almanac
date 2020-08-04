@@ -1,12 +1,12 @@
 """Tests for the ``PageNavigator`` class."""
 
-from almanac.errors.page_errors.out_of_bounds_page_error import OutOfBoundsPageError
 from typing import List
 from unittest import TestCase
 
 from almanac import (
     BlockedPageOverwriteError,
     DirectoryPage,
+    OutOfBoundsPageError,
     PageNavigator,
     PathSyntaxError
 )
