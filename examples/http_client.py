@@ -2,40 +2,87 @@
 
 Install dependencies with:
 
-    pip install almanac pygments TODO
+    pip install almanac aiohttp pygments
 
 """
 
+import aiohttp
 import asyncio
 import functools
 
-from almanac import make_standard_app, PagePathCompleter
-from typing import Optional
+from almanac import make_standard_app, PagePath
+from pygments import highlight
+from pygments.formatters import TerminalFormatter
+from pygments.lexers import get_lexer_for_mimetype
 
 HTTP_VERBS = ['GET', 'POST', 'PUT', 'OPTIONS']
 
 app = make_standard_app()
 
 
-async def request(*, method: str, path: Optional[str] = None, protocol: str = 'https'):
+@app.on_init()
+async def open_session():
+    app.bag.session = aiohttp.ClientSession()
+    app.io.info('Session opened!')
+
+
+@app.on_exit()
+async def close_session():
+    await app.bag.session.close()
+    app.io.info('Session closed!')
+
+
+@app.prompt_str()
+def custom_prompt():
+    stripped_path = str(app.page_navigator.current_page.path).lstrip('/')
+    return f'{stripped_path}> '
+
+
+@app.hook.before('cd')
+async def cd_hook_before(path: PagePath):
+    abs_path = app.page_navigator.explode(path)
+
+    app.io.info('abs_path:', abs_path)
+
+    if path not in app.page_navigator:
+        app.page_navigator.add_directory_page(path)
+
+
+# This is the workhorse coroutine. All of the main commands in this application are
+# partially bound versions of this coroutine.
+async def request(*, method: str, proto: str = 'https', **params: str):
     """Send an HTTP or HTTPS request."""
-    if path is None:
-        # XXX: pull this from the app's current directory path
-        app.io.print_err('path not specified')
+    if method not in HTTP_VERBS:
+        app.io.error(f'Invalid HTTP verb {method}')
 
-    url = f'{protocol}://{path}'
-    app.io.print_info(f'Sending {method} request to {url}...')
+    # XXX: make the current path an attribute?
+    path = str(app.page_navigator.current_page.path).lstrip('/')
 
-    # TODO
+    url = f'{proto}://{path}'
+    app.io.info(f'Sending {method} request to {url}...')
 
+    request_coro = getattr(app.bag.session, method.lower())
+    resp = await request_coro(url=url, params=params)
+    async with resp:
+        try:
+            lexer = get_lexer_for_mimetype(resp.content_type)
+        except Exception:
+            lexer = get_lexer_for_mimetype('text/plain')
+
+        text = await resp.text()
+        highlighted_text = highlight(text, lexer, TerminalFormatter())
+        app.io.ansi(highlighted_text)
+
+# TODO: history command?
+
+# TODO: exception handler(s): aiohttp.client_exceptions.ClientConnectorError
 
 # Since we want to re-use the above request coroutine implementation across several
 # different top-level commands (get, put, post, etc.), we compose a decorator with
 # the commands' shared configuration, which can later be applied to each of the
 # partially-bound coroutines below.
 shared_config_decorator = app.cmd.compose(
-    app.arg.path(completers=PagePathCompleter()),
-    app.arg.protocol(choices=['http', 'https'])
+    app.arg.proto(choices=['http', 'https'])
 )
 
 # Here, we add some configuration just for the top-level request command.
