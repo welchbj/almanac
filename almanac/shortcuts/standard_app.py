@@ -4,7 +4,15 @@ from typing import Type
 
 from prompt_toolkit.styles import Style
 
-from .builtins import cd, help, ls, quit
+from .builtins import (
+    back as builtin_back,
+    cd as builtin_cd,
+    forward as builtin_forward,
+    help as builtin_help,
+    ls as builtin_ls,
+    pwd as builtin_pwd,
+    quit as builtin_quit
+)
 from .promoters import promote_to_page_path
 from ..completion import PagePathCompleter, WordCompleter
 from ..context import current_app
@@ -52,8 +60,8 @@ def make_standard_app(
 
     register_command = app.cmd.register()
 
-    register_command(help)
-    register_command(quit)
+    register_command(builtin_help)
+    register_command(builtin_quit)
 
     if with_pages:
         app.add_completers_for_type(PagePath, PagePathCompleter())
@@ -62,7 +70,10 @@ def make_standard_app(
         register_prompt_str = app.prompt_str()
         register_prompt_str(_current_page_prompt_str)
 
-        register_command(cd)
-        register_command(ls)
+        register_command(builtin_back)
+        register_command(builtin_cd)
+        register_command(builtin_forward)
+        register_command(builtin_ls)
+        register_command(builtin_pwd)
 
     return app
