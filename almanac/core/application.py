@@ -28,24 +28,22 @@ from pygments.lexers.python import Python3TracebackLexer
 
 from .command_completer import CommandCompleter
 from .command_engine import CommandEngine
-from .decorators import (
-    ArgumentDecoratorProxy,
-    assert_async_callback,
-    assert_sync_callback,
-    AsyncNoArgsCallback,
-    CommandDecoratorProxy,
-    CommandHookDecoratorProxy,
-    PromoterFunction,
-    SyncNoArgsCallback
-)
+from .decorators import ArgumentDecoratorProxy, CommandDecoratorProxy
 from ..constants import ExitCodes
 from ..context import set_current_app
 from ..errors import (
     BaseArgumentError,
-    BasePageError,
     ConflictingPromoterTypesError,
     InvalidCallbackTypeError,
     NoSuchCommandError
+)
+from ..hooks import (
+    AsyncNoArgsCallback,
+    assert_async_callback,
+    assert_sync_callback,
+    HookProxy,
+    PromoterFunction,
+    SyncNoArgsCallback
 )
 from ..io import AbstractIoContext, StandardConsoleIoContext
 from ..pages import PageNavigator, PagePath
@@ -87,8 +85,8 @@ class Application:
         self._type_completer_mapping: Dict[Type, List[Completer]] = {}
 
         self._command_decorator_proxy = CommandDecoratorProxy(self)
-        self._command_hook_decorator_proxy = CommandHookDecoratorProxy(self)
         self._argument_decorator_proxy = ArgumentDecoratorProxy()
+        self._hook_proxy = HookProxy(self)
 
         self._prompt_callback: SyncNoArgsCallback[str] = self._default_prompt_callback
 
@@ -122,9 +120,9 @@ class Application:
     @property
     def hook(
         self
-    ) -> CommandHookDecoratorProxy:
-        """The interface for registering hooks on different commands."""
-        return self._command_hook_decorator_proxy
+    ) -> HookProxy:
+        """The top-level interface for registering hooks on different events."""
+        return self._hook_proxy
 
     @property
     def bag(
@@ -278,10 +276,13 @@ class Application:
                         continue
                     except EOFError:
                         break
-                    except BasePageError as e:
-                        self._print_exc(e)
                     except Exception as e:
-                        self._print_exc(e, unknown=True)
+                        exc_hook_table = self._hook_proxy.exception
+                        exc_hook_coro = exc_hook_table.hook_for_exc_type(type(e))
+                        if exc_hook_coro is None:
+                            self.print_exception_info(e, unknown=True)
+                        else:
+                            await self.call_as_current_app_async(exc_hook_coro, e)
             finally:
                 await self.run_on_exit_callbacks()
 
@@ -456,7 +457,7 @@ class Application:
         if self._propagate_runtime_exceptions:
             raise exc
 
-    def _print_exc(
+    def print_exception_info(
         self,
         exc: Exception,
         unknown=False

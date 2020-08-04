@@ -1,10 +1,19 @@
-"""A simple interactive HTTP client.
+"""Welcome to a simple interactive HTTP client.
 
-Install dependencies with:
+The current URL to request is the application's current path. Directories will be
+created as you cd into them.
 
-    pip install almanac aiohttp pygments
+Here's an example:
+
+    TODO
 
 """
+
+#
+# Install dependencies with:
+#
+# pip install almanac aiohttp pygments
+#
 
 import aiohttp
 import asyncio
@@ -22,6 +31,8 @@ app = make_standard_app()
 
 @app.on_init()
 async def open_session():
+    app.io.raw(__doc__)
+
     app.bag.session = aiohttp.ClientSession()
     app.io.info('Session opened!')
 
@@ -40,24 +51,23 @@ def custom_prompt():
 
 @app.hook.before('cd')
 async def cd_hook_before(path: PagePath):
-    abs_path = app.page_navigator.explode(path)
-
-    app.io.info('abs_path:', abs_path)
-
     if path not in app.page_navigator:
         app.page_navigator.add_directory_page(path)
 
 
-# This is the workhorse coroutine. All of the main commands in this application are
-# partially bound versions of this coroutine.
+@app.hook.exception(aiohttp.ClientError)
+async def handle_aiohttp_errors(exc: aiohttp.ClientError):
+    app.io.error(f'{exc.__class__.__name__}: {str(exc)}')
+
+
+# This is the workhorse coroutine. All of the main HTTP request commands in this
+# application are partially bound versions of this coroutine.
 async def request(*, method: str, proto: str = 'https', **params: str):
     """Send an HTTP or HTTPS request."""
     if method not in HTTP_VERBS:
         app.io.error(f'Invalid HTTP verb {method}')
 
-    # XXX: make the current path an attribute?
-    path = str(app.page_navigator.current_page.path).lstrip('/')
-
+    path = str(app.current_path).lstrip('/')
     url = f'{proto}://{path}'
     app.io.info(f'Sending {method} request to {url}...')
 
@@ -72,10 +82,6 @@ async def request(*, method: str, proto: str = 'https', **params: str):
         text = await resp.text()
         highlighted_text = highlight(text, lexer, TerminalFormatter())
         app.io.ansi(highlighted_text)
-
-# TODO: history command?
-
-# TODO: exception handler(s): aiohttp.client_exceptions.ClientConnectorError
 
 # Since we want to re-use the above request coroutine implementation across several
 # different top-level commands (get, put, post, etc.), we compose a decorator with

@@ -19,7 +19,6 @@ from typing import (
     Union
 )
 
-from .decorators import AsyncHookCallback, PromoterFunction
 from ..commands import FrozenCommand
 from ..errors import (
     CommandNameCollisionError,
@@ -30,6 +29,7 @@ from ..errors import (
     TooManyPositionalArgumentsError,
     UnknownArgumentBindingError
 )
+from ..hooks import AsyncHookCallback, PromoterFunction
 from ..types import is_matching_type
 from ..utils import FuzzyMatcher
 
