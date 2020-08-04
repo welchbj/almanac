@@ -21,11 +21,6 @@ async def hook_BasePageError(exc: BasePageError):
     app.io.error(exc)
 
 
-async def hook_EOFError(exc: EOFError):
-    app = current_app()
-    app.quit()
-
-
 async def hook_NoSuchCommandError(exc: NoSuchCommandError):
     app = current_app()
 

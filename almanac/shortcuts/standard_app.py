@@ -16,7 +16,6 @@ from .builtins import (
 from .exception_hooks import (
     hook_BaseArgumentError,
     hook_BasePageError,
-    hook_EOFError,
     hook_NoSuchCommandError
 )
 from .promoters import promote_to_page_path
@@ -76,7 +75,6 @@ def make_standard_app(
     register_command(builtin_quit)
 
     register_exc_hook(BaseArgumentError, hook_BaseArgumentError)
-    register_exc_hook(EOFError, hook_EOFError)
     register_exc_hook(NoSuchCommandError, hook_NoSuchCommandError)
 
     if with_pages:
