@@ -1,5 +1,7 @@
 """Shortcuts for initializing a pre-built application."""
 
+from almanac.errors.command_errors.no_such_command_error import NoSuchCommandError
+from almanac.errors.argument_errors.base_argument_error import BaseArgumentError
 from typing import Type
 
 from prompt_toolkit.styles import Style
@@ -12,6 +14,11 @@ from .builtins import (
     ls as builtin_ls,
     pwd as builtin_pwd,
     quit as builtin_quit
+)
+from .exception_hooks import (
+    hook_BaseArgumentError,
+    hook_EOFError,
+    hook_NoSuchCommandError
 )
 from .promoters import promote_to_page_path
 from ..completion import PagePathCompleter, WordCompleter
@@ -59,9 +66,14 @@ def make_standard_app(
     app.add_completers_for_type(bool, WordCompleter(['True', 'False']))
 
     register_command = app.cmd.register()
+    register_exc_hook = app.hook.exception.set_hook_for_exc_type
 
     register_command(builtin_help)
     register_command(builtin_quit)
+
+    register_exc_hook(BaseArgumentError, hook_BaseArgumentError)
+    register_exc_hook(EOFError, hook_EOFError)
+    register_exc_hook(NoSuchCommandError, hook_NoSuchCommandError)
 
     if with_pages:
         app.add_completers_for_type(PagePath, PagePathCompleter())
@@ -75,5 +87,7 @@ def make_standard_app(
         register_command(builtin_forward)
         register_command(builtin_ls)
         register_command(builtin_pwd)
+
+        # TODO: register page-specific errors
 
     return app
