@@ -1,7 +1,5 @@
 """Shortcuts for initializing a pre-built application."""
 
-from almanac.errors.command_errors.no_such_command_error import NoSuchCommandError
-from almanac.errors.argument_errors.base_argument_error import BaseArgumentError
 from typing import Type
 
 from prompt_toolkit.styles import Style
@@ -17,6 +15,7 @@ from .builtins import (
 )
 from .exception_hooks import (
     hook_BaseArgumentError,
+    hook_BasePageError,
     hook_EOFError,
     hook_NoSuchCommandError
 )
@@ -24,6 +23,11 @@ from .promoters import promote_to_page_path
 from ..completion import PagePathCompleter, WordCompleter
 from ..context import current_app
 from ..core import Application
+from ..errors import (
+    BaseArgumentError,
+    BasePageError,
+    NoSuchCommandError
+)
 from ..io import AbstractIoContext, StandardConsoleIoContext
 from ..pages import PagePath
 from ..style import DARK_MODE_STYLE
@@ -88,6 +92,6 @@ def make_standard_app(
         register_command(builtin_ls)
         register_command(builtin_pwd)
 
-        # TODO: register page-specific errors
+        register_exc_hook(BasePageError, hook_BasePageError)
 
     return app
