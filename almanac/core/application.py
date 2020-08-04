@@ -1,6 +1,7 @@
 """Implementation of the ``Application`` class."""
 
 import asyncio
+import traceback
 
 from contextlib import contextmanager
 from typing import (
@@ -21,6 +22,9 @@ from prompt_toolkit.completion import Completer
 from prompt_toolkit.lexers import PygmentsLexer
 from prompt_toolkit.patch_stdout import patch_stdout
 from prompt_toolkit.styles import Style
+from pygments import highlight
+from pygments.formatters import TerminalFormatter
+from pygments.lexers.python import Python3TracebackLexer
 
 from .command_completer import CommandCompleter
 from .command_engine import CommandEngine
@@ -59,13 +63,15 @@ class Application:
         with_style: bool = True,
         style: Style = DARK_MODE_STYLE,
         io_context_cls: Type[AbstractIoContext] = StandardConsoleIoContext,
-        propagate_runtime_exceptions: bool = False
+        propagate_runtime_exceptions: bool = False,
+        print_unknown_exception_tracebacks: bool = True
     ) -> None:
         self._io_stack: List[AbstractIoContext] = [io_context_cls()]
 
         self._do_quit = False
 
         self._propagate_runtime_exceptions = propagate_runtime_exceptions
+        self._print_unknown_exception_tracebacks = print_unknown_exception_tracebacks
 
         self._on_exit_callbacks: List[AsyncNoArgsCallback[Any]] = []
         self._on_init_callbacks: List[AsyncNoArgsCallback[Any]] = []
@@ -261,6 +267,8 @@ class Application:
                         continue
                     except EOFError:
                         break
+                    except Exception as e:
+                        self._maybe_print_exc_traceback(e)
             finally:
                 await self.run_on_exit_callbacks()
 
@@ -434,6 +442,25 @@ class Application:
     ) -> None:
         if self._propagate_runtime_exceptions:
             raise exc
+
+    def _maybe_print_exc_traceback(
+        self,
+        exc: Exception
+    ) -> None:
+        self.io.error('Unknown exception occurred:\n')
+
+        if self._print_unknown_exception_tracebacks:
+            tb = ''.join(traceback.format_exception(
+                etype=type(exc),
+                value=exc,
+                tb=exc.__traceback__
+            ))
+            highlighted_tb = highlight(
+                tb, Python3TracebackLexer(), TerminalFormatter()
+            )
+            self.io.ansi(highlighted_tb)
+        else:
+            self.io.error(exc)
 
     def _print_command_suggestions(
         self,

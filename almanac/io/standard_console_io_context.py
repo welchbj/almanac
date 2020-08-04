@@ -2,7 +2,7 @@
 
 from typing import Any
 
-from prompt_toolkit import HTML, print_formatted_text
+from prompt_toolkit import ANSI, HTML, print_formatted_text
 
 from .abstract_io_context import AbstractIoContext
 
@@ -37,3 +37,11 @@ class StandardConsoleIoContext(AbstractIoContext):
         **kwargs
     ) -> None:
         print_formatted_text(*args, **kwargs)
+
+    def ansi(
+        self,
+        *args,
+        **kwargs
+    ) -> None:
+        ansi_args = iter(ANSI(arg) for arg in args)
+        print_formatted_text(*ansi_args, **kwargs)

@@ -37,7 +37,15 @@ class AbstractIoContext(ABC):
         *args,
         **kwargs
     ) -> None:
-        """Print raw, un-formatted text."""
+        """Print formatted text without any prefix."""
+
+    @abstractmethod
+    def ansi(
+        self,
+        *args,
+        **kwargs
+    ) -> None:
+        """Print ANSI-escaped text."""
 
     # TODO: need read/write-esque stuff if supporting files
     #       all print_* style commands could just be variations on write
