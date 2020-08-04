@@ -3,9 +3,10 @@
 from typing import Tuple
 
 from .base_argument_error import BaseArgumentError
+from ..generic_errors import AlmanacKeyError
 
 
-class NoSuchArgumentError(BaseArgumentError, KeyError):
+class NoSuchArgumentError(BaseArgumentError, AlmanacKeyError):
     """An exception type for resolutions of non-existent arguments."""
 
     def __init__(

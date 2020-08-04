@@ -4,9 +4,10 @@ from typing import Tuple
 
 from .base_command_error import BaseCommandError
 from ..configuration_errors import BaseConfigurationError
+from ..generic_errors import AlmanacKeyError
 
 
-class NoSuchCommandError(BaseCommandError, BaseConfigurationError, KeyError):
+class NoSuchCommandError(BaseCommandError, BaseConfigurationError, AlmanacKeyError):
     """An exception type for resolutions of non-existent commands."""
 
     def __init__(
