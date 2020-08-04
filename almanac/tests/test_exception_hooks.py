@@ -161,3 +161,47 @@ class TestAppConfiguration(IsolatedAsyncioTestCase, AlmanacTextMixin):
 
         await app.eval_line('raise_exc')
         self.assertEqual(app.bag.marker, 'two')
+
+    async def test_hooking_exceptions_from_command_hooks(self):
+        class ExcBefore(Exception):
+            pass
+
+        class ExcAfter(Exception):
+            pass
+
+        app = self.get_test_app()
+
+        app.bag.did_hook_before = False
+        app.bag.did_hook_after = False
+
+        @app.cmd.register()
+        async def hook_me_before():
+            pass
+
+        @app.hook.before('hook_me_before')
+        async def raise_exc_before():
+            raise ExcBefore()
+
+        @app.hook.exception(ExcBefore)
+        async def hook_exc_before(exc: ExcBefore):
+            self.assertIsInstance(exc, ExcBefore)
+            current_app().bag.did_hook_before = True
+
+        @app.cmd.register()
+        async def hook_me_after():
+            pass
+
+        @app.hook.after('hook_me_after')
+        async def raise_exc_after():
+            raise ExcAfter('after')
+
+        @app.hook.exception(ExcAfter)
+        async def hook_exc_after(exc: ExcAfter):
+            self.assertIsInstance(exc, ExcAfter)
+            current_app().bag.did_hook_after = True
+
+        await app.eval_line('hook_me_before')
+        await app.eval_line('hook_me_after')
+
+        self.assertTrue(app.bag.did_hook_after)
+        self.assertTrue(app.bag.did_hook_before)
