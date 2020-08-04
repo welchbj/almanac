@@ -48,7 +48,7 @@ from ..errors import (
     NoSuchCommandError
 )
 from ..io import AbstractIoContext, StandardConsoleIoContext
-from ..pages import PageNavigator
+from ..pages import PageNavigator, PagePath
 from ..parsing import get_lexer_cls_for_app, parse_cmd_line, ParseState
 from ..style import DARK_MODE_STYLE
 
@@ -139,6 +139,13 @@ class Application:
     ) -> str:
         """The current prompt string."""
         return self._prompt_callback_wrapper()
+
+    @property
+    def current_path(
+        self
+    ) -> PagePath:
+        """Shorthand for a getting the application's current path."""
+        return self._page_navigator.current_page.path
 
     @property
     def on_exit_callbacks(
