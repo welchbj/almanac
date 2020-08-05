@@ -3,7 +3,7 @@ from .exception_hook_dispatch_table import (  # noqa
     AsyncExceptionHookCallback,
     ExceptionHookDispatchTable
 )
-from .hook_decorator_proxy import HookProxy  # noqa
+from .hook_proxy import HookProxy  # noqa
 from .types import (  # noqa
     AsyncExceptionHookCallback,
     AsyncHookCallback,
