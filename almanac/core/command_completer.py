@@ -70,7 +70,9 @@ class CommandCompleter(Completer):
             # inherently malformed, so any further completions would just build on that.
             return
         elif not stripped_cmd_line or curr_word == parse_results.command:
-            yield from _startswith_completions(curr_word, self._command_engine.keys())
+            yield from _startswith_completions(
+                curr_word, sorted(self._command_engine.keys())
+            )
             return
 
         # Figure out what command we are working with.
