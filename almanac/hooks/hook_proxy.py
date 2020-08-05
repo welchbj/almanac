@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Callable, List, TYPE_CHECKING
+from typing import Callable, List, TYPE_CHECKING, Union
 
 from .assertions import assert_async_callback
 from .exception_hook_dispatch_table import ExceptionHookDispatchTable
@@ -46,7 +46,7 @@ class HookProxy:
 
     def before(
         self,
-        *command_names: str
+        *command_names: Union[str, FrozenCommand]
     ) -> Callable[[AsyncHookCallback], AsyncHookCallback]:
         """A decorator to add a callback to fire before commands execute."""
         frozen_commands = self._resolved_commands(*command_names)
@@ -67,7 +67,7 @@ class HookProxy:
 
     def after(
         self,
-        *command_names: str
+        *command_names: Union[str, FrozenCommand]
     ) -> Callable[[AsyncHookCallback], AsyncHookCallback]:
         """A decorator to add a callback to fire after commands execute."""
         frozen_commands = self._resolved_commands(*command_names)
@@ -88,14 +88,19 @@ class HookProxy:
 
     def _resolved_commands(
         self,
-        *command_names: str
+        *commands: Union[str, FrozenCommand]
     ) -> List[FrozenCommand]:
         nonexistent_command_names = [
-            name for name in command_names
-            if name not in self._app.command_engine.keys()
+            name_or_cmd for name_or_cmd in commands
+            if isinstance(name_or_cmd, str) and
+            name_or_cmd not in self._app.command_engine.keys()
         ]
 
         if nonexistent_command_names:
             raise NoSuchCommandError(*nonexistent_command_names)
 
-        return [self._app.command_engine[name] for name in command_names]
+        return [
+            self._app.command_engine[name_or_cmd] if isinstance(name_or_cmd, str)
+            else name_or_cmd
+            for name_or_cmd in commands
+        ]

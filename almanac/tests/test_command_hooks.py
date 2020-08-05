@@ -45,6 +45,33 @@ class TestAppConfiguration(IsolatedAsyncioTestCase, AlmanacTextMixin):
 
         await app.eval_line('cd /')
 
+    async def test_hook_registration_on_frozen_command(self):
+        app = self.get_test_app()
+
+        app.bag.before = []
+        app.bag.values = []
+        app.bag.after = []
+
+        @app.cmd.register()
+        async def my_command(x: int):
+            current_app().bag.values.append(x)
+
+        @app.hook.before(my_command)
+        async def before_my_command(x: int):
+            current_app().bag.before.append(x)
+
+        @app.hook.after(my_command)
+        async def after_my_command(x: int):
+            current_app().bag.after.append(x)
+
+        await app.eval_line('my_command 1')
+        await app.eval_line('my_command 2')
+        await app.eval_line('my_command 3')
+
+        self.assertListEqual(app.bag.before, [1, 2, 3])
+        self.assertListEqual(app.bag.values, [1, 2, 3])
+        self.assertListEqual(app.bag.after, [1, 2, 3])
+
     async def test_invalid_command_hook_types(self):
         app = self.get_test_app()
 
