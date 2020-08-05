@@ -105,7 +105,10 @@ class CommandCompleter(Completer):
 
         # Yield keyword argument name completions.
         if could_be_key_or_pos_value:
-            corpus = [f'{x.display_name}=' for x in unbound_kw_args if not x.hidden]
+            corpus = [
+                f'{x.display_name}=' for x in unbound_kw_args
+                if not x.hidden and not x.is_var_kw
+            ]
             yield from _startswith_completions(last_token.key, corpus)
 
         # Yield possible values for the next positional argument.

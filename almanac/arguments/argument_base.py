@@ -143,6 +143,18 @@ class ArgumentBase(ABC):
         return self._param.kind == self._param.KEYWORD_ONLY
 
     @property
+    def is_var_kw(
+        self
+    ) -> bool:
+        return self._param.kind == self._param.VAR_KEYWORD
+
+    @property
+    def is_var_pos(
+        self
+    ) -> bool:
+        return self._param.kind == self._param.VAR_POSITIONAL
+
+    @property
     def has_default_value(
         self
     ) -> bool:
