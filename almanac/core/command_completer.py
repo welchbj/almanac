@@ -96,7 +96,6 @@ class CommandCompleter(Completer):
         # are our options for future argument-based completions.
         unbound_arguments = command.get_unbound_arguments(*args, **kwargs)
         unbound_kw_args = [x for x in unbound_arguments if not x.is_pos_only]
-        unbound_kw_arg_display_names = set(x.display_name for x in unbound_kw_args)
         unbound_pos_args = [x for x in unbound_arguments if not x.is_kw_only]
 
         could_be_key_or_pos_value = (
@@ -129,7 +128,7 @@ class CommandCompleter(Completer):
 
         # Yield possible values for the current keyword argument.
         kwarg_name = last_token.key
-        if last_token.is_kw_arg and kwarg_name in unbound_kw_arg_display_names:
+        if last_token.is_kw_arg:
             matching_kw_arg = command[kwarg_name]
 
             # Completions from any per-argument registered completer.
