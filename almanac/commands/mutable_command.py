@@ -4,12 +4,17 @@ from __future__ import annotations
 
 import asyncio
 
+from collections import Counter
 from typing import Iterable, Iterator, Mapping, MutableMapping, Optional, Union
 
 from .command_base import CommandBase
 from .frozen_command import FrozenCommand
 from ..arguments import MutableArgument
-from ..errors import CommandRegistrationError, NoSuchArgumentError
+from ..errors import (
+    ArgumentNameCollisionError,
+    CommandRegistrationError,
+    NoSuchArgumentError
+)
 from ..types import CommandCoroutine
 
 
@@ -87,8 +92,17 @@ class MutableCommand(CommandBase, MutableMapping[str, MutableArgument]):
         self
     ) -> FrozenCommand:
         """Convert this instance into a :class:`FrozenCommand`."""
+        display_name_counter = Counter(arg.display_name for arg in self.values())
+
+        conflicting_arg_names = [
+            display_name for display_name, count in display_name_counter.items()
+            if count > 1
+        ]
+        if conflicting_arg_names:
+            raise ArgumentNameCollisionError(*conflicting_arg_names)
+
         frozen_argument_map = {
-            arg.display_name: arg.freeze() for _, arg in self.items()
+            arg.display_name: arg.freeze() for arg in self.values()
         }
 
         return FrozenCommand(

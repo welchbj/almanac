@@ -171,7 +171,10 @@ class CommandDecoratorProxy:
                 command.description = description
 
             if aliases is not None:
-                command.add_alias(*aliases)
+                if isinstance(aliases, str):
+                    command.add_alias(aliases)
+                else:
+                    command.add_alias(*aliases)
 
             return command
 

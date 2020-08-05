@@ -18,7 +18,7 @@ class NoSuchArgumentError(BaseArgumentError, AlmanacKeyError):
         elif len(names) == 1:
             msg = f'No such argument with name {names[0]}'
         elif len(names) == 2:
-            msg = f'No arguments exist with the name {names[1]} or {names[2]}'
+            msg = f'No arguments exist with the name {names[0]} or {names[1]}'
         else:
             joined_names = ','.join(names[:-1]) + f', or {names[-1]}'
             msg = f'No arguments exist with the name {joined_names}'
