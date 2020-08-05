@@ -3,9 +3,10 @@
 import asyncio
 import traceback
 
-from contextlib import contextmanager
+from contextlib import asynccontextmanager, contextmanager
 from typing import (
     Any,
+    AsyncIterator,
     Awaitable,
     Callable,
     Dict,
@@ -223,21 +224,11 @@ class Application:
             return ExitCodes.OK
 
         name_or_alias = parsed_args.command
-        try:
+
+        async with self.dispatch_exception_hooks():
             return await self.call_as_current_app_async(
                 self._command_engine.run, name_or_alias, parsed_args
             )
-        except Exception as e:
-            exc_hook_table = self._hook_proxy.exception
-            exc_hook_coro = exc_hook_table.get_hook_for_exc_type(type(e))
-
-            if exc_hook_coro is None:
-                self.print_exception_info(e, unknown=True)
-            else:
-                await self.call_as_current_app_async(exc_hook_coro, e)
-
-            self._maybe_propagate_runtime_exc(e)
-            return ExitCodes.ERR_RUNTIME_EXC
 
     async def prompt(
         self
@@ -256,6 +247,7 @@ class Application:
                 await self.run_on_init_callbacks()
 
                 session = PromptSession(**self._session_opts)
+
                 while True:
                     try:
                         if self._do_quit:
@@ -384,6 +376,24 @@ class Application:
 
         return decorator
 
+    @asynccontextmanager
+    async def dispatch_exception_hooks(
+        self
+    ) -> AsyncIterator:
+        """Context manager to dispatch hooks for exceptions in wrapped code."""
+        try:
+            yield
+        except Exception as e:
+            exc_hook_table = self._hook_proxy.exception
+            exc_hook_coro = exc_hook_table.get_hook_for_exc_type(type(e))
+
+            if exc_hook_coro is None:
+                self.print_exception_info(e, unknown=True)
+            else:
+                await self.call_as_current_app_async(exc_hook_coro, e)
+
+            self._maybe_propagate_runtime_exc(e)
+
     async def run_async_callbacks(
         self,
         async_callbacks: Iterable[AsyncNoArgsCallback[_T]],
@@ -402,7 +412,8 @@ class Application:
             for async_callback in async_callbacks
         ]
 
-        return list(await asyncio.gather(*wrapped_awaitable_callbacks))
+        async with self.dispatch_exception_hooks():
+            return list(await asyncio.gather(*wrapped_awaitable_callbacks))
 
     async def run_on_exit_callbacks(
         self

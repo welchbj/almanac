@@ -205,3 +205,38 @@ class TestAppConfiguration(IsolatedAsyncioTestCase, AlmanacTextMixin):
 
         self.assertTrue(app.bag.did_hook_after)
         self.assertTrue(app.bag.did_hook_before)
+
+    async def test_hooking_exceptions_from_init_and_exit_callbacks(self):
+        class ExcInit(Exception):
+            pass
+
+        class ExcExit(Exception):
+            pass
+
+        app = self.get_test_app()
+        app.bag.did_hook_on_init = False
+        app.bag.did_hook_on_exit = False
+
+        @app.hook.exception(ExcInit)
+        async def hook_ExcInit(exc: ExcInit):
+            self.assertIsInstance(exc, ExcInit)
+            current_app().bag.did_hook_on_init = True
+
+        @app.hook.exception(ExcExit)
+        async def hook_ExcExit(exc: ExcExit):
+            self.assertIsInstance(exc, ExcExit)
+            current_app().bag.did_hook_on_exit = True
+
+        @app.on_init()
+        async def raise_init_error():
+            raise ExcInit()
+
+        @app.on_exit()
+        async def raise_exit_error():
+            raise ExcExit()
+
+        await app.run_on_init_callbacks()
+        await app.run_on_exit_callbacks()
+
+        self.assertTrue(app.bag.did_hook_on_init)
+        self.assertTrue(app.bag.did_hook_on_exit)
