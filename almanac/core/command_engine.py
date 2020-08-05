@@ -102,15 +102,12 @@ class CommandEngine:
                 entry already stored in this :class:`CommandEngine`.
 
         """
-        already_mapped = tuple(
+        already_mapped_names = tuple(
             identifier for identifier in command.identifiers
             if identifier in self._command_lookup_table.keys()
         )
-        if already_mapped:
-            mapped_names = ', '.join(already_mapped)
-            raise CommandNameCollisionError(
-                'Identifier(s) ' + mapped_names + ' already mapped'
-            )
+        if already_mapped_names:
+            raise CommandNameCollisionError(*already_mapped_names)
 
         for identifier in command.identifiers:
             self._command_lookup_table[identifier] = command

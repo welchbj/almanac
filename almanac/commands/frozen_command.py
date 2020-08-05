@@ -35,9 +35,6 @@ class FrozenCommand(CommandBase, Mapping[str, FrozenArgument]):
         else:
             self._argument_map = {k: v for k, v in argument_map.items()}
 
-    # TODO: validate that all of the arguments of the wrapped coroutine are actually
-    #       represented with an equivalent FrozenArgument?
-
     def resolved_kwarg_names(
         self,
         kwarg_dict: Dict[str, Any]
