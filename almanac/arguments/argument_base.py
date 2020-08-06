@@ -1,10 +1,10 @@
 """A class for encapsulating command arguments."""
 
-from abc import ABC, abstractmethod
+from abc import ABC, abstractmethod, abstractproperty
 from inspect import Parameter
-from typing import Any, Optional
+from typing import Any, Iterable, Optional, Union
 
-from prompt_toolkit.completion import Completer, DummyCompleter
+from prompt_toolkit.completion import Completer
 
 from ..constants import CommandLineDefaults
 
@@ -18,7 +18,8 @@ class ArgumentBase(ABC):
         *,
         name: Optional[str] = None,
         description: Optional[str] = None,
-        completer: Optional[Completer] = None,
+        completers: Optional[Union[Completer, Iterable[Completer]]] = None,
+        hidden: bool = False
     ) -> None:
         self._param = param
 
@@ -29,7 +30,15 @@ class ArgumentBase(ABC):
             description if description is not None else CommandLineDefaults.DOC
         )
 
-        self._completer = completer if completer is not None else DummyCompleter()
+        if completers is None:
+            self._completers = []
+        elif isinstance(completers, Completer):
+            self._completers = [completers]
+        else:
+            # Assume we have iterable of completers.
+            self._completers = [x for x in completers]
+
+        self._hidden = hidden
 
     @property
     def display_name(
@@ -52,26 +61,11 @@ class ArgumentBase(ABC):
     ) -> None:
         """Abstract display name setter to allow for access control."""
 
-    @property
-    def completer(
+    @abstractproperty
+    def completers(
         self
-    ) -> Completer:
-        """The completer for this argument."""
-        return self._completer
-
-    @completer.setter
-    def completer(
-        self,
-        new_completer: Completer
-    ) -> None:
-        self._abstract_completer_setter(new_completer)
-
-    @abstractmethod
-    def _abstract_completer_setter(
-        self,
-        new_completer: Completer
-    ) -> None:
-        """Abstract display name setter to allow for access control."""
+    ) -> Iterable[Completer]:
+        """The registered completers for this argument."""
 
     @property
     def description(
@@ -93,6 +87,27 @@ class ArgumentBase(ABC):
         new_description: str
     ) -> None:
         """Abstract description setter to allow for access control."""
+
+    @property
+    def hidden(
+        self
+    ) -> bool:
+        """Whether this argument should be hidden in the interactive prompt."""
+        return self._hidden
+
+    @hidden.setter
+    def hidden(
+        self,
+        new_value: bool
+    ) -> None:
+        self._abstract_hidden_setter(new_value)
+
+    @abstractmethod
+    def _abstract_hidden_setter(
+        self,
+        new_value: bool
+    ) -> None:
+        """Abstract hidden setter to allow for access control."""
 
     @property
     def real_name(
@@ -126,6 +141,18 @@ class ArgumentBase(ABC):
         self
     ) -> bool:
         return self._param.kind == self._param.KEYWORD_ONLY
+
+    @property
+    def is_var_kw(
+        self
+    ) -> bool:
+        return self._param.kind == self._param.VAR_KEYWORD
+
+    @property
+    def is_var_pos(
+        self
+    ) -> bool:
+        return self._param.kind == self._param.VAR_POSITIONAL
 
     @property
     def has_default_value(

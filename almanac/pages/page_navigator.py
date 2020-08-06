@@ -1,23 +1,19 @@
 """Implementation of the ``PageNavigator`` class."""
 
-from enum import auto, Enum
 from fnmatch import filter as fn_filter
 from itertools import chain
+from pathlib import PurePosixPath
 from typing import Iterable, Iterator, List, MutableMapping, Optional, Type
 
 from .abstract_page import AbstractPage
 from .directory_page import DirectoryPage
 from .page_path import PagePath, PagePathLike
-from ..errors import PositionalValueError
+from ..errors import (
+    BlockedPageOverwriteError,
+    NoSuchPageError,
+    OutOfBoundsPageError
+)
 from ..utils import pairwise
-
-
-class _PathExplodeState(Enum):
-    BEGIN = auto()
-    IN_SEGMENT = auto()
-    ATE_SLASH = auto()
-    ATE_ONE_DOT = auto()
-    ATE_TWO_DOTS = auto()
 
 
 class PageNavigator(MutableMapping[PagePathLike, AbstractPage]):
@@ -44,21 +40,23 @@ class PageNavigator(MutableMapping[PagePathLike, AbstractPage]):
         """Change the current directory of this navigator.
 
         Args:
-            destination: The page to change to, which will be exploded into
-                an absolute path.
+            destination: The page to change to, which will be exploded into an absolute
+                path.
 
         Raises:
-            PositionalValueError: If a synactical error occured during the
-                path parsing.
-            ValueError: If the specified destination is invalid or does not
-                exist.
+            NoSuchPageError: If the specified destination is invalid or does not exist.
+            OutOfBoundsPageError: If the specified destination attempts to go above the
+                root directory.
+            PathSyntaxError: If a syntactical error occured during the path parsing.
 
         """
-        full_path: str = self.explode(destination)
+        try:
+            full_path: str = self.explode(destination)
+        except OutOfBoundsPageError as e:
+            raise e
+
         if full_path not in self:
-            raise ValueError(
-                f'Exploded path {str(full_path)} not present in this navigator'
-            )
+            raise NoSuchPageError(full_path)
         elif full_path == self.current_page.path:
             return
 
@@ -100,112 +98,48 @@ class PageNavigator(MutableMapping[PagePathLike, AbstractPage]):
         self,
         path: PagePathLike
     ) -> str:
-        """Parse a user-specified path into an existing page.
+        """Parse a user-specified path into an absolute path.
 
         Args:
             path: The path to explode (i.e., expand ``.`` and ``..``) into an
-                absolute path.
+                absolute path. If this is not an absolute path, the navigator's
+                current path will be used as the starting point.
 
         Returns:
-            The exploded absolute path. This value is not guaranteed to exist
-            within this :class:`PageNavigator`.
+            The exploded absolute path. This value is not guaranteed to exist within
+            this :class:`PageNavigator`.
 
         Raises:
-            ValueError: If a malformed path is received or invalid parent
-                directories are referenced via the ``..`` operator.
-            PositionalValueError: If an invalid character sequence is
-                encountered, such as dots in the middle of of a path segment.
+            OutOfBoundsPageError: If invalid parent directors are referenced via the
+                `..` operator.
 
         """
         path = str(path)
 
-        if not path:
+        # We rely on pathlib for parsing all of the path segments. An important note in
+        # pathlib's parsing behavior is that any segments that would be equivalent to
+        # '.' will be ommitted from the returned parts tuple.
+        segments = PurePosixPath(path).parts
+
+        if not segments:
             return str(self._current_page.path)
 
-        if path == '/':
-            # Guaranteed to exist, so we can short-circuit this.
-            return '/'
-        elif path.startswith('/'):
-            exploded_path = ''
-        else:
-            exploded_path = str(self._current_page.path)
-            if exploded_path[-1] != '/':
-                exploded_path += '/'
+        accumulated_segments: List[str] = []
+        if segments[0] != '/':
+            # If we were given a relative path, we start building from this navigator's
+            # current page.
+            accumulated_segments.extend(self._current_page.path.segments)
 
-        state = _PathExplodeState.BEGIN
-
-        for i, c in enumerate(chain(path, (None,))):
-            if state == _PathExplodeState.BEGIN:
-                if c == '/':
-                    state = _PathExplodeState.ATE_SLASH
-                elif c == '.':
-                    state = _PathExplodeState.ATE_ONE_DOT
-                elif c is None:
-                    # This shouldn't be possible.
-                    pass
+        for segment in segments:
+            if segment == '..':
+                if len(accumulated_segments) == 1:
+                    raise OutOfBoundsPageError(path)
                 else:
-                    exploded_path += c
-            elif state == _PathExplodeState.IN_SEGMENT:
-                if c == '/':
-                    state = _PathExplodeState.ATE_SLASH
-                elif c == '.':
-                    raise PositionalValueError(
-                        'Invalid dot position in path', i)
-                elif c is None:
-                    pass
-                else:
-                    exploded_path += c
-            elif state == _PathExplodeState.ATE_SLASH:
-                if c == '/':
-                    pass
-                elif c == '.':
-                    state = _PathExplodeState.ATE_ONE_DOT
-                elif c is None:
-                    pass
-                else:
-                    if not exploded_path or exploded_path[-1] != '/':
-                        exploded_path += '/'
-                    exploded_path += c
-                    state = _PathExplodeState.IN_SEGMENT
-            elif state == _PathExplodeState.ATE_ONE_DOT:
-                if c == '/':
-                    state = _PathExplodeState.ATE_SLASH
-                elif c == '.':
-                    state = _PathExplodeState.ATE_TWO_DOTS
-                elif c is None:
-                    pass
-                else:
-                    raise PositionalValueError(
-                        'Invalid dot position in path', i - 1)
-            elif state == _PathExplodeState.ATE_TWO_DOTS:
-                if c == '/' or c is None:
-                    exploded_path = PagePath.un_trailing_slashify(
-                        exploded_path)
-                    if exploded_path not in self:
-                        raise ValueError(
-                            'Attempted to reference non-existent directory'
-                        )
+                    accumulated_segments.pop()
+            else:
+                accumulated_segments.append(segment)
 
-                    referenced_page = self[exploded_path]
-                    if referenced_page.parent is None:
-                        raise ValueError(
-                            'Attempted to reference parent directory beyond '
-                            'application scope'
-                        )
-
-                    exploded_path = str(referenced_page.parent.path)
-                    state = _PathExplodeState.ATE_SLASH
-                elif c == '.':
-                    raise PositionalValueError(
-                        'You can\'t have three dots in a row!', i
-                    )
-                else:
-                    raise PositionalValueError('Expected a slash!', i)
-
-        if not exploded_path:
-            exploded_path = '/'
-
-        return PagePath.un_trailing_slashify(exploded_path)
+        return '/' + '/'.join(accumulated_segments[1:])
 
     @property
     def directory_page_cls(
@@ -265,10 +199,7 @@ class PageNavigator(MutableMapping[PagePathLike, AbstractPage]):
                 parent_page.children.add(child_page)
                 child_page.parent = parent_page
         elif not allow_overwrite:
-            raise ValueError(
-                f'Attempted to overwrite page at {path} with'
-                'allow_overwrite kwarg set to False'
-            )
+            raise BlockedPageOverwriteError(path)
         else:
             # Overwriting an existing page.
             old_page = self[path]
@@ -290,15 +221,15 @@ class PageNavigator(MutableMapping[PagePathLike, AbstractPage]):
     ) -> DirectoryPage:
         """Add a directory page at the specified path.
 
-        This method is only used for adding pages that do not already exist. It
-        will also create any intermediate directories within the path that do
-        not already exist.
+        This method is only used for adding pages that do not already exist. It will
+        also create any intermediate directories within the path that do not already
+        exist.
 
         Returns:
             The created :class:`DirectoryPage`.
 
         Raises:
-            ValueError: If an existing page would be overwritten by the
+            BlockedPageOverwriteError: If an existing page would be overwritten by the
                 operation.
 
         .. code-block:: python
@@ -321,11 +252,12 @@ class PageNavigator(MutableMapping[PagePathLike, AbstractPage]):
 
         """
         dir_page = self.directory_page_cls(path)
-        self.set_page(
-            PagePath(path),
-            dir_page,
-            allow_overwrite=False
-        )
+
+        try:
+            self.set_page(PagePath(path), dir_page, allow_overwrite=False)
+        except BlockedPageOverwriteError as e:
+            raise e
+
         return dir_page
 
     def __delitem__(
@@ -336,9 +268,7 @@ class PageNavigator(MutableMapping[PagePathLike, AbstractPage]):
 
         page_path = PagePath(key)
         if page_path not in self:
-            raise KeyError(
-                f'Path {page_path} does not exist in this navigator'
-            )
+            raise NoSuchPageError(page_path)
 
         # Delete all children of the specified path.
         for child in self.match(page_path.path + '/*'):
@@ -362,8 +292,8 @@ class PageNavigator(MutableMapping[PagePathLike, AbstractPage]):
         try:
             path = PagePath(self.explode(key))
             return self._page_table[path]
-        except KeyError as e:
-            raise KeyError(f'Path {str(key)} does not exist!') from e
+        except KeyError:
+            raise NoSuchPageError(key)
 
     def __str__(
         self
