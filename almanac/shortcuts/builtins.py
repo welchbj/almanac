@@ -53,6 +53,7 @@ async def forward() -> int:
 
 
 async def pwd() -> int:
+    """Print the current directory."""
     app = current_app()
 
     app.io.raw(app.current_path)
