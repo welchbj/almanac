@@ -13,17 +13,17 @@ class ArgumentNameCollisionError(BaseArgumentError):
         *names: str
     ) -> None:
         if not names:
-            msg = 'Cannot map multiple arguments with the same identifier'
+            msg = 'Cannot map multiple arguments with the same identifier.'
         elif len(names) == 1:
-            msg = f'Cannot map multiple arguments with the same identifer {names[0]}'
+            msg = f'Cannot map multiple arguments with the same identifer {names[0]}.'
         elif len(names) == 2:
             msg = (
                 'Cannot map multiple arguments with the same identifiers '
-                f'{names[0]} and {names[1]}'
+                f'{names[0]} and {names[1]}.'
             )
         else:
             joined_names = ','.join(names[:-1]) + f', and {names[-1]}'
-            msg = f'Cannot map multiple arguments the same identifiers {joined_names}'
+            msg = f'Cannot map multiple arguments the same identifiers {joined_names}.'
 
         super().__init__(msg)
         self._names = names

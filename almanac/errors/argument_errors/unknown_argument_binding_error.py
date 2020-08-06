@@ -16,7 +16,7 @@ class UnknownArgumentBindingError(BaseArgumentError):
         pos_args: Iterable[Any],
         kw_args: Dict[str, Any]
     ) -> None:
-        super().__init__('Unknown argument-binding error')
+        super().__init__('Unknown argument-binding error.')
         self._signature = signature
         self._pos_args = tuple(pos_args)
         self._kw_args = kw_args
