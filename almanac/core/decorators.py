@@ -4,19 +4,12 @@ from __future__ import annotations
 
 import functools
 
-from typing import (
-    Callable,
-    cast,
-    Iterable,
-    Optional,
-    TYPE_CHECKING,
-    Union
-)
+from typing import Callable, Iterable, Optional, TYPE_CHECKING, Union
 
 from prompt_toolkit.completion import Completer
 
 from ..arguments import MutableArgument
-from ..commands import CommandBase, FrozenCommand, MutableCommand
+from ..commands import FrozenCommand, MutableCommand
 from ..completion import WordCompleter
 from ..errors import (
     InvalidArgumentNameError,
@@ -29,7 +22,11 @@ if TYPE_CHECKING:
     from .application import Application
 
 
-CommandDecorator = Callable[[Union[MutableCommand, CommandCoroutine]], CommandBase]
+CommandMutatingDecorator = \
+    Callable[[Union[MutableCommand, CommandCoroutine]], MutableCommand]
+
+CommandFreezingDecorator = \
+    Callable[[Union[MutableCommand, CommandCoroutine]], FrozenCommand]
 
 
 class ArgumentDecoratorProxy:
@@ -38,7 +35,7 @@ class ArgumentDecoratorProxy:
     def __getattr__(
         self,
         argument_name: str
-    ) -> Callable[..., CommandDecorator]:
+    ) -> Callable[..., CommandMutatingDecorator]:
         """Dynamically create decorators that mutate the desired argument."""
 
         def decorator(
@@ -48,7 +45,7 @@ class ArgumentDecoratorProxy:
             choices: Optional[Iterable[str]] = None,
             completers: Optional[Union[Completer, Iterable[Completer]]] = None,
             hidden: Optional[bool] = None
-        ) -> CommandDecorator:
+        ) -> CommandMutatingDecorator:
 
             def wrapped(
                 command_or_coro: Union[MutableCommand, CommandCoroutine]
@@ -106,8 +103,8 @@ class CommandDecoratorProxy:
 
     def register(
         self,
-        *decorators: CommandDecorator
-    ) -> CommandDecorator:
+        *decorators: CommandMutatingDecorator
+    ) -> CommandFreezingDecorator:
         """A decorator for registering a command on an application.
 
         This should always be the top-most (i.e., lowest line number) decorator in a
@@ -125,7 +122,7 @@ class CommandDecoratorProxy:
             command_or_coro: Union[MutableCommand, CommandCoroutine]
         ) -> FrozenCommand:
             command: MutableCommand = MutableCommand.ensure_command(command_or_coro)
-            command = cast(MutableCommand, composed_decorator_func(command))
+            command = composed_decorator_func(command)
 
             frozen_command: FrozenCommand = command.freeze()
             self._app.command_engine.register(frozen_command)
@@ -135,8 +132,8 @@ class CommandDecoratorProxy:
 
     def compose(
         self,
-        *decorators: CommandDecorator
-    ) -> CommandDecorator:
+        *decorators: CommandMutatingDecorator
+    ) -> CommandMutatingDecorator:
         """Compose several command decorators into one."""
         def _compose2(f, g):
             def wrapped(command_or_coro):
@@ -154,7 +151,7 @@ class CommandDecoratorProxy:
         name: Optional[str] = None,
         description: Optional[str] = None,
         aliases: Optional[Union[str, Iterable[str]]] = None
-    ) -> CommandDecorator:
+    ) -> CommandMutatingDecorator:
         """A decorator for mutating properties of a :class:`MutableCommand`."""
         def wrapped(
             command_or_coro: Union[MutableCommand, CommandCoroutine]
