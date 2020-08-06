@@ -3,8 +3,12 @@
 from ..constants import ExitCodes
 from ..pages import PagePath, PagePathLike
 from ..context import current_app
+from ..core import ArgumentDecoratorProxy
+
+_arg = ArgumentDecoratorProxy()
 
 
+@_arg.path(description='The path to change into.')
 async def cd(path: PagePath) -> int:
     """Change directories."""
     app = current_app()
@@ -24,6 +28,7 @@ async def help() -> int:
     return ExitCodes.OK
 
 
+@_arg.path(description='The path whose contents to list.')
 async def ls(path: PagePathLike = '.') -> int:
     """List files in a directory."""
     app = current_app()
