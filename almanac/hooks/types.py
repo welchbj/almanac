@@ -1,6 +1,9 @@
 """Types for hooks and callbacks."""
 
-from typing import Any, Callable, Coroutine, Protocol, TypeVar
+from typing import Any, Callable, Coroutine, Protocol, TypeVar, Union
+
+from prompt_toolkit.formatted_text import FormattedText
+
 
 # In the future, would like to make AsyncHookCallback a generic protocol-based type. In
 # the meantime, we'll settle for the ambiguous return type of Any.
@@ -32,3 +35,6 @@ class AsyncExceptionHookCallback(Protocol):
     # leave it as Any for now.
     def __call__(self, __exc: Any) -> Coroutine[Any, Any, Any]:
         ...
+
+
+PromptCallback = SyncNoArgsCallback[Union[str, FormattedText]]

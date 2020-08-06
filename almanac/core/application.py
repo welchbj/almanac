@@ -39,12 +39,13 @@ from ..hooks import (
     assert_sync_callback,
     HookProxy,
     PromoterFunction,
-    SyncNoArgsCallback
+    PromptCallback
 )
 from ..io import AbstractIoContext, StandardConsoleIoContext
 from ..pages import PageNavigator, PagePath
 from ..parsing import get_lexer_cls_for_app, parse_cmd_line, ParseState
 from ..style import DARK_MODE_STYLE
+
 
 _T = TypeVar('_T')
 
@@ -84,7 +85,7 @@ class Application:
         self._argument_decorator_proxy = ArgumentDecoratorProxy()
         self._hook_proxy = HookProxy(self)
 
-        self._prompt_callback: SyncNoArgsCallback[str] = self._default_prompt_callback
+        self._prompt_callback: PromptCallback = self._default_prompt_callback
 
         self._session_opts: Dict[str, Any] = {}
         self._session_opts['message'] = self._prompt_callback_wrapper
@@ -310,14 +311,14 @@ class Application:
 
         return decorator
 
-    def prompt_str(
+    def prompt_text(
         self
-    ) -> Callable[[SyncNoArgsCallback[str]], SyncNoArgsCallback[str]]:
+    ) -> Callable[[PromptCallback], PromptCallback]:
         """A decorator for specifying an application's prompt."""
 
         def decorator(
-            callback_func: SyncNoArgsCallback[str]
-        ) -> SyncNoArgsCallback[str]:
+            callback_func: PromptCallback
+        ) -> PromptCallback:
             try:
                 assert_sync_callback(callback_func)
             except InvalidCallbackTypeError as e:
