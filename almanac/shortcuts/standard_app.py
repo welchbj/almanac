@@ -83,8 +83,8 @@ def make_standard_app(
         app.add_completers_for_type(PagePath, PagePathCompleter())
         app.add_promoter_for_type(PagePath, promote_to_page_path)
 
-        register_prompt_str = app.prompt_str()
-        register_prompt_str(_current_page_prompt_str)
+        register_prompt_text = app.prompt_text()
+        register_prompt_text(_current_page_prompt_str)
 
         register_command(builtin_back)
         register_command(builtin_cd)

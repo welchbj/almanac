@@ -9,5 +9,6 @@ from .types import (  # noqa
     AsyncHookCallback,
     AsyncNoArgsCallback,
     PromoterFunction,
+    PromptCallback,
     SyncNoArgsCallback
 )

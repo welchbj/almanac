@@ -60,7 +60,7 @@ async def close_session():
     app.io.info('Session closed!')
 
 
-@app.prompt_str()
+@app.prompt_text()
 def custom_prompt():
     stripped_path = str(app.page_navigator.current_page.path).lstrip('/')
     return f'{stripped_path}> '
