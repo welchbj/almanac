@@ -17,7 +17,7 @@ class TestAppConfiguration(IsolatedAsyncioTestCase, AlmanacTextMixin):
         app = self.get_test_app()
         app.bag.counter = 0
 
-        @app.prompt_str()
+        @app.prompt_text()
         def inc_prompt():
             inner_app_ref = current_app()
             inner_app_ref.bag.counter += 1
@@ -31,7 +31,7 @@ class TestAppConfiguration(IsolatedAsyncioTestCase, AlmanacTextMixin):
         app = self.get_test_app()
 
         with self.assertRaises(InvalidCallbackTypeError):
-            @app.prompt_str()
+            @app.prompt_text()
             async def async_callback():
                 return 'prompt> '
 

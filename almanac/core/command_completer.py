@@ -125,7 +125,8 @@ class CommandCompleter(Completer):
         complete_event: CompleteEvent
     ) -> Iterable[Completion]:
         cmd_line = document.text
-        curr_word = document.get_word_before_cursor(pattern=_compiled_word_re)
+        word_before_cursor = document.get_word_before_cursor()
+        token_before_cursor = document.get_word_before_cursor(pattern=_compiled_word_re)
 
         parse_results, unparsed_text, _, parse_status = parse_cmd_line(cmd_line)
 
@@ -136,8 +137,8 @@ class CommandCompleter(Completer):
             # There is non-whitespace, and the parser still fails. The line is
             # inherently malformed, so any further completions would just build on that.
             return
-        elif not stripped_cmd_line or curr_word == parse_results.command:
-            yield from self._get_command_completions(curr_word)
+        elif not stripped_cmd_line or word_before_cursor == parse_results.command:
+            yield from self._get_command_completions(token_before_cursor)
             return
 
         # Figure out what command we are working with.
@@ -166,7 +167,10 @@ class CommandCompleter(Completer):
         unbound_pos_args = [x for x in unbound_arguments if not x.is_kw_only]
 
         could_be_key_or_pos_value = (
-            last_token.is_ambiguous_arg and curr_word == last_token.key
+            last_token.is_ambiguous_arg and (
+                token_before_cursor == last_token.key or
+                (not word_before_cursor and not last_token.key)
+            )
         )
 
         # Yield keyword argument name completions.
