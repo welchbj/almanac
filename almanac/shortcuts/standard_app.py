@@ -16,7 +16,11 @@ from .builtins import (
 from .exception_hooks import (
     hook_BaseArgumentError,
     hook_BasePageError,
-    hook_NoSuchCommandError
+    hook_MissingArgumentsError,
+    hook_NoSuchArgumentError,
+    hook_NoSuchCommandError,
+    hook_TooManyPositionalArgumentsError,
+    hook_UnknownArgumentBindingError
 )
 from .promoters import promote_to_page_path
 from ..completion import PagePathCompleter, WordCompleter
@@ -25,7 +29,11 @@ from ..core import Application
 from ..errors import (
     BaseArgumentError,
     BasePageError,
-    NoSuchCommandError
+    MissingArgumentsError,
+    NoSuchArgumentError,
+    NoSuchCommandError,
+    TooManyPositionalArgumentsError,
+    UnknownArgumentBindingError
 )
 from ..io import AbstractIoContext, StandardConsoleIoContext
 from ..pages import PagePath
@@ -68,28 +76,34 @@ def make_standard_app(
 
     app.add_completers_for_type(bool, WordCompleter(['True', 'False']))
 
-    register_command = app.cmd.register()
-    register_exc_hook = app.hook.exception.set_hook_for_exc_type
+    app.add_promoter_for_type(str, str)
 
-    register_command(builtin_help)
-    register_command(builtin_quit)
+    add_command = app.cmd.register()
+    add_exc_hook = app.hook.exception.set_hook_for_exc_type
 
-    register_exc_hook(BaseArgumentError, hook_BaseArgumentError)
-    register_exc_hook(NoSuchCommandError, hook_NoSuchCommandError)
+    add_command(builtin_help)
+    add_command(builtin_quit)
+
+    add_exc_hook(BaseArgumentError, hook_BaseArgumentError)
+    add_exc_hook(MissingArgumentsError, hook_MissingArgumentsError)
+    add_exc_hook(NoSuchArgumentError, hook_NoSuchArgumentError)
+    add_exc_hook(NoSuchCommandError, hook_NoSuchCommandError)
+    add_exc_hook(TooManyPositionalArgumentsError, hook_TooManyPositionalArgumentsError)
+    add_exc_hook(UnknownArgumentBindingError, hook_UnknownArgumentBindingError)
 
     if with_pages:
         app.add_completers_for_type(PagePath, PagePathCompleter())
         app.add_promoter_for_type(PagePath, promote_to_page_path)
 
-        register_prompt_str = app.prompt_str()
-        register_prompt_str(_current_page_prompt_str)
+        add_prompt_text = app.prompt_text()
+        add_prompt_text(_current_page_prompt_str)
 
-        register_command(builtin_back)
-        register_command(builtin_cd)
-        register_command(builtin_forward)
-        register_command(builtin_ls)
-        register_command(builtin_pwd)
+        add_command(builtin_back)
+        add_command(builtin_cd)
+        add_command(builtin_forward)
+        add_command(builtin_ls)
+        add_command(builtin_pwd)
 
-        register_exc_hook(BasePageError, hook_BasePageError)
+        add_exc_hook(BasePageError, hook_BasePageError)
 
     return app
