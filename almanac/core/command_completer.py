@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import re
+
 from typing import Any, Iterable, TYPE_CHECKING
 
 from prompt_toolkit.document import Document
@@ -16,11 +18,20 @@ from ..arguments import FrozenArgument
 from ..commands import FrozenCommand
 from ..completion import rewrite_completion_stream
 from ..errors import NoSuchArgumentError
-from ..parsing import IncompleteToken, last_incomplete_token, parse_cmd_line, ParseState
+from ..parsing import (
+    IncompleteToken,
+    last_incomplete_token,
+    parse_cmd_line,
+    ParseState,
+    Patterns
+)
 from ..types import is_matching_type
 
 if TYPE_CHECKING:
     from .application import Application
+
+
+_compiled_word_re = re.compile(Patterns.UNQUOTED_STRING)
 
 
 class CommandCompleter(Completer):
@@ -114,7 +125,7 @@ class CommandCompleter(Completer):
         complete_event: CompleteEvent
     ) -> Iterable[Completion]:
         cmd_line = document.text
-        curr_word = document.get_word_before_cursor()
+        curr_word = document.get_word_before_cursor(pattern=_compiled_word_re)
 
         parse_results, unparsed_text, _, parse_status = parse_cmd_line(cmd_line)
 
