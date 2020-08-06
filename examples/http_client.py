@@ -108,13 +108,13 @@ async def request(*, method: str, proto: str = 'https', **params: str):
 # the commands' shared configuration, which can later be applied to each of the
 # partially-bound coroutines below.
 shared_config_decorator = app.cmd.compose(
-    app.arg.proto(choices=['http', 'https'])
+    app.arg.proto(description='Protocol to use for request.', choices=['http', 'https'])
 )
 
 # Here, we add some configuration just for the top-level request command.
 register_request_command = app.cmd.register(
     shared_config_decorator,
-    app.arg.method(choices=HTTP_VERBS),
+    app.arg.method(description='HTTP verb for request.', choices=HTTP_VERBS),
 )
 register_request_command(request)
 
@@ -123,7 +123,7 @@ register_request_command(request)
 for http_verb in HTTP_VERBS:
     partial_request_coro = functools.partial(request, method=http_verb)
     partial_request_coro.__name__ = http_verb.lower()  # type: ignore
-    partial_request_coro.__doc__ = f'Make an HTTP {http_verb} request'
+    partial_request_coro.__doc__ = f'Make an HTTP {http_verb} request.'
 
     register_func = app.cmd.register(
         shared_config_decorator,
