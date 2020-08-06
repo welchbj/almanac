@@ -1,11 +1,13 @@
 """Abstraction over an argument with immutable properties."""
 
+from functools import cached_property
 from typing import Tuple
 
 from prompt_toolkit.completion import Completer
 
 from .argument_base import ArgumentBase
 from ..errors import FrozenAccessError
+from ..utils import abbreviated
 
 
 class FrozenArgument(ArgumentBase):
@@ -27,6 +29,13 @@ class FrozenArgument(ArgumentBase):
         new_value: bool
     ) -> None:
         raise FrozenAccessError('Cannot change the hidden status of a FrozenArgument')
+
+    @cached_property
+    def abbreviated_description(
+        self
+    ) -> str:
+        """A shortened version of this arguments description."""
+        return abbreviated(self._description)
 
     @property
     def completers(
