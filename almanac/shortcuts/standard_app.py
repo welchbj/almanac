@@ -68,6 +68,8 @@ def make_standard_app(
 
     app.add_completers_for_type(bool, WordCompleter(['True', 'False']))
 
+    app.add_promoter_for_type(str, str)
+
     register_command = app.cmd.register()
     register_exc_hook = app.hook.exception.set_hook_for_exc_type
 
