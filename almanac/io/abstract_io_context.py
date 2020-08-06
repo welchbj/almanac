@@ -8,7 +8,7 @@ class AbstractIoContext(ABC):
     """An interface for input/output contexts."""
 
     @abstractmethod
-    def print_info(
+    def info(
         self,
         *args: Any,
         **kwargs: Any
@@ -16,7 +16,7 @@ class AbstractIoContext(ABC):
         """Print an information message."""
 
     @abstractmethod
-    def print_warn(
+    def warn(
         self,
         *args: Any,
         **kwargs: Any
@@ -24,7 +24,7 @@ class AbstractIoContext(ABC):
         """Print a warning message."""
 
     @abstractmethod
-    def print_err(
+    def error(
         self,
         *args: Any,
         **kwargs: Any
@@ -32,12 +32,20 @@ class AbstractIoContext(ABC):
         """Print an error message."""
 
     @abstractmethod
-    def print_raw(
+    def raw(
         self,
         *args,
         **kwargs
     ) -> None:
-        """Print raw, un-formatted text."""
+        """Print formatted text without any prefix."""
+
+    @abstractmethod
+    def ansi(
+        self,
+        *args,
+        **kwargs
+    ) -> None:
+        """Print ANSI-escaped text."""
 
     # TODO: need read/write-esque stuff if supporting files
     #       all print_* style commands could just be variations on write

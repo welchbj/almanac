@@ -1,7 +1,7 @@
 """Exception type for attempting to map multiple promoters to one type."""
 
-from ..almanac_error import AlmanacError
+from .base_configuration_error import BaseConfigurationError
 
 
-class ConflictingPromoterTypesError(AlmanacError):
+class ConflictingPromoterTypesError(BaseConfigurationError):
     """An exception type for attempting to map multiple promoters to one type."""

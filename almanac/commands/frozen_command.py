@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+from functools import cached_property
 from typing import Any, Dict, Iterable, Iterator, Mapping, Optional, Tuple, Union
 
 from .command_base import CommandBase
 from ..arguments import FrozenArgument
 from ..errors import FrozenAccessError, NoSuchArgumentError
 from ..types import CommandCoroutine
+from ..utils import abbreviated
 
 
 class FrozenCommand(CommandBase, Mapping[str, FrozenArgument]):
@@ -35,8 +37,12 @@ class FrozenCommand(CommandBase, Mapping[str, FrozenArgument]):
         else:
             self._argument_map = {k: v for k, v in argument_map.items()}
 
-    # TODO: validate that all of the arguments of the wrapped coroutine are actually
-    #       represented with an equivalent FrozenArgument?
+    @cached_property
+    def abbreviated_description(
+        self
+    ) -> str:
+        """A shortened version of this command's description."""
+        return abbreviated(self._description)
 
     def resolved_kwarg_names(
         self,
@@ -121,6 +127,25 @@ class FrozenCommand(CommandBase, Mapping[str, FrozenArgument]):
 
         """
         return await self._impl_coroutine(*args, **kwargs)
+
+    def _hash_basis(
+        self
+    ) -> Tuple[Any, ...]:
+        return (self.name, self.description, self.aliases, self.coroutine,)
+
+    def __hash__(
+        self
+    ) -> int:
+        return hash(self._hash_basis())
+
+    def __eq__(
+        self,
+        other: Any
+    ) -> bool:
+        if not isinstance(other, FrozenCommand):
+            return NotImplemented
+
+        return self._hash_basis() == other._hash_basis()
 
     def __iter__(
         self

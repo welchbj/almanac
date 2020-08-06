@@ -6,6 +6,8 @@ from prompt_toolkit.completion import DummyCompleter
 
 from almanac import Application
 from almanac import (
+    ArgumentNameCollisionError,
+    CommandNameCollisionError,
     CommandRegistrationError,
     InvalidArgumentNameError,
     NoSuchArgumentError,
@@ -14,13 +16,52 @@ from almanac import (
 
 class TestCommandBuilding(IsolatedAsyncioTestCase):
 
-    async def test_command_property_construction(self):
-        # TODO
-        pass
+    async def test_colliding_argument_names(self):
+        app = Application()
 
-    async def test_argument_property_construction(self):
-        # TODO
-        pass
+        with self.assertRaises(ArgumentNameCollisionError) as ctx:
+            @app.cmd.register()
+            @app.arg.a(name='b')
+            async def one(a: int, b: int):
+                pass
+        self.assertTupleEqual(ctx.exception.names, ('b',))
+
+        with self.assertRaises(ArgumentNameCollisionError) as ctx:
+            @app.cmd.register()
+            @app.arg.a(name='c')
+            @app.arg.b(name='c')
+            async def two(a: int, b: int):
+                pass
+        self.assertTupleEqual(ctx.exception.names, ('c',))
+
+        with self.assertRaises(ArgumentNameCollisionError) as ctx:
+            @app.cmd.register()
+            @app.arg.a(name='c')
+            @app.arg.b(name='d')
+            async def three(a: int, b: int, c: int, d: int):
+                pass
+        self.assertTupleEqual(ctx.exception.names, ('c', 'd',))
+
+    async def test_colliding_command_names(self):
+        app = Application()
+
+        @app.cmd.register()
+        async def a_command():
+            pass
+
+        with self.assertRaises(CommandNameCollisionError) as ctx:
+            @app.cmd.register()
+            @app.cmd(name='a_command')
+            async def another_command():
+                pass
+        self.assertTupleEqual(ctx.exception.names, ('a_command',))
+
+        with self.assertRaises(CommandNameCollisionError) as ctx:
+            @app.cmd.register()
+            @app.cmd(aliases='a_command')
+            async def yet_another_command():
+                pass
+        self.assertTupleEqual(ctx.exception.names, ('a_command',))
 
     async def test_invalid_argument_names(self):
         with self.assertRaises(NoSuchArgumentError):
@@ -51,8 +92,8 @@ class TestCommandBuilding(IsolatedAsyncioTestCase):
             app = Application()
 
             @app.cmd.register()
-            @app.arg.c(completer=DummyCompleter())
-            @app.arg.a(completer=DummyCompleter())
+            @app.arg.c(completers=DummyCompleter())
+            @app.arg.a(completers=DummyCompleter())
             async def j(a: int, b: str):
                 pass
 
