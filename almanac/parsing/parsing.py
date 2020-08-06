@@ -336,3 +336,11 @@ def last_incomplete_token(
         last_token = unparsed_text
 
     return IncompleteToken(last_token)
+
+
+def last_incomplete_token_from_document(
+    document: Document
+) -> IncompleteToken:
+    """Shortcut for getting the last incomplete token only from a ``Document``."""
+    parse_status = parse_cmd_line(document.text)
+    return last_incomplete_token(document, parse_status.unparsed_text)

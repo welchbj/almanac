@@ -9,7 +9,7 @@ from prompt_toolkit.document import Document
 
 from ..context import current_app
 from ..errors import BasePageError
-from ..parsing import parse_cmd_line, last_incomplete_token
+from ..parsing import last_incomplete_token_from_document
 
 
 class PagePathCompleter(Completer):
@@ -22,10 +22,9 @@ class PagePathCompleter(Completer):
     ) -> Iterable[Completion]:
         app = current_app()
 
-        parse_status = parse_cmd_line(document.text)
-        last_token = last_incomplete_token(document, parse_status.unparsed_text)
-
+        last_token = last_incomplete_token_from_document(document)
         typed_path = last_token.value
+
         if typed_path.endswith('/'):
             complete_from_dir = typed_path
             stem = ''
