@@ -3,7 +3,12 @@
 from typing import List
 from unittest import TestCase
 
-from almanac import DirectoryPage, PageNavigator, PositionalValueError
+from almanac import (
+    BlockedPageOverwriteError,
+    DirectoryPage,
+    OutOfBoundsPageError,
+    PageNavigator
+)
 
 
 class PageNavigatorTestCase(TestCase):
@@ -197,11 +202,13 @@ class PageNavigatorTestCase(TestCase):
         self.assertEqual(p['/aa'].parent, p['/'])
         self.assertTrue(p['/aa'] in p['/'].children)
 
-        with self.assertRaises(ValueError):
+        with self.assertRaises(BlockedPageOverwriteError) as cm:
             p.add_directory_page('/')
+        self.assertEqual(cm.exception.path, '/')
 
-        with self.assertRaises(ValueError):
+        with self.assertRaises(BlockedPageOverwriteError) as cm:
             p.add_directory_page('/a/b/c/d')
+        self.assertEqual(cm.exception.path, '/a/b/c/d')
 
         # test deleting pages
         del p['/a']
@@ -315,41 +322,23 @@ class PageNavigatorTestCase(TestCase):
         self.assert_exploded_path_equals('/./one/../one', '/one')
         self.assert_exploded_path_equals('/one/a/b/../.././////', '/one')
 
-    def test_explode_invalid_interjected_dots(self):
-        """Test invalid placement of the dot operator."""
-        with self.assertRaises(PositionalValueError) as cm:
-            self.page_navigator.change_directory('/snippets/.segment')
-        self.assertEqual(cm.exception.error_pos, 10)
-
-        with self.assertRaises(PositionalValueError) as cm:
-            self.page_navigator.change_directory('/..segment')
-        self.assertEqual(cm.exception.error_pos, 3)
-
-        with self.assertRaises(PositionalValueError) as cm:
-            self.page_navigator.change_directory('/./seg.ment')
-        self.assertEqual(cm.exception.error_pos, 6)
-
-        with self.assertRaises(PositionalValueError) as cm:
-            self.page_navigator.change_directory('/segment.')
-        self.assertEqual(cm.exception.error_pos, 8)
-
-        with self.assertRaises(PositionalValueError) as cm:
-            self.page_navigator.change_directory('/segment/another_segment..')
-        self.assertEqual(cm.exception.error_pos, 24)
-
     def test_explode_invalid_parent_references(self):
         """Test references to parent directories outside of the application."""
-        with self.assertRaises(ValueError):
+        with self.assertRaises(OutOfBoundsPageError) as cm:
             self.page_navigator.change_directory('..')
+        self.assertEqual(cm.exception.path, '..')
 
         self.page_navigator.change_directory('one')
-        with self.assertRaises(ValueError):
+        with self.assertRaises(OutOfBoundsPageError) as cm:
             self.page_navigator.change_directory('../..')
+        self.assertEqual(cm.exception.path, '../..')
 
         self.page_navigator.change_directory('a')
-        with self.assertRaises(ValueError):
+        with self.assertRaises(OutOfBoundsPageError) as cm:
             self.page_navigator.change_directory('../../..')
+        self.assertEqual(cm.exception.path, '../../..')
 
         self.page_navigator.change_directory('b')
-        with self.assertRaises(ValueError):
+        with self.assertRaises(OutOfBoundsPageError) as cm:
             self.page_navigator.change_directory('../../../../segment')
+        self.assertEqual(cm.exception.path, '../../../../segment')

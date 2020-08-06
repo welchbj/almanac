@@ -2,20 +2,31 @@
 
 from __future__ import annotations
 
+import functools
+
 from typing import Callable, Iterable, Optional, TYPE_CHECKING, Union
 
 from prompt_toolkit.completion import Completer
 
 from ..arguments import MutableArgument
-from ..commands import CommandBase, FrozenCommand, MutableCommand
-from ..errors import InvalidArgumentNameError, NoSuchArgumentError
+from ..commands import FrozenCommand, MutableCommand
+from ..completion import WordCompleter
+from ..errors import (
+    InvalidArgumentNameError,
+    NoSuchArgumentError,
+)
 from ..parsing import Patterns
 from ..types import CommandCoroutine
 
-CommandDecorator = Callable[[Union[MutableCommand, CommandCoroutine]], CommandBase]
-
 if TYPE_CHECKING:
     from .application import Application
+
+
+CommandMutatingDecorator = \
+    Callable[[Union[MutableCommand, CommandCoroutine]], MutableCommand]
+
+CommandFreezingDecorator = \
+    Callable[[Union[MutableCommand, CommandCoroutine]], FrozenCommand]
 
 
 class ArgumentDecoratorProxy:
@@ -24,15 +35,17 @@ class ArgumentDecoratorProxy:
     def __getattr__(
         self,
         argument_name: str
-    ) -> Callable[..., CommandDecorator]:
+    ) -> Callable[..., CommandMutatingDecorator]:
         """Dynamically create decorators that mutate the desired argument."""
 
         def decorator(
             *,
             name: Optional[str] = None,
             description: Optional[str] = None,
-            completer: Optional[Completer] = None
-        ) -> CommandDecorator:
+            choices: Optional[Iterable[str]] = None,
+            completers: Optional[Union[Completer, Iterable[Completer]]] = None,
+            hidden: Optional[bool] = None
+        ) -> CommandMutatingDecorator:
 
             def wrapped(
                 command_or_coro: Union[MutableCommand, CommandCoroutine]
@@ -53,8 +66,22 @@ class ArgumentDecoratorProxy:
                 if description is not None:
                     argument.description = description
 
-                if completer is not None:
-                    argument.completer = completer
+                if choices is not None:
+                    if isinstance(choices, str):
+                        choice_list = [choices]
+                    else:
+                        choice_list = [x for x in choices]
+
+                    argument.completers.append(WordCompleter(choice_list))
+
+                if completers is not None:
+                    if isinstance(completers, Completer):
+                        argument.completers.append(completers)
+                    else:
+                        argument.completers.extend(completers)
+
+                if hidden is not None:
+                    argument.hidden = hidden
 
                 return command
 
@@ -75,24 +102,48 @@ class CommandDecoratorProxy:
         self._app = app
 
     def register(
-        self
-    ) -> CommandDecorator:
+        self,
+        *decorators: CommandMutatingDecorator
+    ) -> CommandFreezingDecorator:
         """A decorator for registering a command on an application.
 
         This should always be the top-most (i.e., lowest line number) decorator in a
         stack on top of the coroutine you want to register as a command.
 
+        Optionally, a series of other command- or argument-mutating decorators may be
+        provided. This will result in a function being returned from this method that
+        both applies any of these mutations and registers the command.
+
         """
+
+        composed_decorator_func = self.compose(*decorators)
 
         def wrapped(
             command_or_coro: Union[MutableCommand, CommandCoroutine]
         ) -> FrozenCommand:
             command: MutableCommand = MutableCommand.ensure_command(command_or_coro)
+            command = composed_decorator_func(command)
+
             frozen_command: FrozenCommand = command.freeze()
             self._app.command_engine.register(frozen_command)
             return frozen_command
 
         return wrapped
+
+    def compose(
+        self,
+        *decorators: CommandMutatingDecorator
+    ) -> CommandMutatingDecorator:
+        """Compose several command decorators into one."""
+        def _compose2(f, g):
+            def wrapped(command_or_coro):
+                return f(g(command_or_coro))
+            return wrapped
+
+        def _nop(command_or_coro):
+            return command_or_coro
+
+        return functools.reduce(_compose2, decorators, _nop)
 
     def __call__(
         self,
@@ -100,7 +151,7 @@ class CommandDecoratorProxy:
         name: Optional[str] = None,
         description: Optional[str] = None,
         aliases: Optional[Union[str, Iterable[str]]] = None
-    ) -> CommandDecorator:
+    ) -> CommandMutatingDecorator:
         """A decorator for mutating properties of a :class:`MutableCommand`."""
         def wrapped(
             command_or_coro: Union[MutableCommand, CommandCoroutine]
@@ -117,7 +168,10 @@ class CommandDecoratorProxy:
                 command.description = description
 
             if aliases is not None:
-                command.add_alias(*aliases)
+                if isinstance(aliases, str):
+                    command.add_alias(aliases)
+                else:
+                    command.add_alias(*aliases)
 
             return command
 
