@@ -461,13 +461,6 @@ class Application:
         if self._propagate_runtime_exceptions:
             raise exc
 
-    def _maybe_handle_exc(
-        self,
-        exc: Exception
-    ) -> None:
-        # TODO
-        pass
-
     def print_exception_info(
         self,
         exc: Exception,
