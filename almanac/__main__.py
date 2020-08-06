@@ -13,15 +13,15 @@ async def main():
 
     @app.cmd.register()
     @app.cmd(aliases=['literal_eval'])
-    @app.arg.expr(completer=WordCompleter(['0x10', '["a"]']))
+    @app.arg.expr(completers=WordCompleter(['0x10', '["a"]']))
     async def liteval(expr: str, verbose: Optional[bool] = False) -> int:
         """Evaluation of a Python literal."""
         app = current_app()
 
         if verbose:
-            app.io.print_info('Verbose mode is on!')
+            app.io.info('Verbose mode is on!')
 
-        app.io.print_raw(ast.literal_eval(expr))
+        app.io.raw(ast.literal_eval(expr))
         return 0
 
     await app.prompt()

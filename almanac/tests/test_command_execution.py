@@ -45,7 +45,7 @@ class TestCommandExecution(IsolatedAsyncioTestCase, AlmanacTextMixin):
         await app.eval_line('cmd_var_kw_args one=18 two=18 three=18')
 
     async def test_missing_pos_args(self):
-        app = self.get_test_app()
+        app = self.get_test_app(propagate_runtime_exceptions=True)
 
         @app.cmd.register()
         async def some_command(arg1: int, arg2: int, arg3: int = 3, *, arg4: int):
@@ -64,7 +64,7 @@ class TestCommandExecution(IsolatedAsyncioTestCase, AlmanacTextMixin):
         self.assertTupleEqual(ctx.exception.missing_args, ('arg1', 'arg2',))
 
     async def test_missing_kw_args(self):
-        app = self.get_test_app()
+        app = self.get_test_app(propagate_runtime_exceptions=True)
 
         @app.cmd.register()
         async def some_command(arg1: int, arg2: int = 2, *, arg3: int, arg4: int):
@@ -83,7 +83,7 @@ class TestCommandExecution(IsolatedAsyncioTestCase, AlmanacTextMixin):
         self.assertTupleEqual(ctx.exception.missing_args, ('arg3', 'arg4',))
 
     async def test_too_many_pos_args(self):
-        app = self.get_test_app()
+        app = self.get_test_app(propagate_runtime_exceptions=True)
 
         @app.cmd.register()
         async def some_command(arg1: int, arg2: int, arg3: int = 3, *, arg4: int):
@@ -98,7 +98,7 @@ class TestCommandExecution(IsolatedAsyncioTestCase, AlmanacTextMixin):
         self.assertTupleEqual(ctx.exception.values, (4, 5,))
 
     async def test_extra_kw_args(self):
-        app = self.get_test_app()
+        app = self.get_test_app(propagate_runtime_exceptions=True)
 
         @app.cmd.register()
         @app.arg.a(name='A')

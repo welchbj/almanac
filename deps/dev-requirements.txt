@@ -1,5 +1,6 @@
 flake8==3.8.3
 mccabe==0.6.1
+munch==2.5.0
 mypy==0.782
 mypy-extensions==0.4.3
 prompt-toolkit==3.0.5

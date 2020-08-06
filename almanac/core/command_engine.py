@@ -1,23 +1,44 @@
 """Implementation of the ``CommandEngine`` class."""
 
-from almanac.errors.arguments.missing_arguments_error import MissingArgumentsError
+from __future__ import annotations
+
 import inspect
 
 import pyparsing as pp
 
-from typing import Any, Callable, Dict, List, MutableMapping, Tuple, Type
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    MutableMapping,
+    Tuple,
+    Type,
+    TYPE_CHECKING,
+    TypeVar,
+    Union
+)
 
 from ..commands import FrozenCommand
 from ..errors import (
     CommandNameCollisionError,
     ConflictingPromoterTypesError,
+    MissingArgumentsError,
     NoSuchArgumentError,
     NoSuchCommandError,
     TooManyPositionalArgumentsError,
     UnknownArgumentBindingError
 )
+from ..hooks import AsyncHookCallback, PromoterFunction
 from ..types import is_matching_type
 from ..utils import FuzzyMatcher
+
+if TYPE_CHECKING:
+    from .application import Application
+
+HookCallbackMapping = MutableMapping[FrozenCommand, List[AsyncHookCallback]]
+
+_T = TypeVar('_T')
 
 
 class CommandEngine:
@@ -25,14 +46,28 @@ class CommandEngine:
 
     def __init__(
         self,
+        app: Application,
         *commands_to_register: FrozenCommand
     ) -> None:
+        self._app = app
+
         self._registered_commands: List[FrozenCommand] = []
-        self._command_lookup_table: MutableMapping[str, FrozenCommand] = {}
-        self._type_promoter_mapping: Dict[Type, Callable] = {}
+        self._command_lookup_table: Dict[str, FrozenCommand] = {}
+
+        self._after_command_callbacks: HookCallbackMapping = {}
+        self._before_command_callbacks: HookCallbackMapping = {}
 
         for command in commands_to_register:
             self.register(command)
+
+        self._type_promoter_mapping: Dict[Type, Callable] = {}
+
+    @property
+    def app(
+        self
+    ) -> Application:
+        """The application that this engine manages."""
+        return self._app
 
     @property
     def type_promoter_mapping(
@@ -43,8 +78,8 @@ class CommandEngine:
 
     def add_promoter_for_type(
         self,
-        _type: Type,
-        promoter_callable: Callable
+        _type: Type[_T],
+        promoter_callable: PromoterFunction[_T]
     ) -> None:
         """Register a promotion callable for a specific argument type."""
         if _type in self._type_promoter_mapping.keys():
@@ -67,19 +102,52 @@ class CommandEngine:
                 entry already stored in this :class:`CommandEngine`.
 
         """
-        already_mapped = tuple(
+        already_mapped_names = tuple(
             identifier for identifier in command.identifiers
             if identifier in self._command_lookup_table.keys()
         )
-        if already_mapped:
-            mapped_names = ', '.join(already_mapped)
-            raise CommandNameCollisionError(
-                'Identifier(s) ' + mapped_names + ' already mapped'
-            )
+        if already_mapped_names:
+            raise CommandNameCollisionError(*already_mapped_names)
 
         for identifier in command.identifiers:
             self._command_lookup_table[identifier] = command
+
+        self._after_command_callbacks[command] = []
+        self._before_command_callbacks[command] = []
+
         self._registered_commands.append(command)
+
+    def add_before_command_callback(
+        self,
+        name_or_command: Union[str, FrozenCommand],
+        callback: AsyncHookCallback
+    ) -> None:
+        """Register a callback for execution before a command."""
+        if isinstance(name_or_command, str):
+            try:
+                command = self[name_or_command]
+            except KeyError:
+                raise NoSuchCommandError(name_or_command)
+        else:
+            command = name_or_command
+
+        self._before_command_callbacks[command].append(callback)
+
+    def add_after_command_callback(
+        self,
+        name_or_command: Union[str, FrozenCommand],
+        callback: AsyncHookCallback
+    ) -> None:
+        """Register a callback for execution after a command."""
+        if isinstance(name_or_command, str):
+            try:
+                command = self[name_or_command]
+            except KeyError:
+                raise NoSuchCommandError(name_or_command)
+        else:
+            command = name_or_command
+
+        self._after_command_callbacks[command].append(callback)
 
     def get(
         self,
@@ -96,9 +164,7 @@ class CommandEngine:
 
         """
         if name_or_alias not in self._command_lookup_table.keys():
-            raise NoSuchCommandError(
-                '`' + name_or_alias + '` is not a configured command name or alias'
-            )
+            raise NoSuchCommandError(name_or_alias)
 
         return self._command_lookup_table[name_or_alias]
 
@@ -167,7 +233,16 @@ class CommandEngine:
 
                     bound_args.arguments[arg_name] = new_value
 
-            return await command.run(*bound_args.args, **bound_args.kwargs)
+            await self._app.run_async_callbacks(
+                self._before_command_callbacks[command],
+                *bound_args.args, **bound_args.kwargs
+            )
+            ret = await command.run(*bound_args.args, **bound_args.kwargs)
+            await self._app.run_async_callbacks(
+                self._after_command_callbacks[command],
+                *bound_args.args, **bound_args.kwargs
+            )
+            return ret
 
         # Otherwise, we do some inspection to generate an informative error.
         try:

@@ -3,7 +3,7 @@
 import pyparsing as pp
 
 from .base_parse_error import BaseParseError
-from ..generic import PositionalValueError
+from ..generic_errors import PositionalValueError
 
 
 class PartialParseError(BaseParseError, PositionalValueError):
