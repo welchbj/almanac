@@ -9,6 +9,6 @@ install:
 build: off
 
 test_script:
-    - "python tasks.py test"
+    - "pytest"
     - "flake8 ."
     - "mypy ."

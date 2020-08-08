@@ -1,16 +1,11 @@
 """Common dev tasks for the ``almanac`` project."""
 
-import doctest
 import os
 import subprocess
 import sys
-import unittest
-
-import almanac
 
 from argparse import ArgumentParser, RawTextHelpFormatter
 from contextlib import contextmanager
-from typing import Any, Dict
 
 from livereload import Server
 
@@ -39,59 +34,6 @@ def _cwd(new_cwd):
     os.chdir(old_cwd)
 
 
-def test() -> None:
-    """Run all unit and doc tests."""
-    suite = unittest.defaultTestLoader.discover(
-        TESTS_DIR,
-        pattern='test_*.py',
-        top_level_dir=HERE
-    )
-
-    # XXX: automated module traversal?
-    doctest_modules = [
-        # TODO
-
-        almanac.pages.abstract_page,
-        almanac.pages.directory_page,
-        almanac.pages.page_navigator,
-        almanac.pages.page_path,
-
-        almanac.utils.fuzzy_matcher,
-        almanac.utils.iteration
-    ]
-
-    # XXX: crawl .rst files in docs?
-    doctest_files = [
-        README_FILE,
-    ]
-
-    doctest_kwargs: Dict[str, Any] = dict(
-        optionflags=doctest.IGNORE_EXCEPTION_DETAIL
-    )
-
-    for module in doctest_modules:
-        suite.addTests(
-            doctest.DocTestSuite(
-                module,
-                **doctest_kwargs
-            )
-        )
-
-    for _file in doctest_files:
-        suite.addTests(
-            doctest.DocFileSuite(
-                _file,
-                module_relative=False,
-                **doctest_kwargs
-            )
-        )
-
-    runner = unittest.TextTestRunner()
-    result = runner.run(suite)
-    if not result.wasSuccessful():
-        raise TestFailureError
-
-
 def build_docs():
     """Build the HTML documentation site."""
     with _cwd(DOCS_DIR):
@@ -104,6 +46,8 @@ def build_docs():
 
 def serve_docs(port: int = 8888):
     """Serve the documentation site on a local livereload server."""
+    build_docs()
+
     server = Server()
 
     watch_patterns = [
@@ -119,7 +63,6 @@ def serve_docs(port: int = 8888):
 
 
 TASKS = {
-    'test': test,
     'build-docs': build_docs,
     'serve-docs': serve_docs
 }
