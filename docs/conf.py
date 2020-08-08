@@ -86,7 +86,7 @@ html_title = f'almanac ({version})'
 html_static_path = [
     '_static',
 ]
-html_logo = '_static/logo.png'
+html_logo = '_static/logo-white.png'
 
 # TODO
 # html_favicon = 'TODO'
