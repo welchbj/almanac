@@ -2,6 +2,7 @@
 
 import doctest
 import os
+import subprocess
 import sys
 import unittest
 
@@ -11,15 +12,22 @@ from argparse import ArgumentParser, RawTextHelpFormatter
 from contextlib import contextmanager
 from typing import Any, Dict
 
+from livereload import Server
+
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 README_FILE = os.path.join(HERE, 'README.md')
+DOCS_DIR = os.path.join(HERE, 'docs')
 ALMANAC_DIR = os.path.join(HERE, 'almanac')
 TESTS_DIR = os.path.join(ALMANAC_DIR, 'tests')
 
 
 class TestFailureError(Exception):
     """An exception type for failed tests."""
+
+
+class SubprocessFailureError(Exception):
+    """An exception type for a subprocess exiting with a non-zero exit code."""
 
 
 @contextmanager
@@ -39,6 +47,7 @@ def test() -> None:
         top_level_dir=HERE
     )
 
+    # XXX: automated module traversal?
     doctest_modules = [
         # TODO
 
@@ -51,6 +60,7 @@ def test() -> None:
         almanac.utils.iteration
     ]
 
+    # XXX: crawl .rst files in docs?
     doctest_files = [
         README_FILE,
     ]
@@ -82,8 +92,36 @@ def test() -> None:
         raise TestFailureError
 
 
+def build_docs():
+    """Build the HTML documentation site."""
+    with _cwd(DOCS_DIR):
+        exit_code = subprocess.call('make html', shell=True)
+
+    if exit_code:
+        print('Something went wrong building the docs', file=sys.stderr)
+        raise SubprocessFailureError
+
+
+def serve_docs(port: int = 8888):
+    """Serve the documentation site on a local livereload server."""
+    server = Server()
+
+    watch_patterns = [
+        'docs/*.rst',
+        'docs/**/*.rst',
+        'docs/*.py',
+        'almanac/**/*.py'
+    ]
+    for pattern in watch_patterns:
+        server.watch(pattern, build_docs)
+
+    server.serve(root=f'{DOCS_DIR}/_build/html', host='127.0.0.1', port=port)
+
+
 TASKS = {
-    'test': test
+    'test': test,
+    'build-docs': build_docs,
+    'serve-docs': serve_docs
 }
 
 

@@ -1,0 +1,4 @@
+``almanac.shortcuts``
+=====================
+
+TODO
