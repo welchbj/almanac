@@ -7,7 +7,7 @@ created as you cd into them.
 #
 # Install dependencies with:
 #
-# pip install almanac aiohttp pygments
+# pip install almanac aiohttp
 #
 
 import aiohttp
