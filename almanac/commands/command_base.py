@@ -54,14 +54,14 @@ class CommandBase(ABC):
     def has_var_kw_arg(
         self
     ) -> bool:
-        """Whether this command has a **kwargs argument."""
+        """Whether this command has a ``**kwargs`` argument."""
         return self._has_var_kw_arg
 
     @property
     def has_var_pos_arg(
         self
     ) -> bool:
-        """Whether this command has a *args argument."""
+        """Whether this command has a ``*args`` argument."""
         return self._has_var_kw_arg
 
     @property
