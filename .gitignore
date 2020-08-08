@@ -5,6 +5,7 @@ __pycache__
 
 .tox/
 .mypy_cache/
+.pytest_cache/
 .vscode/
 build/
 docs/_build/
