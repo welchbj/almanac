@@ -1,7 +1,8 @@
 """Tests for the ``PageNavigator`` class."""
 
+import pytest
+
 from typing import List
-from unittest import TestCase
 
 from almanac import (
     BlockedPageOverwriteError,
@@ -11,10 +12,10 @@ from almanac import (
 )
 
 
-class PageNavigatorTestCase(TestCase):
+class TestPageNavigator:
 
     @classmethod
-    def setUpClass(cls):
+    def setup_class(cls):
         """Create a populated PageNavigator."""
         cls.page_navigator = PageNavigator()
         paths = [
@@ -35,30 +36,23 @@ class PageNavigatorTestCase(TestCase):
         for path in paths:
             cls.page_navigator[path] = DirectoryPage(path)
 
-    def setUp(self):
+    def setup_method(self):
         """Reset the PageNavigator to the root directory."""
         self.page_navigator.change_directory('/')
 
     def assert_exploded_path_equals(self, path_to_explode: str, expected: str):
         """Utility for testing exploded path handling."""
-        self.assertEqual(
-            self.page_navigator.explode(path_to_explode),
-            expected
-        )
+        assert self.page_navigator.explode(path_to_explode) == expected  # type: ignore
 
     def assert_path_is(self, expected: str):
         """Assert the current path of the page_navigator."""
-        self.assertEqual(
-            str(self.page_navigator.current_page.path),
-            expected
-        )
+        assert str(self.page_navigator.current_page.path) == expected  # type: ignore
 
     def assert_match_is(self, pattern: str, expected: List[str]):
         """Assert the matches to the pattern."""
-        self.assertEqual(
-            [m.path for m in self.page_navigator.match(pattern)],
-            expected
-        )
+        assert [
+            m.path for m in self.page_navigator.match(pattern)  # type: ignore
+        ] == expected
 
     def test_back_and_forward(self):
         self.assert_path_is('/')
@@ -151,69 +145,69 @@ class PageNavigatorTestCase(TestCase):
     def test_magic_access_methods(self):
         # test adding a page
         p = PageNavigator()
-        self.assertTrue('/' in p)
+        assert '/' in p
 
         dir_page_a = DirectoryPage('/a')
         p['/a/'] = dir_page_a
-        self.assertTrue('/' in p)
-        self.assertTrue('/a' in p)
+        assert '/' in p
+        assert '/a' in p
 
-        self.assertEqual(dir_page_a.parent, p['/'])
-        self.assertTrue(dir_page_a in p['/'].children)
+        assert dir_page_a.parent == p['/']
+        assert dir_page_a in p['/'].children
 
         # test intermediate directory creation
         p.add_directory_page('/a/b/c/d')
         p.add_directory_page('/aa/bb/cc')
-        self.assertTrue('/' in p)
-        self.assertTrue('/a' in p)
-        self.assertTrue('/a/b' in p)
-        self.assertTrue('/a/b/c' in p)
-        self.assertTrue('/a/b/c/d' in p)
-        self.assertTrue('/aa' in p)
-        self.assertTrue('/aa/bb' in p)
-        self.assertTrue('/aa/bb/cc' in p)
+        assert '/' in p
+        assert '/a' in p
+        assert '/a/b' in p
+        assert '/a/b/c' in p
+        assert '/a/b/c/d' in p
+        assert '/aa' in p
+        assert '/aa/bb' in p
+        assert '/aa/bb/cc' in p
 
-        self.assertEqual(p['/a/b/c/d'].parent, p['/a/b/c'])
-        self.assertTrue(p['/a/b/c/d'] in p['/a/b/c'].children)
-        self.assertEqual(p['/a/b/c'].parent, p['/a/b'])
-        self.assertTrue(p['/a/b/c'] in p['/a/b'].children)
-        self.assertEqual(p['/a/b'].parent, p['/a'])
+        assert p['/a/b/c/d'].parent == p['/a/b/c']
+        assert p['/a/b/c/d'] in p['/a/b/c'].children
+        assert p['/a/b/c'].parent == p['/a/b']
+        assert p['/a/b/c'] in p['/a/b'].children
+        assert p['/a/b'].parent == p['/a']
 
-        self.assertTrue(p['/a/b'] in p['/a'].children)
-        self.assertEqual(p['/a'].parent, p['/'])
-        self.assertTrue(p['/a'] in p['/'].children)
+        assert p['/a/b'] in p['/a'].children
+        assert p['/a'].parent == p['/']
+        assert p['/a'] in p['/'].children
 
         p.add_directory_page('/a/bb/c')
-        self.assertEqual(p['/a/bb'].parent, p['/a'])
-        self.assertEqual(p['/a/bb/c'].parent, p['/a/bb'])
-        self.assertEqual(p['/a/b'].parent, p['/a'])
+        assert p['/a/bb'].parent == p['/a']
+        assert p['/a/bb/c'].parent == p['/a/bb']
+        assert p['/a/b'].parent == p['/a']
 
-        self.assertTrue(p['/a/bb'] in p['/a'].children)
-        self.assertTrue(p['/a/b'] in p['/a'].children)
+        assert p['/a/bb'] in p['/a'].children
+        assert p['/a/b'] in p['/a'].children
 
         # test overwriting existing pages
         p['/a/b'] = DirectoryPage('/a/b')
-        self.assertEqual(p['/a/b'].parent, p['/a'])
-        self.assertTrue(p['/a/b'] in p['/a'].children)
+        assert p['/a/b'].parent == p['/a']
+        assert p['/a/b'] in p['/a'].children
 
         p['/'] = DirectoryPage('/')
-        self.assertEqual(p['/a'].parent, p['/'])
-        self.assertTrue(p['/a'] in p['/'].children)
-        self.assertEqual(p['/aa'].parent, p['/'])
-        self.assertTrue(p['/aa'] in p['/'].children)
+        assert p['/a'].parent == p['/']
+        assert p['/a'] in p['/'].children
+        assert p['/aa'].parent == p['/']
+        assert p['/aa'] in p['/'].children
 
-        with self.assertRaises(BlockedPageOverwriteError) as cm:
+        with pytest.raises(BlockedPageOverwriteError) as ctx:
             p.add_directory_page('/')
-        self.assertEqual(cm.exception.path, '/')
+        assert ctx.value.path == '/'
 
-        with self.assertRaises(BlockedPageOverwriteError) as cm:
+        with pytest.raises(BlockedPageOverwriteError) as ctx:
             p.add_directory_page('/a/b/c/d')
-        self.assertEqual(cm.exception.path, '/a/b/c/d')
+        assert ctx.value.path == '/a/b/c/d'
 
         # test deleting pages
         del p['/a']
         del p['/aa']
-        self.assertEqual(len(p), 1)
+        assert len(p) == 1
 
         # TODO: check on p['/'].children
 
@@ -324,21 +318,21 @@ class PageNavigatorTestCase(TestCase):
 
     def test_explode_invalid_parent_references(self):
         """Test references to parent directories outside of the application."""
-        with self.assertRaises(OutOfBoundsPageError) as cm:
+        with pytest.raises(OutOfBoundsPageError) as ctx:
             self.page_navigator.change_directory('..')
-        self.assertEqual(cm.exception.path, '..')
+        ctx.value.path == '..'
 
         self.page_navigator.change_directory('one')
-        with self.assertRaises(OutOfBoundsPageError) as cm:
+        with pytest.raises(OutOfBoundsPageError) as ctx:
             self.page_navigator.change_directory('../..')
-        self.assertEqual(cm.exception.path, '../..')
+        ctx.value.path == '../..'
 
         self.page_navigator.change_directory('a')
-        with self.assertRaises(OutOfBoundsPageError) as cm:
+        with pytest.raises(OutOfBoundsPageError) as ctx:
             self.page_navigator.change_directory('../../..')
-        self.assertEqual(cm.exception.path, '../../..')
+        ctx.value.path == '../../..'
 
         self.page_navigator.change_directory('b')
-        with self.assertRaises(OutOfBoundsPageError) as cm:
+        with pytest.raises(OutOfBoundsPageError) as ctx:
             self.page_navigator.change_directory('../../../../segment')
-        self.assertEqual(cm.exception.path, '../../../../segment')
+        ctx.value.path == '../../../../segment'
