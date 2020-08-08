@@ -55,7 +55,7 @@ class FrozenCommand(CommandBase, Mapping[str, FrozenArgument]):
         definition, we must swap out these argument names to match the wrapped
         coroutine signature.
 
-        Any keys in the :param:`kwarg_dict` argument that do not map to valid argument
+        Any keys in the ``kwarg_dict`` argument that do not map to valid argument
         names will be present in the second dictionary returned.
 
         """

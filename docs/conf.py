@@ -4,8 +4,7 @@ import codecs
 import os
 import sys
 
-from datetime import (
-    datetime)
+from datetime import datetime
 
 # -- Path setup --------------------------------------------------------------
 
@@ -25,8 +24,11 @@ project = 'almanac'
 author = 'Brian Welch'
 year = datetime.now().year
 copyright = f'{year}, {author}'
+
 version = '.'.join(str(i) for i in __version_info__[:2])  # noqa
 release = __version__  # noqa
+
+language = 'en'
 master_doc = 'index'
 source_suffix = '.rst'
 pygments_style = 'sphinx'
@@ -42,29 +44,30 @@ extensions = [
     'sphinx.ext.napoleon',
     'sphinx_autodoc_typehints',
     'sphinx.ext.intersphinx',
-    'sphinx.ext.viewcode'
+    'sphinx.ext.viewcode',
+    'sphinx_rtd_theme'
 ]
 
-intersphinx_mapping = {'python': ('https://docs.python.org/3', None)}
+intersphinx_mapping = {
+    'python': ('https://docs.python.org/3/', None),
+    'prompt_toolkit': ('https://python-prompt-toolkit.readthedocs.io/en/master/', None)
+}
 
-autodoc_default_flags = [
-    'members',
-    'special-members',
-    'show-inheritance'
-]
+autodoc_default_options = {
+    'members': True,
+    'show-inheritance': True
+}
+
+napoleon_use_param = True
 
 suppress_warnings = [
     'image.nonlocal_uri'
 ]
 
-# Add any paths that contain templates here, relative to this directory.
 templates_path = [
     '_templates'
 ]
 
-# List of patterns, relative to source directory, that match files and
-# directories to ignore when looking for source files.
-# This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = [
     '_build',
     'Thumbs.db',
@@ -74,14 +77,16 @@ exclude_patterns = [
 
 # -- Options for HTML output -------------------------------------------------
 
-# The theme to use for HTML and HTML Help pages.  See the documentation for
-# a list of builtin themes.
-#
-html_theme = 'alabaster'
-
-# Add any paths that contain custom static files (such as style sheets) here,
-# relative to this directory. They are copied after the builtin static files,
-# so a file named "default.css" will overwrite the builtin "default.css".
+html_theme = 'sphinx_rtd_theme'
+html_theme_options = {
+    'canonical_url': 'https://almanac.brianwel.ch/',
+    'logo_only': True
+}
+html_title = f'almanac ({version})'
 html_static_path = [
-    '_static'
+    '_static',
 ]
+html_logo = '_static/logo.png'
+
+# TODO
+# html_favicon = 'TODO'
