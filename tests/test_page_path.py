@@ -1,33 +1,25 @@
 """Tests for the ``PagePath`` class."""
 
+import pytest
+
 from typing import Tuple
-from unittest import TestCase
 
 from almanac import PagePath, PositionalValueError
 
 
-class PagePathTestCase(TestCase):
+class TestPagePath:
 
     def assert_segments(self, path: str, expected: Tuple[str, ...]):
-        self.assertEqual(
-            PagePath(path).segments,
-            expected
-        )
+        assert PagePath(path).segments == expected
 
     def assert_parent_dirs(self, path: str, expected: Tuple[str, ...]):
-        self.assertEqual(
-            PagePath(path).parent_dirs,
-            expected
-        )
+        assert PagePath(path).parent_dirs == expected
 
     def assert_path(self, path: str, expected: str):
-        self.assertEqual(
-            PagePath(path).path,
-            expected
-        )
+        assert PagePath(path).path == expected
 
     def test_non_absolute(self):
-        with self.assertRaises(PositionalValueError):
+        with pytest.raises(PositionalValueError):
             PagePath('a/b/c')
 
     def test_slash_collapsing(self):

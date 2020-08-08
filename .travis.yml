@@ -22,6 +22,6 @@ install:
 
 script:
 - python --version
-- python tasks.py test
+- pytest
 - flake8 .
 - mypy .
