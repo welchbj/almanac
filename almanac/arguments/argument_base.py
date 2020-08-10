@@ -1,5 +1,3 @@
-"""A class for encapsulating command arguments."""
-
 from abc import ABC, abstractmethod, abstractproperty
 from inspect import Parameter
 from typing import Any, Iterable, Optional, Union

@@ -1,5 +1,3 @@
-"""Utilities for highlighting text."""
-
 from typing import Optional, Type
 
 from pygments import highlight

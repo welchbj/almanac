@@ -1,5 +1,3 @@
-"""A completer for page paths."""
-
 from pathlib import PurePosixPath
 from typing import Iterable
 

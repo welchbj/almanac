@@ -1,5 +1,3 @@
-"""A class for proxying hook decorators."""
-
 from __future__ import annotations
 
 from typing import Callable, List, TYPE_CHECKING, Union

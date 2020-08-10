@@ -1,5 +1,3 @@
-"""Utilities for working with completions."""
-
 from typing import Optional, Iterable
 
 from prompt_toolkit.completion import Completion

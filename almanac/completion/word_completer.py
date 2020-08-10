@@ -1,5 +1,3 @@
-"""A WordCompleter that works properly with almanac's command grammar."""
-
 from typing import Callable, Iterable, List, Union
 
 from prompt_toolkit.completion import CompleteEvent, Completion, Completer

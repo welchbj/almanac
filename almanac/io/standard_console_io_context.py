@@ -1,5 +1,3 @@
-"""Implementation of the ``StandardConsoleIoContext`` class."""
-
 from typing import Any
 
 from prompt_toolkit import ANSI, HTML, print_formatted_text

@@ -1,5 +1,3 @@
-"""Shortcuts for initializing a pre-built application."""
-
 from typing import Type
 
 from prompt_toolkit.styles import Style

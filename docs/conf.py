@@ -42,7 +42,6 @@ pygments_style = 'sphinx'
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.napoleon',
-    'sphinx_autodoc_typehints',
     'sphinx.ext.intersphinx',
     'sphinx.ext.viewcode',
     'sphinx_rtd_theme'
@@ -74,8 +73,11 @@ exclude_patterns = [
     '.DS_Store'
 ]
 
+# -- Formatting options ------------------------------------------------------
 
-# -- Options for HTML output -------------------------------------------------
+add_module_names = False
+
+# -- HTML ouput options ------------------------------------------------------
 
 html_theme = 'sphinx_rtd_theme'
 html_theme_options = {

@@ -1,5 +1,3 @@
-"""Styles for almanac applications."""
-
 from prompt_toolkit.styles import style_from_pygments_dict
 from pygments.token import Keyword, Name, Number, Operator, String, Text
 

@@ -1,5 +1,3 @@
-"""Implementation of builtin commands."""
-
 from ..constants import ExitCodes
 from ..pages import PagePath, PagePathLike
 from ..context import current_app

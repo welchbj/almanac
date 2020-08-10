@@ -1,5 +1,3 @@
-"""Exception hooks for builtin error types."""
-
 from ..context import current_app
 from ..errors import (
     BaseArgumentError,
