@@ -1,7 +1,11 @@
 import pyparsing as pp
 
-from .base_parse_error import BaseParseError
-from ..generic_errors import PositionalValueError
+from .almanac_error import AlmanacError
+from .generic_errors import PositionalValueError
+
+
+class BaseParseError(AlmanacError):
+    """The base class exception type for parser-related errors."""
 
 
 class PartialParseError(BaseParseError, PositionalValueError):
@@ -19,3 +23,7 @@ class PartialParseError(BaseParseError, PositionalValueError):
         self.remaining = remaining
         self.partial_result = partial_result
         self.col = col
+
+
+class TotalParseError(BaseParseError):
+    """Exception type for when command parsing totally fails."""

@@ -1,4 +1,17 @@
-from ..almanac_error import AlmanacError
+from .almanac_error import AlmanacError
+
+
+class AlmanacKeyError(AlmanacError, KeyError):
+    """A subclass of KeyError that does not surround exception messages with quotes."""
+
+    def __str__(
+        self
+    ) -> str:
+        return str(self.args[0])
+
+
+class FrozenAccessError(AlmanacError):
+    """An exception type for invalid accesses on frozen objects."""
 
 
 class PositionalValueError(ValueError, AlmanacError):
