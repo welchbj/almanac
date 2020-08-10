@@ -1,4 +1,4 @@
-from ..almanac_error import AlmanacError
+from .almanac_error import AlmanacError
 
 
 class NoActiveApplicationError(AlmanacError):

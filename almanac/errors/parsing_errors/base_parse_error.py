@@ -1,5 +1,0 @@
-from ..almanac_error import AlmanacError
-
-
-class BaseParseError(AlmanacError):
-    """The base class exception type for parser-related errors."""
