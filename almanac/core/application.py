@@ -334,9 +334,9 @@ class Application:
     ) -> Callable[[AsyncNoArgsCallback[Any]], AsyncNoArgsCallback[Any]]:
         """A decorator for specifying a callback to be executed when the app exits.
 
-        These callbacks will only be implicitly executed at the end of :method:`prompt`
+        These callbacks will only be implicitly executed at the end of :meth:`prompt`
         execution. Otherwise, the programmer must manually call
-        :method:`run_on_init_callbacks`.
+        :meth:`run_on_init_callbacks`.
 
         """
 
@@ -359,8 +359,8 @@ class Application:
         """A decorator for specifying a callback to be executed when the prompt begins.
 
         These callbacks will only be implicitly executed at the beginning of
-        :method:`prompt` execution. Otherwise, the programmer must manually call
-        :method:`run_on_init_callbacks`.
+        :meth:`prompt` execution. Otherwise, the programmer must manually call
+        :meth:`run_on_init_callbacks`.
 
         """
 
