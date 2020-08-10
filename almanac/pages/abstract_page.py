@@ -38,7 +38,7 @@ class AbstractPage(ABC):
         """The info text about this page.
 
         Think of this as a more dynamic output (in contrast to
-        :method:`help_text`), which reflect the current state of this page.
+        :meth:`help_text`), which reflect the current state of this page.
 
         """
 
