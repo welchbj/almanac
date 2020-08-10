@@ -1,5 +1,3 @@
-"""Abstraction over an argument with immutable properties."""
-
 from functools import cached_property
 from typing import Tuple
 

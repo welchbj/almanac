@@ -1,5 +1,3 @@
-"""A table for storing and dispatching exception hooks."""
-
 import inspect
 
 from typing import Callable, MutableMapping, Optional, Type

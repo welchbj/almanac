@@ -1,5 +1,3 @@
-"""Comparisons between types and annotations."""
-
 from typing import Any, Type
 
 from typing_inspect import is_union_type, get_args
@@ -14,9 +12,9 @@ def is_matching_type(
     This function does a bit more than a simple comparison, and performs the following
     extra checks:
 
-        - If the :param`annotation` is a union, then the union is unwrapped and each of
-          its types is compared against :param:`_type`.
-        - If the specified :param:`_type` is generic, it will verify that all of its
+        - If the ``annotation`` is a union, then the union is unwrapped and each of
+          its types is compared against ``_type``.
+        - If the specified ``_type`` is generic, it will verify that all of its
           parameters match those of a matching annotation.
 
     """

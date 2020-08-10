@@ -1,5 +1,3 @@
-"""Implementation of the ``PageNavigator`` class."""
-
 from fnmatch import filter as fn_filter
 from itertools import chain
 from pathlib import PurePosixPath

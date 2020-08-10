@@ -1,5 +1,3 @@
-"""Abstraction over an argument with mutable properties."""
-
 from typing import List
 
 from prompt_toolkit.completion import Completer

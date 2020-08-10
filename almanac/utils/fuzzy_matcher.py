@@ -14,16 +14,13 @@ _DEFAULT_MAX_MATCHES = 3
 class FuzzyMatcher:
     """A simple fuzzy string matcher.
 
-    Attributes:
+    Args:
         reference: The string against which candidate matches are compared.
         candidates: The strings to compare against ``reference``.
-        ratio_threshold: The float within the range 0 < r < 1 that valid
+        ratio_threshold: The float within the range ``0 < r < 1`` that valid
             matches must surpass when compared to ``reference``.
         num_max_matches: The maximum number of matches that this class will
             hold.
-
-    Notes:
-        The ``candidates`` iterable will be consumed upon initialization.
 
     """
 
