@@ -1,5 +1,3 @@
-"""Implementation of the ``CommandEngine`` class."""
-
 from __future__ import annotations
 
 import inspect
@@ -319,7 +317,7 @@ class CommandEngine:
     def registered_commands(
         self
     ) -> Tuple[FrozenCommand, ...]:
-        """The :class:`FrozenCommand`s registered on this instance."""
+        """The :py:class:`FrozenCommand` instances registered on this engine."""
         return tuple(self._registered_commands)
 
     def __contains__(

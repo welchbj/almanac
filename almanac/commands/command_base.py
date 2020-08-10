@@ -1,5 +1,3 @@
-"""Implementation of the ``Command`` class."""
-
 from __future__ import annotations
 
 import inspect

@@ -1,5 +1,3 @@
-"""Exception type for argument name collisions."""
-
 from typing import Tuple
 
 from .base_argument_error import BaseArgumentError

@@ -1,5 +1,3 @@
-"""Decorators for customizing commands."""
-
 from __future__ import annotations
 
 import functools

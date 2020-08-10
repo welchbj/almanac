@@ -1,6 +1,3 @@
-"""An exception type for attempting to reference pages beyond the root directory."""
-
-
 from __future__ import annotations
 
 from typing import TYPE_CHECKING

@@ -1,5 +1,3 @@
-"""Base exception type for command-related errors."""
-
 from ..almanac_error import AlmanacError
 
 

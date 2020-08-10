@@ -1,5 +1,3 @@
-"""Implementation of the ``DirectoryPage`` class."""
-
 from .abstract_page import AbstractPage
 
 

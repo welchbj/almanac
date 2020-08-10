@@ -1,5 +1,3 @@
-"""Exception type for command partial parsing errors."""
-
 import pyparsing as pp
 
 from .base_parse_error import BaseParseError

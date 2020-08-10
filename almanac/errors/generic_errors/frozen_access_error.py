@@ -1,5 +1,3 @@
-"""Exception type for invalid accesses on frozen objects."""
-
 from ..almanac_error import AlmanacError
 
 

@@ -1,5 +1,3 @@
-"""Exception type for non-existent argument-name accesses."""
-
 from typing import Tuple
 
 from .base_argument_error import BaseArgumentError

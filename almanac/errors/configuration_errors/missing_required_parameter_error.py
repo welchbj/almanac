@@ -1,5 +1,3 @@
-"""An exception type for missing configuration parameters."""
-
 from .base_configuration_error import BaseConfigurationError
 
 

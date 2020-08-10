@@ -1,5 +1,3 @@
-"""Exception type for command registration errors."""
-
 from .base_command_error import BaseCommandError
 
 

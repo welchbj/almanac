@@ -1,5 +1,3 @@
-"""Exception type for missing arguments."""
-
 from __future__ import annotations
 
 from typing import Tuple

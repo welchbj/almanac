@@ -1,5 +1,3 @@
-"""Assertions for verifying hook and callback format."""
-
 import asyncio
 
 from typing import Any

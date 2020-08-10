@@ -1,5 +1,3 @@
-"""Exception type for trying to implicitly overwrite an exception hook callback."""
-
 from .base_configuration_error import BaseConfigurationError
 
 

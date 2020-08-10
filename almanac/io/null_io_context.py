@@ -1,5 +1,3 @@
-"""Implementation of an I/O context that goes no where."""
-
 from typing import Any
 
 from .abstract_io_context import AbstractIoContext

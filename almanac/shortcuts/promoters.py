@@ -1,5 +1,3 @@
-"""Sane promoters for common argument types."""
-
 from typing import Any
 
 from ..context import current_app

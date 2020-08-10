@@ -1,5 +1,3 @@
-"""A subclass of KeyError that does not surround exception messages with quotes."""
-
 from ..almanac_error import AlmanacError
 
 

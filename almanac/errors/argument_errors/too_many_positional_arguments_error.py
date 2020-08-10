@@ -1,5 +1,3 @@
-"""Exception type for too many positional arguments being specified."""
-
 from typing import Any, Tuple
 
 from .base_argument_error import BaseArgumentError

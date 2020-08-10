@@ -1,5 +1,3 @@
-"""An exception type for path syntax errors."""
-
 from .base_page_error import BasePageError
 from ..generic_errors import PositionalValueError
 

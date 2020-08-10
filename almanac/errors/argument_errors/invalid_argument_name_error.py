@@ -1,5 +1,3 @@
-"""Exception type for attempting to register invalid argument names."""
-
 from .base_argument_error import BaseArgumentError
 
 
