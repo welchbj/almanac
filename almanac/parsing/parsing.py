@@ -1,5 +1,3 @@
-"""Command parsing implementation."""
-
 # The parsing logic is heavily borrowed from the python-nubia project, available at:
 # https://github.com/facebookincubator/python-nubia
 #

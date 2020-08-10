@@ -1,5 +1,3 @@
-"""Comparisons between types and annotations."""
-
 from typing import Any, Type
 
 from typing_inspect import is_union_type, get_args

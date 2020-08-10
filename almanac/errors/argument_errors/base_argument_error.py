@@ -1,5 +1,3 @@
-"""Base exception type for invalid arguments."""
-
 from ..almanac_error import AlmanacError
 
 

@@ -1,5 +1,3 @@
-"""Base exception type for configuration errors."""
-
 from ..almanac_error import AlmanacError
 
 

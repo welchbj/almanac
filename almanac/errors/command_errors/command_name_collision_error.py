@@ -1,5 +1,3 @@
-"""Exception type for command name collisions."""
-
 from typing import Tuple
 
 from .base_command_error import BaseCommandError

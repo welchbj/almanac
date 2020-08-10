@@ -1,5 +1,3 @@
-"""Exception type for non-existent command-name accesses."""
-
 from typing import Tuple
 
 from .base_command_error import BaseCommandError

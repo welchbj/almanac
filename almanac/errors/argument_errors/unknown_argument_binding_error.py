@@ -1,5 +1,3 @@
-"""Exception type for unknown issues in argument-binding."""
-
 import inspect
 
 from typing import Any, Dict, Iterable, Tuple

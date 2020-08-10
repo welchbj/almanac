@@ -1,5 +1,3 @@
-"""An exception type for attempted (but blocked) page entry overwrites."""
-
 from __future__ import annotations
 
 from typing import TYPE_CHECKING

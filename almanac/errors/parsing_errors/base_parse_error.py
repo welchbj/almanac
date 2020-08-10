@@ -1,5 +1,3 @@
-"""Base class for command-parsing errors."""
-
 from ..almanac_error import AlmanacError
 
 

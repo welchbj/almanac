@@ -1,5 +1,3 @@
-"""An exception type for attempting to access a non-existent page."""
-
 from __future__ import annotations
 
 from typing import TYPE_CHECKING

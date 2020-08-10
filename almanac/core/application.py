@@ -1,5 +1,3 @@
-"""Implementation of the ``Application`` class."""
-
 import asyncio
 import traceback
 

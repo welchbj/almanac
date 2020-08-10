@@ -1,5 +1,3 @@
-"""Context helpers for managing multiple applications."""
-
 from __future__ import annotations
 
 from contextvars import ContextVar

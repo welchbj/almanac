@@ -1,5 +1,3 @@
-"""Implementation of the ``CommandCompleter`` class."""
-
 from __future__ import annotations
 
 import re

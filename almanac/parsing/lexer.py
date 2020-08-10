@@ -1,5 +1,3 @@
-"""A Pygments lexer for the command syntax."""
-
 from __future__ import annotations
 
 import re

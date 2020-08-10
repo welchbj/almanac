@@ -1,5 +1,3 @@
-"""Exception type for invalid application runtime contexts."""
-
 from ..almanac_error import AlmanacError
 
 

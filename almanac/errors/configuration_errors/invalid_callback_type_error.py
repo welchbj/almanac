@@ -1,5 +1,3 @@
-"""An error type for invalid callback types."""
-
 from .base_configuration_error import BaseConfigurationError
 
 
