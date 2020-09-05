@@ -49,7 +49,13 @@ _T = TypeVar('_T')
 
 
 class Application:
-    """The core class of ``almanac``, wrapping everything together."""
+    """The core class of ``almanac``, wrapping everything together.
+
+    This class should be your main entrypoint into all of the functionality provided
+    by this framework. The main method of customizing the state of an application is via
+    different decorators.
+
+    """
 
     def __init__(
         self,

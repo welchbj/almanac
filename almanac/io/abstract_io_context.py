@@ -3,7 +3,7 @@ from typing import Any
 
 
 class AbstractIoContext(ABC):
-    """An interface for input/output contexts."""
+    """The base abstract interface for input/output contexts."""
 
     @abstractmethod
     def info(

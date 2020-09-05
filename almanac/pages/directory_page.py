@@ -8,15 +8,13 @@ class DirectoryPage(AbstractPage):
     def help_text(
         self
     ) -> str:
-        return (
-            'TODO: DirectoryPage help_text')
+        return 'TODO: DirectoryPage help_text'
 
     @property
     def info_text(
         self
     ) -> str:
-        return (
-            'TODO: DirectoryPage info_text')
+        return 'TODO: DirectoryPage info_text'
 
     def get_prompt(
         self

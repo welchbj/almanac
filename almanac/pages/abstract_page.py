@@ -7,7 +7,7 @@ from .page_path import PagePath, PagePathLike
 
 
 class AbstractPage(ABC):
-    """The base page interface."""
+    """The base abstract page interface."""
 
     def __init__(
         self,
@@ -35,8 +35,8 @@ class AbstractPage(ABC):
     ) -> str:
         """The info text about this page.
 
-        Think of this as a more dynamic output (in contrast to
-        :meth:`help_text`), which reflect the current state of this page.
+        Think of this as a more dynamic output (in contrast to :meth:`help_text`),
+        which reflect the current state of this page.
 
         """
 
