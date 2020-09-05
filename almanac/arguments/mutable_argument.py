@@ -7,6 +7,7 @@ from .frozen_argument import FrozenArgument
 
 
 class MutableArgument(ArgumentBase):
+    """An encapsulation of an argument which can be mutated."""
 
     def _abstract_display_name_setter(
         self,

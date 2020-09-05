@@ -9,6 +9,12 @@ from ..utils import abbreviated
 
 
 class FrozenArgument(ArgumentBase):
+    """An encapsulation of an argument which can no longer be mutated.
+
+    Setters for the various fields that can be mutated :class:`MutableCommand` will
+    raise :class:`~almanac.errors.argument_errors.FrozenAccessError`.
+
+    """
 
     def _abstract_display_name_setter(
         self,
