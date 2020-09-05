@@ -30,7 +30,7 @@ class PagePath:
         """Assert that the specified path is absolut.
 
         Raises:
-            PathSyntaxError: If the path is not absolute.
+            :class:`PathSyntaxError`: If the path is not absolute.
 
         """
         if not str(path).startswith('/'):
