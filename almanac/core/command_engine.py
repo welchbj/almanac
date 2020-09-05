@@ -157,8 +157,8 @@ class CommandEngine:
             The mapped :class:`FrozenCommand` instance.
 
         Raises:
-            :class:`NoSuchCommandError`: If the specified ``name_or_alias`` is not contained
-                within this instance.
+            :class:`NoSuchCommandError`: If the specified ``name_or_alias`` is not
+                contained within this instance.
 
         """
         if name_or_alias not in self._command_lookup_table.keys():
