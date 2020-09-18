@@ -109,11 +109,13 @@ Into this:
 ## Installation
 
 You can download the latest packaged version from PyPI:
+
 ```sh
 pip install almanac
 ```
 
 Alternatively, you can get the bleeding-edge version from version control:
+
 ```sh
 pip install https://github.com/welchbj/almanac/archive/master.tar.gz
 ```
@@ -123,32 +125,3 @@ pip install https://github.com/welchbj/almanac/archive/master.tar.gz
 The original content of this repository is licensed under the [MIT License](https://opensource.org/licenses/MIT), as per the [LICENSE.txt](./LICENSE.txt) file.
 
 Some of the parsing logic is borrowed from the [python-nubia](https://github.com/facebookincubator/python-nubia) project and is licensed under that project's [BSD License](https://github.com/facebookincubator/python-nubia/blob/master/LICENSE). For more information, please see the comment in [`almanac/parsing/parsing.py`](almanac/parsing/parsing.py).
-
-## Development
-
-Development dependencies can be installed with:
-
-```sh
-pip install -r deps/dev-requirements.txt
-```
-
-To run the tests, use:
-
-```sh
-python tasks.py test
-```
-
-To lint and type check the code, use:
-
-```sh
-flake8 .
-mypy .
-```
-
-When it's time to cut a release, use:
-
-```sh
-python setup.py bdist_wheel sdist
-twine check dist/*.whl dist/*.gz
-twine upload dist/*.whl dist/*.gz
-```
