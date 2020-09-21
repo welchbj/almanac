@@ -48,7 +48,6 @@ Welcome to...
 
    project_meta/release_notes.rst
    project_meta/development_guide.rst
-   project_meta/contributors.rst
    project_meta/prior_art.rst
 
 .. toctree::
