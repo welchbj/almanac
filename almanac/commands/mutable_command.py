@@ -22,8 +22,8 @@ class MutableCommand(CommandBase, MutableMapping[str, MutableArgument]):
     The arguments of this command can be accessed via dict-like operations on instances
     of this class. Of note is that the keys for this dictionary are the argument names
     of the internal coroutine from this function (in contrast to a
-    :class:`FrozenCommand`, which is keyed based on a :class:`ArgumentBase`'s
-    ``display_name`` property).
+    :class:`~almanac.commands.frozen_command.FrozenCommand`, which is keyed based on a
+    :class:`~almanac.arguments.argument_base.ArgumentBase`'s ``display_name`` property).
 
     """
 

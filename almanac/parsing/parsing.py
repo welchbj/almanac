@@ -232,6 +232,7 @@ def _raw_parse_cmd_line(
 
 
 class IncompleteToken:
+    """Encapsulation of a token that could only be partially parsed."""
 
     def __init__(
         self,

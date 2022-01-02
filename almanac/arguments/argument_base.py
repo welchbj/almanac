@@ -8,7 +8,18 @@ from ..constants import CommandLineDefaults
 
 
 class ArgumentBase(ABC):
-    """A class for encapsulating a command argument."""
+    """An abstract class for encapsulating a command argument.
+
+    This abstract base class is extended into two variants:
+
+    * :class:`~almanac.arguments.frozen_argument.FrozenArgument`
+    * :class:`~almanac.arguments.mutable_argument.MutableArgument`
+
+    It is unlikely that you should need to manually instantiate instances of these
+    classes, as they are mainly used internally for the argument-generating decorators
+    accessible via :class:`~almanac.core.application.Application`.
+
+    """
 
     def __init__(
         self,
@@ -132,36 +143,42 @@ class ArgumentBase(ABC):
     def is_pos_only(
         self
     ) -> bool:
+        """Whether this argument is a positional-only argument."""
         return self._param.kind == self._param.POSITIONAL_ONLY
 
     @property
     def is_kw_only(
         self
     ) -> bool:
+        """Whether this argument is a keyword-only argument."""
         return self._param.kind == self._param.KEYWORD_ONLY
 
     @property
     def is_var_kw(
         self
     ) -> bool:
+        """Whether this argument is a \*\*kwargs variant."""  # noqa
         return self._param.kind == self._param.VAR_KEYWORD
 
     @property
     def is_var_pos(
         self
     ) -> bool:
+        """Whether this argument is an \*args variant."""  # noqa
         return self._param.kind == self._param.VAR_POSITIONAL
 
     @property
     def has_default_value(
         self
     ) -> bool:
+        """Whether this argument has a default value."""
         return self._param.default is not self._param.empty
 
     @property
     def default_value(
         self
     ) -> Any:
+        """The default value of this argument (if it has one)."""
         return self._param.default
 
     def __str__(

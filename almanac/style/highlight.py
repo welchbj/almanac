@@ -16,7 +16,7 @@ def highlight_for_mimetype(
 ) -> str:
     """Return ANSI-escaped highlighted text, as per the .
 
-    If :param`mimetype` cannot be resolved, then :param`fallback_mimetype` will be used.
+    If ``mimetype`` cannot be resolved, then ``fallback_mimetype`` will be used.
     If that cannot be resolved (or is ``None``), then the pygments ``ClassNotFound``
     exception will be raised.
 

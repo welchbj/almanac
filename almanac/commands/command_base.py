@@ -11,7 +11,18 @@ from ..types import CommandCoroutine
 
 
 class CommandBase(ABC):
-    """Encapsulation of a command."""
+    """The abstract base class for command types.
+
+    This ABC is extended into two variants:
+
+    * :class:`~almanac.commands.frozen_command.FrozenCommand`
+    * :class:`~almanac.commands.mutable_command.MutableCommand`
+
+    It is unlikely that you should need to manually instantiate instances of these
+    classes, as they are mainly used internally for the command-generating decorators
+    accessible via :class:`~almanac.core.application.Application`.
+
+    """
 
     def __init__(
         self,

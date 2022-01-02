@@ -42,10 +42,12 @@ class PageNavigator(MutableMapping[PagePathLike, AbstractPage]):
                 path.
 
         Raises:
-            NoSuchPageError: If the specified destination is invalid or does not exist.
-            OutOfBoundsPageError: If the specified destination attempts to go above the
-                root directory.
-            PathSyntaxError: If a syntactical error occured during the path parsing.
+            :class:`NoSuchPageError`: If the specified destination is invalid or does
+                not exist.
+            :class:`OutOfBoundsPageError`: If the specified destination attempts to go
+                above the root directory.
+            :class:`PathSyntaxError`: If a syntactical error occured during the path
+                parsing.
 
         """
         try:
@@ -108,8 +110,8 @@ class PageNavigator(MutableMapping[PagePathLike, AbstractPage]):
             this :class:`PageNavigator`.
 
         Raises:
-            OutOfBoundsPageError: If invalid parent directors are referenced via the
-                `..` operator.
+            :class:`OutOfBoundsPageError`: If invalid parent directors are referenced
+                via the `..` operator.
 
         """
         path = str(path)

@@ -2,4 +2,4 @@
 Release Notes
 =============
 
-TODO
+Release notes were not kept for versions ``0.2.0`` and earlier.

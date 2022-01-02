@@ -151,14 +151,14 @@ class CommandEngine:
         self,
         name_or_alias: str
     ) -> FrozenCommand:
-        """Get a :class:`Command` by its name or alias.
+        """Get a :class:`FrozenCommand` by its name or alias.
 
         Returns:
-            The mapped :class:`Command` instance.
+            The mapped :class:`FrozenCommand` instance.
 
         Raises:
-            NoSuchCommandError: If the specified ``name_or_alias`` is not contained
-                within this instance.
+            :class:`NoSuchCommandError`: If the specified ``name_or_alias`` is not
+                contained within this instance.
 
         """
         if name_or_alias not in self._command_lookup_table.keys():
