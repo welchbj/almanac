@@ -6,4 +6,8 @@ sphinx:
 python:
   version: 3.8
   install:
-    - requirements: deps/dev-requirements.txt
+    # See: https://github.com/readthedocs/readthedocs.org/issues/4912#issuecomment-664002569
+    - method: pip
+      path: .
+      extra_requirements:
+        - docs

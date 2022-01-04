@@ -1,0 +1,49 @@
+[tool.poetry]
+name = "almanac"
+version = "0.1.0"
+description = "A framework for building interactive, page-based applications"
+authors = ["Brian Welch"]
+license = "MIT"
+
+readme = "README.md"
+include = [
+    "LICENSE.txt",
+]
+
+homepage = "https://almanac.brianwel.ch"
+repository = "https://github.com/welchbj/almanac"
+
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Framework :: AsyncIO",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Typing :: Typed",
+]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+munch = "^2.5.0"
+Pygments = "^2.11.1"
+pyparsing = "^3.0.6"
+prompt-toolkit = "^3.0.24"
+sphinx = {version = "^3", optional = true}
+typing-inspect = "^0.7.1"
+
+[tool.poetry.extras]
+docs = ["sphinx"]
+
+[tool.poetry.dev-dependencies]
+flake8 = "^4.0.1"
+mypy = "^0.930"
+pytest = "^6.2.5"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

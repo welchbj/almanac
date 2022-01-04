@@ -1,6 +1,0 @@
-munch==2.5.0
-prompt-toolkit==3.0.5
-Pygments==2.6.1
-pyparsing==2.4.7
-typing-inspect==0.6.0
-wcwidth==0.2.5
