@@ -30,8 +30,9 @@ jobs:
       - name: Linting
         run: |
           poetry run flake8 almanac examples tests
-          poetry run mypy almanac examples tests
           poetry run black --check almanac examples tests
+          poetry run isort --check --diff almanac examples tests
+          poetry run mypy almanac examples tests
 
       - name: Testing
         run: |
