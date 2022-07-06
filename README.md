@@ -15,7 +15,7 @@
     <img src="https://img.shields.io/pypi/v/almanac.svg?style=flat-square&label=pypi" alt="pypi">
   </a>
   <a href="https://www.python.org/">
-    <img src="https://img.shields.io/badge/python-3.8+-b042f4.svg?style=flat-square" alt="python version">
+    <img src="https://img.shields.io/badge/python-3.9+-b042f4.svg?style=flat-square" alt="python version">
   </a>
 </p>
 
