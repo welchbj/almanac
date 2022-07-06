@@ -1,0 +1,38 @@
+name: almanac GitHub Actions CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  ci:
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          os: [macos-latest, windows-latest, ubuntu-latest]
+          python-version: ["3.9", "3.10", "3.11"]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Setup poetry
+        run: |
+          python -m pip install poetry
+          poetry install
+
+      - name: Linting
+        run: |
+          poetry run flake8
+          poetry run mypy
+
+      - name: Testing
+        run: |
+          poetry run pytest
