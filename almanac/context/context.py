@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from contextvars import ContextVar
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from ..errors import NoActiveApplicationError
 

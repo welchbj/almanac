@@ -1,18 +1,14 @@
 from __future__ import annotations
 
 import functools
-
-from typing import Callable, Iterable, Optional, TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Callable, Iterable, Optional, Union
 
 from prompt_toolkit.completion import Completer
 
 from ..arguments import MutableArgument
 from ..commands import FrozenCommand, MutableCommand
 from ..completion import WordCompleter
-from ..errors import (
-    InvalidArgumentNameError,
-    NoSuchArgumentError,
-)
+from ..errors import InvalidArgumentNameError, NoSuchArgumentError
 from ..parsing import Patterns
 from ..types import CommandCoroutine
 

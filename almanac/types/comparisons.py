@@ -1,6 +1,6 @@
 from typing import Any, Type
 
-from typing_inspect import is_union_type, get_args
+from typing_inspect import get_args, is_union_type
 
 
 def is_matching_type(_type: Type, annotation: Any) -> bool:

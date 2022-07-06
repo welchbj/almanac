@@ -1,6 +1,5 @@
 import asyncio
 import traceback
-
 from contextlib import asynccontextmanager, contextmanager
 from typing import (
     Any,
@@ -25,25 +24,24 @@ from pygments import highlight
 from pygments.formatters import TerminalFormatter
 from pygments.lexers.python import Python3TracebackLexer
 
-from .command_completer import CommandCompleter
-from .command_engine import CommandEngine
-from .decorators import ArgumentDecoratorProxy, CommandDecoratorProxy
 from ..constants import ExitCodes
 from ..context import set_current_app
 from ..errors import ConflictingPromoterTypesError, InvalidCallbackTypeError
 from ..hooks import (
     AsyncNoArgsCallback,
-    assert_async_callback,
-    assert_sync_callback,
     HookProxy,
     PromoterFunction,
     PromptCallback,
+    assert_async_callback,
+    assert_sync_callback,
 )
 from ..io import AbstractIoContext, StandardConsoleIoContext
 from ..pages import PageNavigator, PagePath
-from ..parsing import get_lexer_cls_for_app, parse_cmd_line, ParseState
+from ..parsing import ParseState, get_lexer_cls_for_app, parse_cmd_line
 from ..style import DARK_MODE_STYLE
-
+from .command_completer import CommandCompleter
+from .command_engine import CommandEngine
+from .decorators import ArgumentDecoratorProxy, CommandDecoratorProxy
 
 _T = TypeVar("_T")
 

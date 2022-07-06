@@ -1,4 +1,4 @@
-from typing import Optional, Iterable
+from typing import Iterable, Optional
 
 from prompt_toolkit.completion import Completion
 

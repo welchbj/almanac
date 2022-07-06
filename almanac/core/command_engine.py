@@ -1,10 +1,8 @@
 from __future__ import annotations
 
 import inspect
-
-import pyparsing as pp
-
 from typing import (
+    TYPE_CHECKING,
     Any,
     Callable,
     Dict,
@@ -12,10 +10,11 @@ from typing import (
     MutableMapping,
     Tuple,
     Type,
-    TYPE_CHECKING,
     TypeVar,
     Union,
 )
+
+import pyparsing as pp
 
 from ..commands import FrozenCommand
 from ..errors import (

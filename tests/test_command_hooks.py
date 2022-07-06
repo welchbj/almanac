@@ -2,7 +2,7 @@
 
 import pytest
 
-from almanac import current_app, InvalidCallbackTypeError, NoSuchCommandError, PagePath
+from almanac import InvalidCallbackTypeError, NoSuchCommandError, PagePath, current_app
 
 from .utils import get_test_app
 

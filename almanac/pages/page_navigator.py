@@ -3,11 +3,11 @@ from itertools import chain
 from pathlib import PurePosixPath
 from typing import Iterable, Iterator, List, MutableMapping, Optional, Type
 
+from ..errors import BlockedPageOverwriteError, NoSuchPageError, OutOfBoundsPageError
+from ..utils import pairwise
 from .abstract_page import AbstractPage
 from .directory_page import DirectoryPage
 from .page_path import PagePath, PagePathLike
-from ..errors import BlockedPageOverwriteError, NoSuchPageError, OutOfBoundsPageError
-from ..utils import pairwise
 
 
 class PageNavigator(MutableMapping[PagePathLike, AbstractPage]):

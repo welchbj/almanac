@@ -3,12 +3,10 @@
 import os
 import subprocess
 import sys
-
 from argparse import ArgumentParser, RawTextHelpFormatter
 from contextlib import contextmanager
 
 from livereload import Server
-
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 README_FILE = os.path.join(HERE, 'README.md')

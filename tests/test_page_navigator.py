@@ -1,8 +1,8 @@
 """Tests for the ``PageNavigator`` class."""
 
-import pytest
-
 from typing import List
+
+import pytest
 
 from almanac import (
     BlockedPageOverwriteError,

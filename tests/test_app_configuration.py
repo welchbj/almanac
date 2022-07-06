@@ -2,7 +2,7 @@
 
 import pytest
 
-from almanac import ConflictingPromoterTypesError, current_app, InvalidCallbackTypeError
+from almanac import ConflictingPromoterTypesError, InvalidCallbackTypeError, current_app
 
 from .utils import get_test_app
 

@@ -1,6 +1,6 @@
 """Exit code constants."""
 
-from enum import auto, IntEnum, unique
+from enum import IntEnum, auto, unique
 
 
 @unique

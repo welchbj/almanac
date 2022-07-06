@@ -2,25 +2,6 @@ from typing import Type
 
 from prompt_toolkit.styles import Style
 
-from .builtins import (
-    back as builtin_back,
-    cd as builtin_cd,
-    forward as builtin_forward,
-    help as builtin_help,
-    ls as builtin_ls,
-    pwd as builtin_pwd,
-    quit as builtin_quit,
-)
-from .exception_hooks import (
-    hook_BaseArgumentError,
-    hook_BasePageError,
-    hook_MissingArgumentsError,
-    hook_NoSuchArgumentError,
-    hook_NoSuchCommandError,
-    hook_TooManyPositionalArgumentsError,
-    hook_UnknownArgumentBindingError,
-)
-from .promoters import promote_to_page_path
 from ..completion import PagePathCompleter, WordCompleter
 from ..context import current_app
 from ..core import Application
@@ -36,6 +17,23 @@ from ..errors import (
 from ..io import AbstractIoContext, StandardConsoleIoContext
 from ..pages import PagePath
 from ..style import DARK_MODE_STYLE
+from .builtins import back as builtin_back
+from .builtins import cd as builtin_cd
+from .builtins import forward as builtin_forward
+from .builtins import help as builtin_help
+from .builtins import ls as builtin_ls
+from .builtins import pwd as builtin_pwd
+from .builtins import quit as builtin_quit
+from .exception_hooks import (
+    hook_BaseArgumentError,
+    hook_BasePageError,
+    hook_MissingArgumentsError,
+    hook_NoSuchArgumentError,
+    hook_NoSuchCommandError,
+    hook_TooManyPositionalArgumentsError,
+    hook_UnknownArgumentBindingError,
+)
+from .promoters import promote_to_page_path
 
 
 def _current_page_prompt_str() -> str:

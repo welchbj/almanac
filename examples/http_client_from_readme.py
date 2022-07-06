@@ -10,10 +10,11 @@ created as you cd into them.
 # pip install almanac aiohttp
 #
 
-import aiohttp
 import asyncio
 
-from almanac import highlight_for_mimetype, make_standard_app, PagePath
+import aiohttp
+
+from almanac import PagePath, highlight_for_mimetype, make_standard_app
 
 app = make_standard_app()
 

@@ -1,12 +1,9 @@
 from __future__ import annotations
 
 import asyncio
-
 from collections import Counter
 from typing import Iterable, Iterator, Mapping, MutableMapping, Optional, Union
 
-from .command_base import CommandBase
-from .frozen_command import FrozenCommand
 from ..arguments import MutableArgument
 from ..errors import (
     ArgumentNameCollisionError,
@@ -14,6 +11,8 @@ from ..errors import (
     NoSuchArgumentError,
 )
 from ..types import CommandCoroutine
+from .command_base import CommandBase
+from .frozen_command import FrozenCommand
 
 
 class MutableCommand(CommandBase, MutableMapping[str, MutableArgument]):

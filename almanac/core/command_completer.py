@@ -1,16 +1,15 @@
 from __future__ import annotations
 
 import re
+from typing import TYPE_CHECKING, Any, Iterable
 
-from typing import Any, Iterable, TYPE_CHECKING
-
-from prompt_toolkit.document import Document
 from prompt_toolkit.completion import (
     CompleteEvent,
-    Completion,
     Completer,
+    Completion,
     merge_completers,
 )
+from prompt_toolkit.document import Document
 
 from ..arguments import FrozenArgument
 from ..commands import FrozenCommand
@@ -18,10 +17,10 @@ from ..completion import rewrite_completion_stream
 from ..errors import NoSuchArgumentError
 from ..parsing import (
     IncompleteToken,
-    last_incomplete_token,
-    parse_cmd_line,
     ParseState,
     Patterns,
+    last_incomplete_token,
+    parse_cmd_line,
 )
 from ..types import is_matching_type
 

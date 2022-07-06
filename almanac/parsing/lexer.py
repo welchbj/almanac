@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 import re
-
-from typing import Iterator, Tuple, Type, TypeVar, TYPE_CHECKING
+from typing import TYPE_CHECKING, Iterator, Tuple, Type, TypeVar
 
 from pygments.lexer import RegexLexer, bygroups
-from pygments.token import Name, Keyword, Number, Operator, Text, Token, String
+from pygments.token import Keyword, Name, Number, Operator, String, Text, Token
 
 from .parsing import Patterns
 

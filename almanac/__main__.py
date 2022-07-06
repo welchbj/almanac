@@ -2,10 +2,9 @@
 
 import ast
 import asyncio
-
 from typing import Optional
 
-from almanac import current_app, make_standard_app, WordCompleter
+from almanac import WordCompleter, current_app, make_standard_app
 
 
 async def main():

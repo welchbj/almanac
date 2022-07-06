@@ -36,13 +36,11 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import re
-
-import pyparsing as pp
-
-from enum import auto, Enum
+from enum import Enum, auto
 from functools import lru_cache
 from typing import NamedTuple
 
+import pyparsing as pp
 from prompt_toolkit.document import Document
 
 from ..errors import PartialParseError, TotalParseError

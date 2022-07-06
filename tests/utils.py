@@ -1,6 +1,6 @@
 """almanac testing utilities."""
 
-from almanac import Application, make_standard_app, NullIoContext
+from almanac import Application, NullIoContext, make_standard_app
 
 
 def get_test_app(propagate_runtime_exceptions: bool = False) -> Application:

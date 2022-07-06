@@ -1,11 +1,10 @@
 """Tests for various command/argument generation error conditions."""
 
 import pytest
-
 from prompt_toolkit.completion import DummyCompleter
 
-from almanac import Application
 from almanac import (
+    Application,
     ArgumentNameCollisionError,
     CommandNameCollisionError,
     CommandRegistrationError,

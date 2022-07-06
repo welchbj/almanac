@@ -1,7 +1,7 @@
 from ..constants import ExitCodes
-from ..pages import PagePath, PagePathLike
 from ..context import current_app
 from ..core import ArgumentDecoratorProxy
+from ..pages import PagePath, PagePathLike
 
 _arg = ArgumentDecoratorProxy()
 

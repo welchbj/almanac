@@ -32,14 +32,15 @@ Here's an example:
 # pip install almanac aiohttp pygments
 #
 
-import aiohttp
 import asyncio
 import functools
 
-from almanac import make_standard_app, PagePath
+import aiohttp
 from pygments import highlight
 from pygments.formatters import TerminalFormatter
 from pygments.lexers import get_lexer_for_mimetype
+
+from almanac import PagePath, make_standard_app
 
 HTTP_VERBS = ["GET", "POST", "PUT", "OPTIONS"]
 

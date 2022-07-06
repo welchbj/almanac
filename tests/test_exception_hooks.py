@@ -4,9 +4,9 @@ import pytest
 
 from almanac import (
     ConflictingExceptionCallbacksError,
-    current_app,
     InvalidCallbackTypeError,
     MissingRequiredParameterError,
+    current_app,
 )
 
 from .utils import get_test_app

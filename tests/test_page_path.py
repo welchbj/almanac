@@ -1,8 +1,8 @@
 """Tests for the ``PagePath`` class."""
 
-import pytest
-
 from typing import Tuple
+
+import pytest
 
 from almanac import PagePath, PositionalValueError
 

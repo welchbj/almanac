@@ -3,11 +3,11 @@ from __future__ import annotations
 from functools import cached_property
 from typing import Any, Dict, Iterable, Iterator, Mapping, Optional, Tuple, Union
 
-from .command_base import CommandBase
 from ..arguments import FrozenArgument
 from ..errors import FrozenAccessError, NoSuchArgumentError
 from ..types import CommandCoroutine
 from ..utils import abbreviated
+from .command_base import CommandBase
 
 
 class FrozenCommand(CommandBase, Mapping[str, FrozenArgument]):

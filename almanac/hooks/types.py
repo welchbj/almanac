@@ -2,7 +2,6 @@ from typing import Any, Callable, Coroutine, Protocol, TypeVar, Union
 
 from prompt_toolkit.formatted_text import FormattedText
 
-
 # In the future, would like to make AsyncHookCallback a generic protocol-based type. In
 # the meantime, we'll settle for the ambiguous return type of Any.
 #
