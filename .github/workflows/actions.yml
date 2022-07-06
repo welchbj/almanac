@@ -29,8 +29,8 @@ jobs:
 
       - name: Linting
         run: |
-          poetry run flake8
-          poetry run mypy
+          poetry run flake8 almanac
+          poetry run mypy almanac
 
       - name: Testing
         run: |
