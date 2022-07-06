@@ -35,6 +35,7 @@ pyparsing = "^3.0.6"
 prompt-toolkit = "^3.0.24"
 sphinx = {version = "^3", optional = true}
 typing-inspect = "^0.7.1"
+setuptools = "^63.1.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^22.6.0"
@@ -42,6 +43,7 @@ flake8 = "^4.0.1"
 mypy = "^0.930"
 pytest = "^6.2.5"
 isort = "^5.10.1"
+pytest-asyncio = "^0.18.3"
 
 [tool.poetry.extras]
 docs = ["sphinx"]
