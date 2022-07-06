@@ -18,7 +18,7 @@ class PartialParseError(BaseParseError, PositionalValueError):
         partial_result: pp.ParseResults,
         col: int,
     ) -> None:
-        super().__init__(msg, col-1)
+        super().__init__(msg, col - 1)
 
         self.remaining = remaining
         self.partial_result = partial_result

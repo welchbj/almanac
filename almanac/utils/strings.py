@@ -5,9 +5,7 @@ import textwrap
 from ..constants import CommandLineDefaults
 
 
-def capitalized(
-    text: str
-) -> str:
+def capitalized(text: str) -> str:
     """Capitalize the first letter of the text."""
     if not text:
         return text
@@ -18,7 +16,7 @@ def capitalized(
 def abbreviated(
     text: str,
     len: int = CommandLineDefaults.MAX_COMPLETION_WIDTH,
-    placeholder: str = '...'
+    placeholder: str = "...",
 ) -> str:
     """Abbreviate the text to the specified length."""
     return textwrap.shorten(text, width=len, placeholder=placeholder)

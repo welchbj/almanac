@@ -5,5 +5,5 @@ from .decorators import (  # noqa
     ArgumentDecoratorProxy,
     CommandDecoratorProxy,
     CommandFreezingDecorator,
-    CommandMutatingDecorator
+    CommandMutatingDecorator,
 )

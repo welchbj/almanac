@@ -14,18 +14,16 @@ class PagePathCompleter(Completer):
     """A completer for paths to an application's pages."""
 
     def get_completions(
-        self,
-        document: Document,
-        complete_event: CompleteEvent
+        self, document: Document, complete_event: CompleteEvent
     ) -> Iterable[Completion]:
         app = current_app()
 
         last_token = last_incomplete_token_from_document(document)
         typed_path = last_token.value
 
-        if typed_path.endswith('/'):
+        if typed_path.endswith("/"):
             complete_from_dir = typed_path
-            stem = ''
+            stem = ""
         else:
             posix_path = PurePosixPath(typed_path)
             complete_from_dir = str(posix_path.parent)

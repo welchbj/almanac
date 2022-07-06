@@ -2,11 +2,7 @@
 
 import pytest
 
-from almanac import (
-    ConflictingPromoterTypesError,
-    current_app,
-    InvalidCallbackTypeError
-)
+from almanac import ConflictingPromoterTypesError, current_app, InvalidCallbackTypeError
 
 from .utils import get_test_app
 
@@ -20,11 +16,11 @@ async def test_prompt_str_customization():
     def inc_prompt():
         inner_app_ref = current_app()
         inner_app_ref.bag.counter += 1
-        return f'{inner_app_ref.bag.counter}> '
+        return f"{inner_app_ref.bag.counter}> "
 
-    assert app.current_prompt_str == '1> '
-    assert app.current_prompt_str == '2> '
-    assert app.current_prompt_str == '3> '
+    assert app.current_prompt_str == "1> "
+    assert app.current_prompt_str == "2> "
+    assert app.current_prompt_str == "3> "
 
 
 @pytest.mark.asyncio
@@ -32,9 +28,10 @@ async def test_invalid_prompt_str_callback():
     app = get_test_app()
 
     with pytest.raises(InvalidCallbackTypeError):
+
         @app.prompt_text()
         async def async_callback():
-            return 'prompt> '
+            return "prompt> "
 
 
 @pytest.mark.asyncio
@@ -60,6 +57,7 @@ async def test_invalid_exit_callback():
     app = get_test_app()
 
     with pytest.raises(InvalidCallbackTypeError):
+
         @app.on_exit()
         def sync_callback():
             pass
@@ -88,6 +86,7 @@ async def test_invalid_init_callback():
     app = get_test_app()
 
     with pytest.raises(InvalidCallbackTypeError):
+
         @app.on_init()
         def sync_callback():
             pass
@@ -105,6 +104,7 @@ async def test_conflicting_type_promoters():
     app.add_promoter_for_type(int, str)
 
     with pytest.raises(ConflictingPromoterTypesError):
+
         @app.promoter_for(int)
         def promoter_callback(x: int) -> str:
             return str(x)

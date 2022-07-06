@@ -7,9 +7,9 @@ from .core import *  # noqa
 from .errors import *  # noqa
 from .hooks import *  # noqa
 from .io import *  # noqa
-from .pages import * # noqa
-from .parsing import * # noqa
-from .shortcuts import * # noqa
+from .pages import *  # noqa
+from .parsing import *  # noqa
+from .shortcuts import *  # noqa
 from .style import *  # noqa
 from .types import *  # noqa
 from .utils import *  # noqa

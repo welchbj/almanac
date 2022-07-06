@@ -31,5 +31,5 @@ def rewrite_completion_stream(
             start_position=new_start_position,
             display_meta=new_display_meta,
             style=new_style,
-            selected_style=new_selected_style
+            selected_style=new_selected_style,
         )

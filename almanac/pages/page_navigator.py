@@ -6,35 +6,25 @@ from typing import Iterable, Iterator, List, MutableMapping, Optional, Type
 from .abstract_page import AbstractPage
 from .directory_page import DirectoryPage
 from .page_path import PagePath, PagePathLike
-from ..errors import (
-    BlockedPageOverwriteError,
-    NoSuchPageError,
-    OutOfBoundsPageError
-)
+from ..errors import BlockedPageOverwriteError, NoSuchPageError, OutOfBoundsPageError
 from ..utils import pairwise
 
 
 class PageNavigator(MutableMapping[PagePathLike, AbstractPage]):
     """Encapsulation of page navigation and history logic."""
 
-    def __init__(
-        self,
-        directory_page_cls: Type[DirectoryPage] = DirectoryPage
-    ) -> None:
+    def __init__(self, directory_page_cls: Type[DirectoryPage] = DirectoryPage) -> None:
         self._directory_page_cls = directory_page_cls
-        self._root_page: AbstractPage = self._directory_page_cls('/')
+        self._root_page: AbstractPage = self._directory_page_cls("/")
         self._current_page: AbstractPage = self._root_page
         self._page_table: MutableMapping[PagePath, AbstractPage] = {}
 
         self._back_page_history_stack: List[AbstractPage] = []
         self._forward_page_history_stack: List[AbstractPage] = []
 
-        self['/'] = self._root_page
+        self["/"] = self._root_page
 
-    def change_directory(
-        self,
-        destination: PagePathLike
-    ) -> None:
+    def change_directory(self, destination: PagePathLike) -> None:
         """Change the current directory of this navigator.
 
         Args:
@@ -63,9 +53,7 @@ class PageNavigator(MutableMapping[PagePathLike, AbstractPage]):
         self._back_page_history_stack.append(self._current_page)
         self._current_page = self[full_path]
 
-    def forward(
-        self
-    ) -> None:
+    def forward(self) -> None:
         """Move forward in the page history."""
         if not self._forward_page_history_stack:
             # Do nothing if there is no forward page history.
@@ -74,9 +62,7 @@ class PageNavigator(MutableMapping[PagePathLike, AbstractPage]):
         self._back_page_history_stack.append(self._current_page)
         self._current_page = self._forward_page_history_stack.pop()
 
-    def back(
-        self
-    ) -> None:
+    def back(self) -> None:
         """Move backward in the page history."""
         if not self._back_page_history_stack:
             # Do nothing if there is no backward page history.
@@ -85,19 +71,13 @@ class PageNavigator(MutableMapping[PagePathLike, AbstractPage]):
         self._forward_page_history_stack.append(self._current_page)
         self._current_page = self._back_page_history_stack.pop()
 
-    def match(
-        self,
-        pattern: str
-    ) -> Iterable[AbstractPage]:
+    def match(self, pattern: str) -> Iterable[AbstractPage]:
         """Match stored pages against ``fnmatch`` patterns."""
         paths: List[str] = [page.path for page in self._page_table.keys()]
         for match in sorted(fn_filter(paths, pattern)):
             yield self[match]
 
-    def explode(
-        self,
-        path: PagePathLike
-    ) -> str:
+    def explode(self, path: PagePathLike) -> str:
         """Parse a user-specified path into an absolute path.
 
         Args:
@@ -125,13 +105,13 @@ class PageNavigator(MutableMapping[PagePathLike, AbstractPage]):
             return str(self._current_page.path)
 
         accumulated_segments: List[str] = []
-        if segments[0] != '/':
+        if segments[0] != "/":
             # If we were given a relative path, we start building from this navigator's
             # current page.
             accumulated_segments.extend(self._current_page.path.segments)
 
         for segment in segments:
-            if segment == '..':
+            if segment == "..":
                 if len(accumulated_segments) == 1:
                     raise OutOfBoundsPageError(path)
                 else:
@@ -139,45 +119,32 @@ class PageNavigator(MutableMapping[PagePathLike, AbstractPage]):
             else:
                 accumulated_segments.append(segment)
 
-        return '/' + '/'.join(accumulated_segments[1:])
+        return "/" + "/".join(accumulated_segments[1:])
 
     @property
-    def directory_page_cls(
-        self
-    ) -> Type[DirectoryPage]:
+    def directory_page_cls(self) -> Type[DirectoryPage]:
         """The class used to create new directory pages."""
         return self._directory_page_cls
 
     @property
-    def root_page(
-        self
-    ) -> AbstractPage:
+    def root_page(self) -> AbstractPage:
         """The root page within this navigator."""
         return self._root_page
 
     @property
-    def current_page(
-        self
-    ) -> AbstractPage:
+    def current_page(self) -> AbstractPage:
         """The current page within this navigator."""
         return self._current_page
 
-    def __iter__(
-        self
-    ) -> Iterator[PagePathLike]:
+    def __iter__(self) -> Iterator[PagePathLike]:
         for path in self._page_table.keys():
             yield path
 
-    def __len__(
-        self
-    ) -> int:
+    def __len__(self) -> int:
         return len(self._page_table.keys())
 
     def set_page(
-        self,
-        key: PagePathLike,
-        value: AbstractPage,
-        allow_overwrite: bool = True
+        self, key: PagePathLike, value: AbstractPage, allow_overwrite: bool = True
     ) -> None:
         path = PagePath(self.explode(key))
         if path not in self:
@@ -208,17 +175,10 @@ class PageNavigator(MutableMapping[PagePathLike, AbstractPage]):
             new_page.parent = old_page.parent
             self._page_table[path] = new_page
 
-    def __setitem__(
-        self,
-        key: PagePathLike,
-        value: AbstractPage
-    ) -> None:
+    def __setitem__(self, key: PagePathLike, value: AbstractPage) -> None:
         self.set_page(key, value, allow_overwrite=True)
 
-    def add_directory_page(
-        self,
-        path: PagePathLike
-    ) -> DirectoryPage:
+    def add_directory_page(self, path: PagePathLike) -> DirectoryPage:
         """Add a directory page at the specified path.
 
         This method is only used for adding pages that do not already exist. It will
@@ -260,10 +220,7 @@ class PageNavigator(MutableMapping[PagePathLike, AbstractPage]):
 
         return dir_page
 
-    def __delitem__(
-        self,
-        key: PagePathLike
-    ) -> None:
+    def __delitem__(self, key: PagePathLike) -> None:
         PagePath.assert_absolute_path(key)
 
         page_path = PagePath(key)
@@ -271,7 +228,7 @@ class PageNavigator(MutableMapping[PagePathLike, AbstractPage]):
             raise NoSuchPageError(page_path)
 
         # Delete all children of the specified path.
-        for child in self.match(page_path.path + '/*'):
+        for child in self.match(page_path.path + "/*"):
             child_path: PagePath = child.path
             child_page = self._page_table[child_path]
 
@@ -285,22 +242,15 @@ class PageNavigator(MutableMapping[PagePathLike, AbstractPage]):
         existing_page.parent.children.remove(existing_page)  # type: ignore
         del self._page_table[page_path]
 
-    def __getitem__(
-        self,
-        key: PagePathLike
-    ) -> AbstractPage:
+    def __getitem__(self, key: PagePathLike) -> AbstractPage:
         try:
             path = PagePath(self.explode(key))
             return self._page_table[path]
         except KeyError:
             raise NoSuchPageError(key)
 
-    def __str__(
-        self
-    ) -> str:
-        return '\n'.join(str(page.path) for page in self.match('*'))
+    def __str__(self) -> str:
+        return "\n".join(str(page.path) for page in self.match("*"))
 
-    def __repr__(
-        self
-    ) -> str:
-        return f'<{self.__class__.__qualname__} [{len(self)} pages]>'
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__qualname__} [{len(self)} pages]>"

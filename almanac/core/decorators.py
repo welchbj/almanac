@@ -20,19 +20,20 @@ if TYPE_CHECKING:
     from .application import Application
 
 
-CommandMutatingDecorator = \
-    Callable[[Union[MutableCommand, CommandCoroutine]], MutableCommand]
+CommandMutatingDecorator = Callable[
+    [Union[MutableCommand, CommandCoroutine]], MutableCommand
+]
 
-CommandFreezingDecorator = \
-    Callable[[Union[MutableCommand, CommandCoroutine]], FrozenCommand]
+CommandFreezingDecorator = Callable[
+    [Union[MutableCommand, CommandCoroutine]], FrozenCommand
+]
 
 
 class ArgumentDecoratorProxy:
     """A simple proxy for providing argument-mutating decorators."""
 
     def __getattr__(
-        self,
-        argument_name: str
+        self, argument_name: str
     ) -> Callable[..., CommandMutatingDecorator]:
         """Dynamically create decorators that mutate the desired argument."""
 
@@ -42,9 +43,8 @@ class ArgumentDecoratorProxy:
             description: Optional[str] = None,
             choices: Optional[Iterable[str]] = None,
             completers: Optional[Union[Completer, Iterable[Completer]]] = None,
-            hidden: Optional[bool] = None
+            hidden: Optional[bool] = None,
         ) -> CommandMutatingDecorator:
-
             def wrapped(
                 command_or_coro: Union[MutableCommand, CommandCoroutine]
             ) -> MutableCommand:
@@ -57,7 +57,7 @@ class ArgumentDecoratorProxy:
 
                 if name is not None:
                     if not Patterns.is_valid_identifier(name):
-                        raise InvalidArgumentNameError(f'Invalid identifier {name}')
+                        raise InvalidArgumentNameError(f"Invalid identifier {name}")
 
                     argument.display_name = name
 
@@ -93,15 +93,11 @@ class ArgumentDecoratorProxy:
 class CommandDecoratorProxy:
     """A simple proxy for providing command-mutating decorators."""
 
-    def __init__(
-        self,
-        app: Application
-    ) -> None:
+    def __init__(self, app: Application) -> None:
         self._app = app
 
     def register(
-        self,
-        *decorators: CommandMutatingDecorator
+        self, *decorators: CommandMutatingDecorator
     ) -> CommandFreezingDecorator:
         """A decorator for registering a command on an application.
 
@@ -129,13 +125,14 @@ class CommandDecoratorProxy:
         return wrapped
 
     def compose(
-        self,
-        *decorators: CommandMutatingDecorator
+        self, *decorators: CommandMutatingDecorator
     ) -> CommandMutatingDecorator:
         """Compose several command decorators into one."""
+
         def _compose2(f, g):
             def wrapped(command_or_coro):
                 return f(g(command_or_coro))
+
             return wrapped
 
         def _nop(command_or_coro):
@@ -148,9 +145,10 @@ class CommandDecoratorProxy:
         *,
         name: Optional[str] = None,
         description: Optional[str] = None,
-        aliases: Optional[Union[str, Iterable[str]]] = None
+        aliases: Optional[Union[str, Iterable[str]]] = None,
     ) -> CommandMutatingDecorator:
         """A decorator for mutating properties of a :class:`MutableCommand`."""
+
         def wrapped(
             command_or_coro: Union[MutableCommand, CommandCoroutine]
         ) -> MutableCommand:
@@ -158,7 +156,7 @@ class CommandDecoratorProxy:
 
             if name is not None:
                 if not Patterns.is_valid_identifier(name):
-                    raise InvalidArgumentNameError(f'Invalid identifier {name}')
+                    raise InvalidArgumentNameError(f"Invalid identifier {name}")
 
                 command.name = name
 

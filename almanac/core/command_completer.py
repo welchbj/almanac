@@ -9,7 +9,7 @@ from prompt_toolkit.completion import (
     CompleteEvent,
     Completion,
     Completer,
-    merge_completers
+    merge_completers,
 )
 
 from ..arguments import FrozenArgument
@@ -21,7 +21,7 @@ from ..parsing import (
     last_incomplete_token,
     parse_cmd_line,
     ParseState,
-    Patterns
+    Patterns,
 )
 from ..types import is_matching_type
 
@@ -35,18 +35,12 @@ _compiled_word_re = re.compile(Patterns.UNQUOTED_STRING)
 class CommandCompleter(Completer):
     """A completer that provides command argument completion for an application."""
 
-    def __init__(
-        self,
-        app: Application
-    ) -> None:
+    def __init__(self, app: Application) -> None:
         self._app = app
         self._command_engine = app.command_engine
 
     def _maybe_complete_for_type(
-        self,
-        annotation: Any,
-        document: Document,
-        complete_event: CompleteEvent
+        self, annotation: Any, document: Document, complete_event: CompleteEvent
     ) -> Iterable[Completion]:
         for _type, completers in self._app.type_completer_mapping.items():
             if is_matching_type(_type, annotation):
@@ -54,10 +48,7 @@ class CommandCompleter(Completer):
                     document, complete_event
                 )
 
-    def _get_command_completions(
-        self,
-        start_of_command: str
-    ) -> Iterable[Completion]:
+    def _get_command_completions(self, start_of_command: str) -> Iterable[Completion]:
         for name_or_alias in sorted(self._command_engine.keys()):
             if name_or_alias.startswith(start_of_command):
                 command = self._command_engine[name_or_alias]
@@ -65,62 +56,57 @@ class CommandCompleter(Completer):
                 if name_or_alias == command.name:
                     display_meta = command.abbreviated_description
                 else:
-                    display_meta = f'(alias for {command.name})'
+                    display_meta = f"(alias for {command.name})"
 
                 yield Completion(
                     name_or_alias,
                     start_position=-len(start_of_command),
-                    display_meta=display_meta
+                    display_meta=display_meta,
                 )
 
     def _get_completions_for_arg(
         self,
         frozen_arg: FrozenArgument,
         document: Document,
-        complete_event: CompleteEvent
+        complete_event: CompleteEvent,
     ) -> Iterable[Completion]:
         # Completions from any per-argument registered completer.
         for completer in frozen_arg.completers:
             yield from rewrite_completion_stream(
                 self._app.call_as_current_app_sync(
-                    completer.get_completions,
-                    document, complete_event
+                    completer.get_completions, document, complete_event
                 ),
-                display_meta='From per-argument completer.'
+                display_meta="From per-argument completer.",
             )
 
         # Completions from any matching application-global type completers.
         yield from rewrite_completion_stream(
             self._app.call_as_current_app_sync(
                 self._maybe_complete_for_type,
-                frozen_arg.annotation, document, complete_event
+                frozen_arg.annotation,
+                document,
+                complete_event,
             ),
-            display_meta='From global per-type completer.'
+            display_meta="From global per-type completer.",
         )
 
     def _get_kw_arg_name_completions(
-        self,
-        start_of_kw_arg: str,
-        unbound_kw_args: Iterable[FrozenArgument]
+        self, start_of_kw_arg: str, unbound_kw_args: Iterable[FrozenArgument]
     ) -> Iterable[Completion]:
         candidate_args = [
             x for x in unbound_kw_args if not x.hidden and not x.is_var_kw
         ]
         for candidate_arg in sorted(candidate_args, key=lambda x: x.display_name):
             if candidate_arg.display_name.startswith(start_of_kw_arg):
-                text = f'{candidate_arg.display_name}='
+                text = f"{candidate_arg.display_name}="
                 meta = candidate_arg.abbreviated_description
 
                 yield Completion(
-                    text,
-                    start_position=-len(start_of_kw_arg),
-                    display_meta=meta
+                    text, start_position=-len(start_of_kw_arg), display_meta=meta
                 )
 
     def get_completions(
-        self,
-        document: Document,
-        complete_event: CompleteEvent
+        self, document: Document, complete_event: CompleteEvent
     ) -> Iterable[Completion]:
         cmd_line = document.text
         word_before_cursor = document.get_word_before_cursor()
@@ -164,11 +150,9 @@ class CommandCompleter(Completer):
         unbound_kw_args = [x for x in unbound_arguments if not x.is_pos_only]
         unbound_pos_args = [x for x in unbound_arguments if not x.is_kw_only]
 
-        could_be_key_or_pos_value = (
-            last_token.is_ambiguous_arg and (
-                token_before_cursor == last_token.key or
-                (not word_before_cursor and not last_token.key)
-            )
+        could_be_key_or_pos_value = last_token.is_ambiguous_arg and (
+            token_before_cursor == last_token.key
+            or (not word_before_cursor and not last_token.key)
         )
 
         # Yield keyword argument name completions.

@@ -16,16 +16,11 @@ class WordCompleter(Completer):
 
     """
 
-    def __init__(
-        self,
-        words: Union[List[str], Callable[[], List[str]]]
-    ) -> None:
+    def __init__(self, words: Union[List[str], Callable[[], List[str]]]) -> None:
         self._words = words
 
     def get_completions(
-        self,
-        document: Document,
-        complete_event: CompleteEvent
+        self, document: Document, complete_event: CompleteEvent
     ) -> Iterable[Completion]:
         words = self._words
         if callable(words):

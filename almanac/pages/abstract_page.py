@@ -18,9 +18,7 @@ class AbstractPage(ABC):
         self._children: Set[AbstractPage] = set()
 
     @abstractproperty
-    def help_text(
-        self
-    ) -> str:
+    def help_text(self) -> str:
         """The help text about this page.
 
         Think of this as a static explanation about the page type's role within the
@@ -30,9 +28,7 @@ class AbstractPage(ABC):
         """
 
     @abstractproperty
-    def info_text(
-        self
-    ) -> str:
+    def info_text(self) -> str:
         """The info text about this page.
 
         Think of this as a more dynamic output (in contrast to :meth:`help_text`),
@@ -41,9 +37,7 @@ class AbstractPage(ABC):
         """
 
     @abstractmethod
-    def get_prompt(
-        self
-    ) -> str:
+    def get_prompt(self) -> str:
         """Return the prompt text for this page.
 
         This is what is shown on the application's current line, acting as the
@@ -52,53 +46,35 @@ class AbstractPage(ABC):
         """
 
     @property
-    def path(
-        self
-    ) -> PagePath:
+    def path(self) -> PagePath:
         """This page's path."""
         return self._path
 
     @property
-    def parent(
-        self
-    ) -> Optional[AbstractPage]:
+    def parent(self) -> Optional[AbstractPage]:
         """The parent page of this page."""
         return self._parent
 
     @parent.setter
-    def parent(
-        self,
-        new_parent: AbstractPage
-    ) -> None:
+    def parent(self, new_parent: AbstractPage) -> None:
         self._parent = new_parent
 
     @property
-    def children(
-        self
-    ) -> Set[AbstractPage]:
+    def children(self) -> Set[AbstractPage]:
         """The immediate children of this page."""
         return self._children
 
-    def __hash__(
-        self
-    ) -> int:
+    def __hash__(self) -> int:
         return hash(self._path)
 
-    def __eq__(
-        self,
-        other: Any
-    ) -> bool:
+    def __eq__(self, other: Any) -> bool:
         if not isinstance(other, AbstractPage):
             return NotImplemented
 
         return self._path == other._path
 
-    def __str__(
-        self
-    ) -> str:
+    def __str__(self) -> str:
         return str(self.path)
 
-    def __repr__(
-        self
-    ) -> str:
-        return f'<{self.__class__.__qualname__} [{self.path}]>'
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__qualname__} [{self.path}]>"

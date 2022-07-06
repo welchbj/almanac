@@ -12,7 +12,7 @@ from typing import (
     Iterator,
     List,
     Type,
-    TypeVar
+    TypeVar,
 )
 
 from munch import Munch
@@ -37,7 +37,7 @@ from ..hooks import (
     assert_sync_callback,
     HookProxy,
     PromoterFunction,
-    PromptCallback
+    PromptCallback,
 )
 from ..io import AbstractIoContext, StandardConsoleIoContext
 from ..pages import PageNavigator, PagePath
@@ -45,7 +45,7 @@ from ..parsing import get_lexer_cls_for_app, parse_cmd_line, ParseState
 from ..style import DARK_MODE_STYLE
 
 
-_T = TypeVar('_T')
+_T = TypeVar("_T")
 
 
 class Application:
@@ -66,7 +66,7 @@ class Application:
         io_context_cls: Type[AbstractIoContext] = StandardConsoleIoContext,
         propagate_runtime_exceptions: bool = False,
         print_all_exception_tracebacks: bool = False,
-        print_unknown_exception_tracebacks: bool = True
+        print_unknown_exception_tracebacks: bool = True,
     ) -> None:
         self._io_stack: List[AbstractIoContext] = [io_context_cls()]
 
@@ -92,136 +92,106 @@ class Application:
         self._prompt_callback: PromptCallback = self._default_prompt_callback
 
         self._session_opts: Dict[str, Any] = {}
-        self._session_opts['message'] = self._prompt_callback_wrapper
+        self._session_opts["message"] = self._prompt_callback_wrapper
 
         if with_completion:
-            self._session_opts['completer'] = CommandCompleter(self)
-            self._session_opts['complete_while_typing'] = True
-            self._session_opts['complete_in_thread'] = True
+            self._session_opts["completer"] = CommandCompleter(self)
+            self._session_opts["complete_while_typing"] = True
+            self._session_opts["complete_in_thread"] = True
 
         if with_style:
             lexer_cls = get_lexer_cls_for_app(self)
-            self._session_opts['lexer'] = PygmentsLexer(lexer_cls)
-            self._session_opts['style'] = style
+            self._session_opts["lexer"] = PygmentsLexer(lexer_cls)
+            self._session_opts["style"] = style
 
     @property
-    def cmd(
-        self
-    ) -> CommandDecoratorProxy:
+    def cmd(self) -> CommandDecoratorProxy:
         """The interface for command-mutating decorators."""
         return self._command_decorator_proxy
 
     @property
-    def arg(
-        self
-    ) -> ArgumentDecoratorProxy:
+    def arg(self) -> ArgumentDecoratorProxy:
         """The interface for argument-mutating decorators."""
         return self._argument_decorator_proxy
 
     @property
-    def hook(
-        self
-    ) -> HookProxy:
+    def hook(self) -> HookProxy:
         """The top-level interface for registering hooks on different events."""
         return self._hook_proxy
 
     @property
-    def bag(
-        self
-    ) -> Munch:
+    def bag(self) -> Munch:
         """A mutable container for storing data for global access."""
         return self._bag
 
     @property
-    def current_prompt_str(
-        self
-    ) -> str:
+    def current_prompt_str(self) -> str:
         """The current prompt string."""
         return self._prompt_callback_wrapper()
 
     @property
-    def current_path(
-        self
-    ) -> PagePath:
+    def current_path(self) -> PagePath:
         """Shorthand for a getting the application's current path."""
         return self._page_navigator.current_page.path
 
     @property
-    def on_exit_callbacks(
-        self
-    ) -> List[AsyncNoArgsCallback[Any]]:
+    def on_exit_callbacks(self) -> List[AsyncNoArgsCallback[Any]]:
         """Registered coroutines to be executed on application exit."""
         return self._on_exit_callbacks
 
     @property
-    def on_init_callbacks(
-        self
-    ) -> List[AsyncNoArgsCallback[Any]]:
+    def on_init_callbacks(self) -> List[AsyncNoArgsCallback[Any]]:
         """Registered coroutines to be executed on application prompt initialization."""
         return self._on_init_callbacks
 
     @property
-    def type_completer_mapping(
-        self
-    ) -> Dict[Type, List[Completer]]:
+    def type_completer_mapping(self) -> Dict[Type, List[Completer]]:
         """A mapping of types to registered global completers."""
         return self._type_completer_mapping
 
     @property
-    def type_promoter_mapping(
-        self
-    ) -> Dict[Type[_T], PromoterFunction[_T]]:
+    def type_promoter_mapping(self) -> Dict[Type[_T], PromoterFunction[_T]]:
         """A mapping of types to callables that convert raw arguments to those types."""
         return self._command_engine.type_promoter_mapping
 
     @property
-    def page_navigator(
-        self
-    ) -> PageNavigator:
+    def page_navigator(self) -> PageNavigator:
         """The :class:`PageNavigator` powering this app's navigation."""
         return self._page_navigator
 
     @property
-    def command_engine(
-        self
-    ) -> CommandEngine:
+    def command_engine(self) -> CommandEngine:
         """The :class:`CommandEngine` powering this app's command lookup."""
         return self._command_engine
 
     @property
-    def io(
-        self
-    ) -> AbstractIoContext:
+    def io(self) -> AbstractIoContext:
         """The application's top-level input/output context."""
         return self._io_stack[-1]
 
     @contextmanager
     def io_context(
-        self,
-        new_io_context: AbstractIoContext
+        self, new_io_context: AbstractIoContext
     ) -> Iterator[AbstractIoContext]:
         """Change the app's current input/output context."""
         self._io_stack.append(new_io_context)
         yield new_io_context
         self._io_stack.pop()
 
-    async def eval_line(
-        self,
-        line: str
-    ) -> int:
+    async def eval_line(self, line: str) -> int:
         """Evaluate a line passed to the application by the user."""
         parse_status = parse_cmd_line(line)
 
         if parse_status.state == ParseState.PARTIAL:
             self.io.error(
-                'Error in command parsing. Suspected error position marked below:'
+                "Error in command parsing. Suspected error position marked below:"
             )
             self.io.error(line)
-            self.io.error(' ' * parse_status.unparsed_start_pos + '^')
+            self.io.error(" " * parse_status.unparsed_start_pos + "^")
 
             return ExitCodes.ERR_COMMAND_PARSING
         elif parse_status.state == ParseState.NONE:
-            self.io.error('Error in command parsing.')
+            self.io.error("Error in command parsing.")
             return ExitCodes.ERR_COMMAND_PARSING
 
         parsed_args = parse_status.results
@@ -235,9 +205,7 @@ class Application:
                 self._command_engine.run, name_or_alias, parsed_args
             )
 
-    async def prompt(
-        self
-    ) -> int:
+    async def prompt(self) -> int:
         """Run the application's interactive prompt.
 
         This method will fire all registered on-init callbacks when it first begins,
@@ -277,11 +245,7 @@ class Application:
 
             return ExitCodes.OK
 
-    def add_completers_for_type(
-        self,
-        _type: Type,
-        *completers: Completer
-    ) -> None:
+    def add_completers_for_type(self, _type: Type, *completers: Completer) -> None:
         """Register a completer for all arguments of a specified type (globally)."""
         if _type not in self._type_completer_mapping.keys():
             self._type_completer_mapping[_type] = []
@@ -290,9 +254,7 @@ class Application:
             self._type_completer_mapping[_type].append(completer)
 
     def add_promoter_for_type(
-        self,
-        _type: Type[_T],
-        promoter_callable: PromoterFunction[_T]
+        self, _type: Type[_T], promoter_callable: PromoterFunction[_T]
     ) -> None:
         """Register a promotion callable for a specific argument type."""
         try:
@@ -301,28 +263,21 @@ class Application:
             raise e
 
     def promoter_for(
-        self,
-        *types: Type[_T]
+        self, *types: Type[_T]
     ) -> Callable[[PromoterFunction[_T]], PromoterFunction[_T]]:
         """A decorator for specifying inline promotion callbacks."""
 
-        def decorator(
-            f: PromoterFunction[_T]
-        ) -> PromoterFunction[_T]:
+        def decorator(f: PromoterFunction[_T]) -> PromoterFunction[_T]:
             for _type in types:
                 self.add_promoter_for_type(_type, f)
             return f
 
         return decorator
 
-    def prompt_text(
-        self
-    ) -> Callable[[PromptCallback], PromptCallback]:
+    def prompt_text(self) -> Callable[[PromptCallback], PromptCallback]:
         """A decorator for specifying an application's prompt."""
 
-        def decorator(
-            callback_func: PromptCallback
-        ) -> PromptCallback:
+        def decorator(callback_func: PromptCallback) -> PromptCallback:
             try:
                 assert_sync_callback(callback_func)
             except InvalidCallbackTypeError as e:
@@ -333,9 +288,7 @@ class Application:
 
         return decorator
 
-    def on_exit(
-        self
-    ) -> Callable[[AsyncNoArgsCallback[Any]], AsyncNoArgsCallback[Any]]:
+    def on_exit(self) -> Callable[[AsyncNoArgsCallback[Any]], AsyncNoArgsCallback[Any]]:
         """A decorator for specifying a callback to be executed when the app exits.
 
         These callbacks will only be implicitly executed at the end of :meth:`prompt`
@@ -345,7 +298,7 @@ class Application:
         """
 
         def decorator(
-            callback_coro: AsyncNoArgsCallback[Any]
+            callback_coro: AsyncNoArgsCallback[Any],
         ) -> AsyncNoArgsCallback[Any]:
             try:
                 assert_async_callback(callback_coro)
@@ -357,9 +310,7 @@ class Application:
 
         return decorator
 
-    def on_init(
-        self
-    ) -> Callable[[AsyncNoArgsCallback[Any]], AsyncNoArgsCallback[Any]]:
+    def on_init(self) -> Callable[[AsyncNoArgsCallback[Any]], AsyncNoArgsCallback[Any]]:
         """A decorator for specifying a callback to be executed when the prompt begins.
 
         These callbacks will only be implicitly executed at the beginning of
@@ -369,7 +320,7 @@ class Application:
         """
 
         def decorator(
-            callback_coro: AsyncNoArgsCallback[Any]
+            callback_coro: AsyncNoArgsCallback[Any],
         ) -> AsyncNoArgsCallback[Any]:
             try:
                 assert_async_callback(callback_coro)
@@ -382,9 +333,7 @@ class Application:
         return decorator
 
     @asynccontextmanager
-    async def dispatch_exception_hooks(
-        self
-    ) -> AsyncIterator:
+    async def dispatch_exception_hooks(self) -> AsyncIterator:
         """Context manager to dispatch hooks for exceptions in wrapped code."""
         try:
             yield
@@ -403,7 +352,7 @@ class Application:
         self,
         async_callbacks: Iterable[AsyncNoArgsCallback[_T]],
         *args: Any,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> List[_T]:
         """Run a collection of asynchronous callbacks with the specified arguments.
 
@@ -420,15 +369,11 @@ class Application:
         async with self.dispatch_exception_hooks():
             return list(await asyncio.gather(*wrapped_awaitable_callbacks))
 
-    async def run_on_exit_callbacks(
-        self
-    ) -> List[Any]:
+    async def run_on_exit_callbacks(self) -> List[Any]:
         """Run all of the registered on-exit callbacks."""
         return await self.run_async_callbacks(self._on_exit_callbacks)
 
-    async def run_on_init_callbacks(
-        self
-    ) -> List[Any]:
+    async def run_on_init_callbacks(self) -> List[Any]:
         """Run all of the registered on-init callbacks."""
         return await self.run_async_callbacks(self._on_init_callbacks)
 
@@ -452,49 +397,34 @@ class Application:
         set_current_app(self)
         return await coro(*args, **kwargs)
 
-    def quit(
-        self
-    ) -> None:
+    def quit(self) -> None:
         """Cause this application to cleanly stop running."""
         self._do_quit = True
 
-    def _maybe_propagate_runtime_exc(
-        self,
-        exc: Exception
-    ) -> None:
+    def _maybe_propagate_runtime_exc(self, exc: Exception) -> None:
         if self._propagate_runtime_exceptions:
             raise exc
 
-    def print_exception_info(
-        self,
-        exc: Exception,
-        unknown=False
-    ) -> None:
-        if (
-            self._print_all_exception_tracebacks or
-            (unknown and self._print_unknown_exception_tracebacks)
+    def print_exception_info(self, exc: Exception, unknown=False) -> None:
+        if self._print_all_exception_tracebacks or (
+            unknown and self._print_unknown_exception_tracebacks
         ):
             if unknown:
-                self.io.error('Unknown exception occurred:\n')
+                self.io.error("Unknown exception occurred:\n")
             else:
-                self.io.error('Exception occurred:\n')
+                self.io.error("Exception occurred:\n")
 
-            tb = ''.join(traceback.format_exception(
-                etype=type(exc),
-                value=exc,
-                tb=exc.__traceback__
-            ))
-            highlighted_tb = highlight(
-                tb, Python3TracebackLexer(), TerminalFormatter()
+            tb = "".join(
+                traceback.format_exception(
+                    etype=type(exc), value=exc, tb=exc.__traceback__
+                )
             )
+            highlighted_tb = highlight(tb, Python3TracebackLexer(), TerminalFormatter())
             self.io.ansi(highlighted_tb)
         else:
             self.io.error(str(exc))
 
-    def print_command_suggestions(
-        self,
-        name_or_alias: str
-    ) -> None:
+    def print_command_suggestions(self, name_or_alias: str) -> None:
         """Print command recommendations for a misspelled attempt.
 
         It is assumed that lookup has already been attempted and that no
@@ -505,17 +435,13 @@ class Application:
         if not suggestions:
             return
 
-        self.io.info('Perhaps you meant one of these:')
+        self.io.info("Perhaps you meant one of these:")
         for suggestion in suggestions:
-            self.io.raw('    ', suggestion, sep='')
+            self.io.raw("    ", suggestion, sep="")
 
-    def _prompt_callback_wrapper(
-        self
-    ) -> str:
+    def _prompt_callback_wrapper(self) -> str:
         """A callback for getting the current page's prompt."""
         return self.call_as_current_app_sync(self._prompt_callback)
 
-    def _default_prompt_callback(
-        self
-    ) -> str:
-        return '> '
+    def _default_prompt_callback(self) -> str:
+        return "> "

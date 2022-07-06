@@ -11,7 +11,7 @@ def highlight_for_mimetype(
     text: str,
     mimetype: str,
     *,
-    fallback_mimetype: Optional[str] = 'text/plain',
+    fallback_mimetype: Optional[str] = "text/plain",
     formatter_cls: Type[Formatter] = TerminalFormatter
 ) -> str:
     """Return ANSI-escaped highlighted text, as per the .

@@ -6,5 +6,5 @@ from .parsing import (  # noqa
     parse_cmd_line,
     ParseState,
     ParseStatus,
-    Patterns
+    Patterns,
 )

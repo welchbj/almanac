@@ -2,12 +2,7 @@
 
 import pytest
 
-from almanac import (
-    current_app,
-    InvalidCallbackTypeError,
-    NoSuchCommandError,
-    PagePath
-)
+from almanac import current_app, InvalidCallbackTypeError, NoSuchCommandError, PagePath
 
 from .utils import get_test_app
 
@@ -18,31 +13,31 @@ async def test_before_and_after_command_hooks():
 
     app.bag.values = []
 
-    @app.hook.before('cd')
+    @app.hook.before("cd")
     async def before_cd_hook_one(path: PagePath):
         assert type(path) == PagePath
-        assert path == '/'
+        assert path == "/"
         current_app().bag.values.append(1)
 
-    @app.hook.before('cd')
+    @app.hook.before("cd")
     async def before_cd_hook_two(path: PagePath):
         assert type(path) == PagePath
-        assert path == '/'
+        assert path == "/"
         current_app().bag.values.append(2)
 
-    @app.hook.after('cd')
+    @app.hook.after("cd")
     async def after_cd_hook_one(path: PagePath):
         assert type(path) == PagePath
-        assert path == '/'
+        assert path == "/"
         current_app().bag.values.append(3)
 
-    @app.hook.after('cd')
+    @app.hook.after("cd")
     async def after_cd_hook_two(path: PagePath):
         assert type(path) == PagePath
-        assert path == '/'
+        assert path == "/"
         current_app().bag.values.append(4)
 
-    await app.eval_line('cd /')
+    await app.eval_line("cd /")
 
 
 @pytest.mark.asyncio
@@ -65,9 +60,9 @@ async def test_hook_registration_on_frozen_command():
     async def after_my_command(x: int):
         current_app().bag.after.append(x)
 
-    await app.eval_line('my_command 1')
-    await app.eval_line('my_command 2')
-    await app.eval_line('my_command 3')
+    await app.eval_line("my_command 1")
+    await app.eval_line("my_command 2")
+    await app.eval_line("my_command 3")
 
     assert app.bag.before == [1, 2, 3]
     assert app.bag.values == [1, 2, 3]
@@ -79,12 +74,14 @@ async def test_invalid_command_hook_types():
     app = get_test_app()
 
     with pytest.raises(InvalidCallbackTypeError):
-        @app.hook.before('ls')
+
+        @app.hook.before("ls")
         def bad_sync_hook_one():
             pass
 
     with pytest.raises(InvalidCallbackTypeError):
-        @app.hook.after('ls')
+
+        @app.hook.after("ls")
         def bad_sync_hook_two():
             pass
 
@@ -94,35 +91,37 @@ async def test_non_existent_command_hook_registration():
     app = get_test_app()
 
     with pytest.raises(NoSuchCommandError):
-        @app.hook.before('not_real')
+
+        @app.hook.before("not_real")
         async def dummy_one(path: str):
             pass
 
     with pytest.raises(NoSuchCommandError):
-        @app.hook.after('not_real')
+
+        @app.hook.after("not_real")
         async def dummy_two(path: str):
             pass
 
     @app.cmd.register()
-    @app.cmd(name='not_real')
+    @app.cmd(name="not_real")
     async def now_im_real():
         pass
 
     app.bag.before_hook_did_fire = False
     app.bag.after_hook_did_fire = False
 
-    @app.hook.before('not_real')
+    @app.hook.before("not_real")
     async def before_not_real():
         current_app().bag.before_hook_did_fire = True
 
-    @app.hook.after('not_real')
+    @app.hook.after("not_real")
     async def after_not_real():
         current_app().bag.after_hook_did_fire = True
 
     assert app.bag.before_hook_did_fire is False
     assert app.bag.after_hook_did_fire is False
 
-    await app.eval_line('not_real')
+    await app.eval_line("not_real")
 
     assert app.bag.before_hook_did_fire is True
     assert app.bag.after_hook_did_fire is True  # type:ignore

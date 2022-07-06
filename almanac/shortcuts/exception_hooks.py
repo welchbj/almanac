@@ -6,7 +6,7 @@ from ..errors import (
     NoSuchArgumentError,
     NoSuchCommandError,
     TooManyPositionalArgumentsError,
-    UnknownArgumentBindingError
+    UnknownArgumentBindingError,
 )
 
 
@@ -32,20 +32,20 @@ async def hook_TooManyPositionalArgumentsError(exc: TooManyPositionalArgumentsEr
 
 async def hook_UnknownArgumentBindingError(exc: UnknownArgumentBindingError):
     app = current_app()
-    app.io.error('Unable to bind arguments to command signature!')
+    app.io.error("Unable to bind arguments to command signature!")
 
-    app.io.error('Signature:')
-    app.io.error(f'    {exc.signature}')
+    app.io.error("Signature:")
+    app.io.error(f"    {exc.signature}")
 
     if exc.pos_args:
-        app.io.error('Positional arguments:')
+        app.io.error("Positional arguments:")
         for pos_arg in exc.pos_args:
-            app.io.error(f'    {repr(pos_arg)}')
+            app.io.error(f"    {repr(pos_arg)}")
 
     if exc.kw_args:
-        app.io.error('Keyword arguments:')
+        app.io.error("Keyword arguments:")
         for key, value in exc.kw_args.items():
-            app.io.error(f'    {key}={repr(value)}')
+            app.io.error(f"    {key}={repr(value)}")
 
 
 async def hook_BasePageError(exc: BasePageError):

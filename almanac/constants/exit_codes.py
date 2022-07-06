@@ -6,6 +6,7 @@ from enum import auto, IntEnum, unique
 @unique
 class ExitCodes(IntEnum):
     """Exit codes for command executions."""
+
     OK = 0
 
     ERR_COMMAND_PARSING = auto()

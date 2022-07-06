@@ -3,10 +3,7 @@ from typing import Any, Type
 from typing_inspect import is_union_type, get_args
 
 
-def is_matching_type(
-    _type: Type,
-    annotation: Any
-) -> bool:
+def is_matching_type(_type: Type, annotation: Any) -> bool:
     """Return whether a specified type matches an annotation.
 
     This function does a bit more than a simple comparison, and performs the following

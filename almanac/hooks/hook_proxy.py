@@ -22,36 +22,26 @@ class HookProxy:
 
     """
 
-    def __init__(
-        self,
-        app: Application
-    ) -> None:
+    def __init__(self, app: Application) -> None:
         self._app = app
         self._exc_hook_dispatch_table = ExceptionHookDispatchTable()
 
     @property
-    def command_engine(
-        self
-    ) -> CommandEngine:
+    def command_engine(self) -> CommandEngine:
         return self._app.command_engine
 
     @property
-    def exception(
-        self
-    ) -> ExceptionHookDispatchTable:
+    def exception(self) -> ExceptionHookDispatchTable:
         """A decorator to add a callback to fire when a matching exception occurs."""
         return self._exc_hook_dispatch_table
 
     def before(
-        self,
-        *command_names: Union[str, FrozenCommand]
+        self, *command_names: Union[str, FrozenCommand]
     ) -> Callable[[AsyncHookCallback], AsyncHookCallback]:
         """A decorator to add a callback to fire before commands execute."""
         frozen_commands = self._resolved_commands(*command_names)
 
-        def decorator(
-            hook_coro: AsyncHookCallback
-        ) -> AsyncHookCallback:
+        def decorator(hook_coro: AsyncHookCallback) -> AsyncHookCallback:
             try:
                 assert_async_callback(hook_coro)
             except InvalidCallbackTypeError as e:
@@ -64,15 +54,12 @@ class HookProxy:
         return decorator
 
     def after(
-        self,
-        *command_names: Union[str, FrozenCommand]
+        self, *command_names: Union[str, FrozenCommand]
     ) -> Callable[[AsyncHookCallback], AsyncHookCallback]:
         """A decorator to add a callback to fire after commands execute."""
         frozen_commands = self._resolved_commands(*command_names)
 
-        def decorator(
-            hook_coro: AsyncHookCallback
-        ) -> AsyncHookCallback:
+        def decorator(hook_coro: AsyncHookCallback) -> AsyncHookCallback:
             try:
                 assert_async_callback(hook_coro)
             except InvalidCallbackTypeError as e:
@@ -85,20 +72,21 @@ class HookProxy:
         return decorator
 
     def _resolved_commands(
-        self,
-        *commands: Union[str, FrozenCommand]
+        self, *commands: Union[str, FrozenCommand]
     ) -> List[FrozenCommand]:
         nonexistent_command_names = [
-            name_or_cmd for name_or_cmd in commands
-            if isinstance(name_or_cmd, str) and
-            name_or_cmd not in self._app.command_engine.keys()
+            name_or_cmd
+            for name_or_cmd in commands
+            if isinstance(name_or_cmd, str)
+            and name_or_cmd not in self._app.command_engine.keys()
         ]
 
         if nonexistent_command_names:
             raise NoSuchCommandError(*nonexistent_command_names)
 
         return [
-            self._app.command_engine[name_or_cmd] if isinstance(name_or_cmd, str)
+            self._app.command_engine[name_or_cmd]
+            if isinstance(name_or_cmd, str)
             else name_or_cmd
             for name_or_cmd in commands
         ]

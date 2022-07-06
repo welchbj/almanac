@@ -20,14 +20,9 @@ class FrozenCommand(CommandBase, Mapping[str, FrozenArgument]):
         name: Optional[str] = None,
         description: Optional[str] = None,
         aliases: Optional[Union[str, Iterable[str]]] = None,
-        argument_map: Optional[Mapping[str, FrozenArgument]] = None
+        argument_map: Optional[Mapping[str, FrozenArgument]] = None,
     ) -> None:
-        super().__init__(
-            coroutine,
-            name=name,
-            description=description,
-            aliases=aliases
-        )
+        super().__init__(coroutine, name=name, description=description, aliases=aliases)
 
         self._argument_map: Mapping[str, FrozenArgument]
         if argument_map is None:
@@ -36,15 +31,12 @@ class FrozenCommand(CommandBase, Mapping[str, FrozenArgument]):
             self._argument_map = {k: v for k, v in argument_map.items()}
 
     @cached_property
-    def abbreviated_description(
-        self
-    ) -> str:
+    def abbreviated_description(self) -> str:
         """A shortened version of this command's description."""
         return abbreviated(self._description)
 
     def resolved_kwarg_names(
-        self,
-        kwarg_dict: Dict[str, Any]
+        self, kwarg_dict: Dict[str, Any]
     ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
         """Transform keyword argument names from their display to real values.
 
@@ -69,29 +61,16 @@ class FrozenCommand(CommandBase, Mapping[str, FrozenArgument]):
 
         return resolved, unresolved
 
-    def _abstract_description_setter(
-        self,
-        new_description: str
-    ) -> None:
-        raise FrozenAccessError('Cannot change the description of a FrozenCommand')
+    def _abstract_description_setter(self, new_description: str) -> None:
+        raise FrozenAccessError("Cannot change the description of a FrozenCommand")
 
-    def _abstract_name_setter(
-        self,
-        new_name: str
-    ) -> None:
-        raise FrozenAccessError('Cannot change the name of a FrozenCommand')
+    def _abstract_name_setter(self, new_name: str) -> None:
+        raise FrozenAccessError("Cannot change the name of a FrozenCommand")
 
-    def add_alias(
-        self,
-        *aliases: str
-    ) -> None:
-        raise FrozenAccessError('Cannot add an alias to a FrozenCommand')
+    def add_alias(self, *aliases: str) -> None:
+        raise FrozenAccessError("Cannot add an alias to a FrozenCommand")
 
-    def get_unbound_arguments(
-        self,
-        *args,
-        **kwargs
-    ) -> Tuple[FrozenArgument, ...]:
+    def get_unbound_arguments(self, *args, **kwargs) -> Tuple[FrozenArgument, ...]:
         """Compute a tuple of arguments that would be unbound with the given values.
 
         In the event of an error where the set of provided arguments cannot even be
@@ -112,11 +91,7 @@ class FrozenCommand(CommandBase, Mapping[str, FrozenArgument]):
 
         return unbound_arguments
 
-    async def run(
-        self,
-        *args,
-        **kwargs
-    ) -> int:
+    async def run(self, *args, **kwargs) -> int:
         """A thin wrapper around this command's user-provided coroutine.
 
         The return code follows the following pattern:
@@ -126,40 +101,31 @@ class FrozenCommand(CommandBase, Mapping[str, FrozenArgument]):
         """
         return await self._impl_coroutine(*args, **kwargs)
 
-    def _hash_basis(
-        self
-    ) -> Tuple[Any, ...]:
-        return (self.name, self.description, self.aliases, self.coroutine,)
+    def _hash_basis(self) -> Tuple[Any, ...]:
+        return (
+            self.name,
+            self.description,
+            self.aliases,
+            self.coroutine,
+        )
 
-    def __hash__(
-        self
-    ) -> int:
+    def __hash__(self) -> int:
         return hash(self._hash_basis())
 
-    def __eq__(
-        self,
-        other: Any
-    ) -> bool:
+    def __eq__(self, other: Any) -> bool:
         if not isinstance(other, FrozenCommand):
             return NotImplemented
 
         return self._hash_basis() == other._hash_basis()
 
-    def __iter__(
-        self
-    ) -> Iterator[str]:
+    def __iter__(self) -> Iterator[str]:
         return iter(self._argument_map)
 
-    def __getitem__(
-        self,
-        argument_display_name: str
-     ) -> FrozenArgument:
+    def __getitem__(self, argument_display_name: str) -> FrozenArgument:
         try:
             return self._argument_map[argument_display_name]
         except KeyError:
             raise NoSuchArgumentError(argument_display_name)
 
-    def __len__(
-        self
-    ) -> int:
+    def __len__(self) -> int:
         return len(self._argument_map.keys())

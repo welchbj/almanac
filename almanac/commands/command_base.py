@@ -30,7 +30,7 @@ class CommandBase(ABC):
         *,
         name: Optional[str] = None,
         description: Optional[str] = None,
-        aliases: Optional[Union[str, Iterable[str]]] = None
+        aliases: Optional[Union[str, Iterable[str]]] = None,
     ) -> None:
         self._name = name if name is not None else coroutine.__name__
 
@@ -51,104 +51,69 @@ class CommandBase(ABC):
         self._impl_coroutine = coroutine
 
         self._has_var_kw_arg = any(
-            p.kind == p.VAR_KEYWORD for _, p in
-            self._impl_signature.parameters.items()
+            p.kind == p.VAR_KEYWORD for _, p in self._impl_signature.parameters.items()
         )
         self._has_var_pos_arg = any(
-            p.kind == p.VAR_POSITIONAL for _, p in
-            self._impl_signature.parameters.items()
+            p.kind == p.VAR_POSITIONAL
+            for _, p in self._impl_signature.parameters.items()
         )
 
     @property
-    def has_var_kw_arg(
-        self
-    ) -> bool:
+    def has_var_kw_arg(self) -> bool:
         """Whether this command has a ``**kwargs`` argument."""
         return self._has_var_kw_arg
 
     @property
-    def has_var_pos_arg(
-        self
-    ) -> bool:
+    def has_var_pos_arg(self) -> bool:
         """Whether this command has a ``*args`` argument."""
         return self._has_var_kw_arg
 
     @property
-    def name(
-        self
-    ) -> str:
+    def name(self) -> str:
         """The primary name of this function."""
         return self._name
 
     @name.setter
-    def name(
-        self,
-        new_name: str
-    ) -> None:
+    def name(self, new_name: str) -> None:
         self._abstract_name_setter(new_name)
 
     @abstractmethod
-    def _abstract_name_setter(
-        self,
-        new_name: str
-    ) -> None:
+    def _abstract_name_setter(self, new_name: str) -> None:
         """Abstract name setter to allow for access control."""
 
     @property
-    def description(
-        self
-    ) -> str:
+    def description(self) -> str:
         """A description for this command."""
         return self._description
 
     @description.setter
-    def description(
-        self,
-        new_description: str
-    ) -> None:
+    def description(self, new_description: str) -> None:
         self._abstract_description_setter(new_description)
 
     @abstractmethod
-    def _abstract_description_setter(
-        self,
-        new_description: str
-    ) -> None:
+    def _abstract_description_setter(self, new_description: str) -> None:
         """Abstract description setter to allow for access control."""
 
     @property
-    def aliases(
-        self
-    ) -> Tuple[str, ...]:
+    def aliases(self) -> Tuple[str, ...]:
         """Aliases for this command."""
         return tuple(self._aliases)
 
     @abstractmethod
-    def add_alias(
-        self,
-        *aliases: str
-    ) -> None:
+    def add_alias(self, *aliases: str) -> None:
         """Abstract alias appender to allow for access control."""
 
     @property
-    def identifiers(
-        self
-    ) -> Tuple[str, ...]:
+    def identifiers(self) -> Tuple[str, ...]:
         """A combination of this command's name and any of its aliases."""
-        return tuple(itertools.chain(
-            (self._name,),
-            self._aliases
-        ))
+        return tuple(itertools.chain((self._name,), self._aliases))
 
     @property
-    def signature(
-        self
-    ) -> inspect.Signature:
+    def signature(self) -> inspect.Signature:
         """The signature of the user-written coroutine wrapped by this command."""
         return self._impl_signature
 
     @property
-    def coroutine(
-        self
-    ) -> CommandCoroutine:
+    def coroutine(self) -> CommandCoroutine:
         """The internal coroutine that this command wraps."""
         return self._impl_coroutine

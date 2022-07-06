@@ -11,7 +11,7 @@ from ..arguments import MutableArgument
 from ..errors import (
     ArgumentNameCollisionError,
     CommandRegistrationError,
-    NoSuchArgumentError
+    NoSuchArgumentError,
 )
 from ..types import CommandCoroutine
 
@@ -34,14 +34,9 @@ class MutableCommand(CommandBase, MutableMapping[str, MutableArgument]):
         name: Optional[str] = None,
         description: Optional[str] = None,
         aliases: Optional[Union[str, Iterable[str]]] = None,
-        argument_map: Optional[Mapping[str, MutableArgument]] = None
+        argument_map: Optional[Mapping[str, MutableArgument]] = None,
     ) -> None:
-        super().__init__(
-            coroutine,
-            name=name,
-            description=description,
-            aliases=aliases
-        )
+        super().__init__(coroutine, name=name, description=description, aliases=aliases)
 
         self._argument_map: MutableMapping[str, MutableArgument] = {}
         for param_name, param in self._impl_signature.parameters.items():
@@ -59,89 +54,63 @@ class MutableCommand(CommandBase, MutableMapping[str, MutableArgument]):
         if not isinstance(new_command, MutableCommand):
             if not asyncio.iscoroutinefunction(new_command):
                 raise CommandRegistrationError(
-                    'Attempted to create a command with something other than an async '
-                    f'function or MutableCommand: {new_command.__class__.__qualname__}'
+                    "Attempted to create a command with something other than an async "
+                    f"function or MutableCommand: {new_command.__class__.__qualname__}"
                 )
 
             new_command = MutableCommand(new_command)
 
         return new_command
 
-    def _abstract_description_setter(
-        self,
-        new_description: str
-    ) -> None:
+    def _abstract_description_setter(self, new_description: str) -> None:
         self._description = new_description
 
-    def _abstract_name_setter(
-        self,
-        new_name: str
-    ) -> None:
+    def _abstract_name_setter(self, new_name: str) -> None:
         self._name = new_name
 
-    def add_alias(
-        self,
-        *aliases: str
-    ) -> None:
+    def add_alias(self, *aliases: str) -> None:
         for alias in aliases:
             self._aliases.append(alias)
 
-    def freeze(
-        self
-    ) -> FrozenCommand:
+    def freeze(self) -> FrozenCommand:
         """Convert this instance into a :class:`FrozenCommand`."""
         display_name_counter = Counter(arg.display_name for arg in self.values())
 
         conflicting_arg_names = [
-            display_name for display_name, count in display_name_counter.items()
+            display_name
+            for display_name, count in display_name_counter.items()
             if count > 1
         ]
         if conflicting_arg_names:
             raise ArgumentNameCollisionError(*conflicting_arg_names)
 
-        frozen_argument_map = {
-            arg.display_name: arg.freeze() for arg in self.values()
-        }
+        frozen_argument_map = {arg.display_name: arg.freeze() for arg in self.values()}
 
         return FrozenCommand(
             self.coroutine,
             name=self.name,
             description=self.description,
             aliases=self.aliases,
-            argument_map=frozen_argument_map
+            argument_map=frozen_argument_map,
         )
 
-    def __delitem__(
-        self,
-        argument_real_name: str
-    ) -> None:
+    def __delitem__(self, argument_real_name: str) -> None:
         try:
             del self._argument_map[argument_real_name]
         except KeyError:
             raise NoSuchArgumentError(argument_real_name)
 
-    def __iter__(
-        self
-    ) -> Iterator[str]:
+    def __iter__(self) -> Iterator[str]:
         return iter(self._argument_map)
 
-    def __getitem__(
-        self,
-        argument_real_name: str
-     ) -> MutableArgument:
+    def __getitem__(self, argument_real_name: str) -> MutableArgument:
         try:
             return self._argument_map[argument_real_name]
         except KeyError:
             raise NoSuchArgumentError(argument_real_name)
 
-    def __len__(
-        self
-    ) -> int:
+    def __len__(self) -> int:
         return len(self._argument_map.keys())
 
-    def __setitem__(
-        self,
-        argument_real_name: str,
-        argument: MutableArgument
-    ) -> None:
+    def __setitem__(self, argument_real_name: str, argument: MutableArgument) -> None:
         self._argument_map[argument_real_name] = argument

@@ -9,7 +9,7 @@ from .builtins import (
     help as builtin_help,
     ls as builtin_ls,
     pwd as builtin_pwd,
-    quit as builtin_quit
+    quit as builtin_quit,
 )
 from .exception_hooks import (
     hook_BaseArgumentError,
@@ -18,7 +18,7 @@ from .exception_hooks import (
     hook_NoSuchArgumentError,
     hook_NoSuchCommandError,
     hook_TooManyPositionalArgumentsError,
-    hook_UnknownArgumentBindingError
+    hook_UnknownArgumentBindingError,
 )
 from .promoters import promote_to_page_path
 from ..completion import PagePathCompleter, WordCompleter
@@ -31,15 +31,14 @@ from ..errors import (
     NoSuchArgumentError,
     NoSuchCommandError,
     TooManyPositionalArgumentsError,
-    UnknownArgumentBindingError
+    UnknownArgumentBindingError,
 )
 from ..io import AbstractIoContext, StandardConsoleIoContext
 from ..pages import PagePath
 from ..style import DARK_MODE_STYLE
 
 
-def _current_page_prompt_str(
-) -> str:
+def _current_page_prompt_str() -> str:
     app = current_app()
     return app.page_navigator.current_page.get_prompt()
 
@@ -69,10 +68,10 @@ def make_standard_app(
         io_context_cls=io_context_cls,
         propagate_runtime_exceptions=propagate_runtime_exceptions,
         print_all_exception_tracebacks=print_all_exception_tracebacks,
-        print_unknown_exception_tracebacks=print_unknown_exception_tracebacks
+        print_unknown_exception_tracebacks=print_unknown_exception_tracebacks,
     )
 
-    app.add_completers_for_type(bool, WordCompleter(['True', 'False']))
+    app.add_completers_for_type(bool, WordCompleter(["True", "False"]))
 
     app.add_promoter_for_type(str, str)
 

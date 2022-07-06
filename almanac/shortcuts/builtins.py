@@ -6,7 +6,7 @@ from ..core import ArgumentDecoratorProxy
 _arg = ArgumentDecoratorProxy()
 
 
-@_arg.path(description='The path to change into.')
+@_arg.path(description="The path to change into.")
 async def cd(path: PagePath) -> int:
     """Change directories."""
     app = current_app()
@@ -21,13 +21,13 @@ async def help() -> int:
     app = current_app()
 
     # XXX
-    app.io.info('Called help')
+    app.io.info("Called help")
 
     return ExitCodes.OK
 
 
-@_arg.path(description='The path whose contents to list.')
-async def ls(path: PagePathLike = '.') -> int:
+@_arg.path(description="The path whose contents to list.")
+async def ls(path: PagePathLike = ".") -> int:
     """List files in a directory."""
     app = current_app()
 
@@ -68,7 +68,7 @@ async def quit() -> int:
     """Quit the application."""
     app = current_app()
 
-    app.io.info('Quitting!')
+    app.io.info("Quitting!")
     app.quit()
 
     return ExitCodes.OK

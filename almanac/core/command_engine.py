@@ -14,7 +14,7 @@ from typing import (
     Type,
     TYPE_CHECKING,
     TypeVar,
-    Union
+    Union,
 )
 
 from ..commands import FrozenCommand
@@ -25,7 +25,7 @@ from ..errors import (
     NoSuchArgumentError,
     NoSuchCommandError,
     TooManyPositionalArgumentsError,
-    UnknownArgumentBindingError
+    UnknownArgumentBindingError,
 )
 from ..hooks import AsyncHookCallback, PromoterFunction
 from ..types import is_matching_type
@@ -36,17 +36,13 @@ if TYPE_CHECKING:
 
 HookCallbackMapping = MutableMapping[FrozenCommand, List[AsyncHookCallback]]
 
-_T = TypeVar('_T')
+_T = TypeVar("_T")
 
 
 class CommandEngine:
     """A command lookup and management engine."""
 
-    def __init__(
-        self,
-        app: Application,
-        *commands_to_register: FrozenCommand
-    ) -> None:
+    def __init__(self, app: Application, *commands_to_register: FrozenCommand) -> None:
         self._app = app
 
         self._registered_commands: List[FrozenCommand] = []
@@ -61,37 +57,28 @@ class CommandEngine:
         self._type_promoter_mapping: Dict[Type, Callable] = {}
 
     @property
-    def app(
-        self
-    ) -> Application:
+    def app(self) -> Application:
         """The application that this engine manages."""
         return self._app
 
     @property
-    def type_promoter_mapping(
-        self
-    ) -> Dict[Type, Callable]:
+    def type_promoter_mapping(self) -> Dict[Type, Callable]:
         """A mapping of types to callables that convert raw arguments to those types."""
         return self._type_promoter_mapping
 
     def add_promoter_for_type(
-        self,
-        _type: Type[_T],
-        promoter_callable: PromoterFunction[_T]
+        self, _type: Type[_T], promoter_callable: PromoterFunction[_T]
     ) -> None:
         """Register a promotion callable for a specific argument type."""
         if _type in self._type_promoter_mapping.keys():
             raise ConflictingPromoterTypesError(
-                f'Type {_type} already has a registered promoter callable '
-                f'{promoter_callable}'
+                f"Type {_type} already has a registered promoter callable "
+                f"{promoter_callable}"
             )
 
         self._type_promoter_mapping[_type] = promoter_callable
 
-    def register(
-        self,
-        command: FrozenCommand
-    ) -> None:
+    def register(self, command: FrozenCommand) -> None:
         """Register a command on this class.
 
         Raises:
@@ -101,7 +88,8 @@ class CommandEngine:
 
         """
         already_mapped_names = tuple(
-            identifier for identifier in command.identifiers
+            identifier
+            for identifier in command.identifiers
             if identifier in self._command_lookup_table.keys()
         )
         if already_mapped_names:
@@ -116,9 +104,7 @@ class CommandEngine:
         self._registered_commands.append(command)
 
     def add_before_command_callback(
-        self,
-        name_or_command: Union[str, FrozenCommand],
-        callback: AsyncHookCallback
+        self, name_or_command: Union[str, FrozenCommand], callback: AsyncHookCallback
     ) -> None:
         """Register a callback for execution before a command."""
         if isinstance(name_or_command, str):
@@ -132,9 +118,7 @@ class CommandEngine:
         self._before_command_callbacks[command].append(callback)
 
     def add_after_command_callback(
-        self,
-        name_or_command: Union[str, FrozenCommand],
-        callback: AsyncHookCallback
+        self, name_or_command: Union[str, FrozenCommand], callback: AsyncHookCallback
     ) -> None:
         """Register a callback for execution after a command."""
         if isinstance(name_or_command, str):
@@ -147,10 +131,7 @@ class CommandEngine:
 
         self._after_command_callbacks[command].append(callback)
 
-    def get(
-        self,
-        name_or_alias: str
-    ) -> FrozenCommand:
+    def get(self, name_or_alias: str) -> FrozenCommand:
         """Get a :class:`FrozenCommand` by its name or alias.
 
         Returns:
@@ -168,11 +149,7 @@ class CommandEngine:
 
     __getitem__ = get
 
-    async def run(
-        self,
-        name_or_alias: str,
-        parsed_args: pp.ParseResults
-    ) -> int:
+    async def run(self, name_or_alias: str, parsed_args: pp.ParseResults) -> int:
         """Run a command, validating the specified arguments.
 
         In the event of coroutine-binding failure, this method will do quite a bit of
@@ -222,9 +199,7 @@ class CommandEngine:
                         new_value = tuple(promoter_callable(x) for x in value)
                     elif param.kind == param.VAR_KEYWORD:
                         # Promote over all values in a **kwargs variant.
-                        new_value = {
-                            k: promoter_callable(v) for k, v in value.items()
-                        }
+                        new_value = {k: promoter_callable(v) for k, v in value.items()}
                     else:
                         # Promote a single value.
                         new_value = promoter_callable(value)
@@ -233,12 +208,14 @@ class CommandEngine:
 
             await self._app.run_async_callbacks(
                 self._before_command_callbacks[command],
-                *bound_args.args, **bound_args.kwargs
+                *bound_args.args,
+                **bound_args.kwargs,
             )
             ret = await command.run(*bound_args.args, **bound_args.kwargs)
             await self._app.run_async_callbacks(
                 self._after_command_callbacks[command],
-                *bound_args.args, **bound_args.kwargs
+                *bound_args.args,
+                **bound_args.kwargs,
             )
             return ret
 
@@ -260,12 +237,13 @@ class CommandEngine:
                     inspect.Parameter.POSITIONAL_OR_KEYWORD,
                 )
                 unbound_pos_args = [
-                    param for name, param in command.signature.parameters.items()
+                    param
+                    for name, param in command.signature.parameters.items()
                     if param.kind in pos_arg_types and name not in merged_kwarg_dicts
                 ]
 
                 if len(pos_arg_values) > len(unbound_pos_args):
-                    unbound_values = pos_arg_values[len(unbound_pos_args):]
+                    unbound_values = pos_arg_values[len(unbound_pos_args) :]
                     raise TooManyPositionalArgumentsError(*unbound_values)
 
             # Something else went wrong.
@@ -278,7 +256,8 @@ class CommandEngine:
         # signature. This means we are likely just missing some required arguments,
         # which we can now enumerate.
         missing_arguments = (
-            x for x in command.signature.parameters
+            x
+            for x in command.signature.parameters
             if x not in partially_bound_args.arguments.keys()
         )
         if not missing_arguments:
@@ -289,9 +268,7 @@ class CommandEngine:
         raise MissingArgumentsError(*missing_arguments)
 
     def get_suggestions(
-        self,
-        name_or_alias: str,
-        max_suggestions: int = 3
+        self, name_or_alias: str, max_suggestions: int = 3
     ) -> Tuple[str, ...]:
         """Find the closest matching names/aliases to the specified string.
 
@@ -303,44 +280,29 @@ class CommandEngine:
         fuzz = FuzzyMatcher(
             name_or_alias,
             self._command_lookup_table.keys(),
-            num_max_matches=max_suggestions
+            num_max_matches=max_suggestions,
         )
         return fuzz.matches
 
-    def keys(
-        self
-    ) -> Tuple[str, ...]:
+    def keys(self) -> Tuple[str, ...]:
         """Get a tuple of all registered command names and aliases."""
         return tuple(self._command_lookup_table.keys())
 
     @property
-    def registered_commands(
-        self
-    ) -> Tuple[FrozenCommand, ...]:
+    def registered_commands(self) -> Tuple[FrozenCommand, ...]:
         """The :py:class:`FrozenCommand` instances registered on this engine."""
         return tuple(self._registered_commands)
 
-    def __contains__(
-        self,
-        name_or_alias: str
-    ) -> bool:
+    def __contains__(self, name_or_alias: str) -> bool:
         """Whether a specified command name or alias is mapped."""
         return name_or_alias in self._command_lookup_table.keys()
 
-    def __len__(
-        self
-    ) -> int:
+    def __len__(self) -> int:
         """The number of total names/aliases mapped in this instance."""
         return len(self._command_lookup_table.keys())
 
-    def __repr__(
-        self
-    ) -> str:
-        return f'<{self.__class__.__qualname__} [{str(self)}]>'
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__qualname__} [{str(self)}]>"
 
-    def __str__(
-        self
-    ) -> str:
-        return (
-            f'{len(self)} names mapped to {len(self._registered_commands)} commands'
-        )
+    def __str__(self) -> str:
+        return f"{len(self)} names mapped to {len(self._registered_commands)} commands"

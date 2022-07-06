@@ -9,18 +9,15 @@ if TYPE_CHECKING:
     from ..core import Application
 
 
-_current_app: ContextVar[Optional[Application]] = ContextVar('_current_app')
+_current_app: ContextVar[Optional[Application]] = ContextVar("_current_app")
 
 
-def set_current_app(
-    app: Application
-) -> None:
+def set_current_app(app: Application) -> None:
     """Set the current application."""
     _current_app.set(app)
 
 
-def current_app(
-) -> Application:
+def current_app() -> Application:
     """Get the currently running application.
 
     Raises:
@@ -31,8 +28,8 @@ def current_app(
     app = _current_app.get(None)
     if app is None:
         raise NoActiveApplicationError(
-            'Attempted to get the current application via `current_app` when no '
-            'application is running.'
+            "Attempted to get the current application via `current_app` when no "
+            "application is running."
         )
 
     return app

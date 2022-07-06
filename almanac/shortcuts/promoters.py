@@ -4,9 +4,7 @@ from ..context import current_app
 from ..pages import PagePath
 
 
-def promote_to_page_path(
-    raw_path: Any
-) -> PagePath:
+def promote_to_page_path(raw_path: Any) -> PagePath:
     """Attempt to promote an argument into a page path.
 
     This promoter will attempt to explode the specified argument into an absolute

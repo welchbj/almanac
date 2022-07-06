@@ -1,7 +1,7 @@
 from .assertions import assert_async_callback, assert_sync_callback  # noqa
 from .exception_hook_dispatch_table import (  # noqa
     AsyncExceptionHookCallback,
-    ExceptionHookDispatchTable
+    ExceptionHookDispatchTable,
 )
 from .hook_proxy import HookProxy  # noqa
 from .types import (  # noqa
@@ -10,5 +10,5 @@ from .types import (  # noqa
     AsyncNoArgsCallback,
     PromoterFunction,
     PromptCallback,
-    SyncNoArgsCallback
+    SyncNoArgsCallback,
 )

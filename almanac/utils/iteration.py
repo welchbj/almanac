@@ -3,12 +3,10 @@
 from itertools import tee
 from typing import Iterable, Iterator, Tuple, TypeVar
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
-def pairwise(
-    i: Iterable[T]
-) -> Iterator[Tuple[T, T]]:
+def pairwise(i: Iterable[T]) -> Iterator[Tuple[T, T]]:
     """Move over an iterable, two at a time.
 
     .. code-block:: python

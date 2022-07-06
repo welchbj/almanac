@@ -49,25 +49,23 @@ from ..errors import PartialParseError, TotalParseError
 
 
 class Patterns:
-    ALLOWED_SYMBOLS_IN_STRING = r'-_/#@£$€%*+~|<>?.'
-    IDENTIFIER = r'([a-zA-Z_][a-zA-Z0-9_\-]*)'
-    WHITESPACE = r'\s+'
+    ALLOWED_SYMBOLS_IN_STRING = r"-_/#@£$€%*+~|<>?."
+    IDENTIFIER = r"([a-zA-Z_][a-zA-Z0-9_\-]*)"
+    WHITESPACE = r"\s+"
 
-    UNQUOTED_STRING = r'([a-zA-Z0-9' + ALLOWED_SYMBOLS_IN_STRING + r']+)'
+    UNQUOTED_STRING = r"([a-zA-Z0-9" + ALLOWED_SYMBOLS_IN_STRING + r"]+)"
     STRING_SINGLE_QUOTE = r"\'([^\\\']|\\.)*\'"
-    STRING_DOUBLE_QUOTE = r'\"([^\\\"]|\\.)*\"'
+    STRING_DOUBLE_QUOTE = r"\"([^\\\"]|\\.)*\""
 
-    BOOLEAN = r'(True|true|False|false)'
-    FLOAT = r'\-?\d+\.\d*([eE]\d+)?'
-    INTEGER = r'\-?\d+'
+    BOOLEAN = r"(True|true|False|false)"
+    FLOAT = r"\-?\d+\.\d*([eE]\d+)?"
+    INTEGER = r"\-?\d+"
 
-    KWARG = IDENTIFIER + r'(\s*=\s*)'
-    COMMAND = r'^' + IDENTIFIER + r'(\s+|$)'
+    KWARG = IDENTIFIER + r"(\s*=\s*)"
+    COMMAND = r"^" + IDENTIFIER + r"(\s+|$)"
 
     @staticmethod
-    def is_valid_identifier(
-        s: str
-    ) -> bool:
+    def is_valid_identifier(s: str) -> bool:
         """Whether the specified string is a valid command name or kwarg identifier."""
         return bool(re.fullmatch(Patterns.IDENTIFIER, s))
 
@@ -77,19 +75,22 @@ def _no_transform(x):
 
 
 def _bool_transform(x):
-    return x in ('True', 'true',)
+    return x in (
+        "True",
+        "true",
+    )
 
 
 def _str_transform(x):
-    return x.strip('"\'')
+    return x.strip("\"'")
 
 
 _TRANSFORMS = {
-    'bool': _bool_transform,
-    'str': _str_transform,
-    'int': int,
-    'float': float,
-    'dict': dict,
+    "bool": _bool_transform,
+    "str": _str_transform,
+    "int": int,
+    "float": float,
+    "dict": dict,
 }
 
 
@@ -103,43 +104,40 @@ def _parse_type(data_type):
 
 
 # Valid identifiers cannot start with a number, but may contain them in their body.
-identifier = pp.Word(pp.alphas + '_-', pp.alphanums + '_-')
+identifier = pp.Word(pp.alphas + "_-", pp.alphanums + "_-")
 
 # XXX: allow for hex?
-int_value = pp.Regex(Patterns.INTEGER).setParseAction(_parse_type('int'))
+int_value = pp.Regex(Patterns.INTEGER).setParseAction(_parse_type("int"))
 
-float_value = pp.Regex(Patterns.FLOAT).setParseAction(_parse_type('float'))
+float_value = pp.Regex(Patterns.FLOAT).setParseAction(_parse_type("float"))
 
 bool_value = (
-    pp.Literal('True') ^ pp.Literal('true') ^
-    pp.Literal('False') ^ pp.Literal('false')
-).setParseAction(_parse_type('bool'))
+    pp.Literal("True") ^ pp.Literal("true") ^ pp.Literal("False") ^ pp.Literal("false")
+).setParseAction(_parse_type("bool"))
 
-quoted_string = pp.quotedString.setParseAction(_parse_type('str'))
+quoted_string = pp.quotedString.setParseAction(_parse_type("str"))
 
 unquoted_string = pp.Word(
     pp.alphanums + Patterns.ALLOWED_SYMBOLS_IN_STRING
-).setParseAction(_parse_type('str'))
+).setParseAction(_parse_type("str"))
 
 string_value = quoted_string | unquoted_string
 
 single_value = bool_value | float_value | int_value | string_value
 
 list_value = pp.Group(
-    pp.Suppress('[') +
-    pp.Optional(pp.delimitedList(single_value)) +
-    pp.Suppress(']')
-).setParseAction(_parse_type('list'))
+    pp.Suppress("[") + pp.Optional(pp.delimitedList(single_value)) + pp.Suppress("]")
+).setParseAction(_parse_type("list"))
 
 dict_value = pp.Forward()
 
 value = list_value ^ single_value ^ dict_value
 
-dict_key_value = pp.dictOf(string_value + pp.Suppress(':'), value)
+dict_key_value = pp.dictOf(string_value + pp.Suppress(":"), value)
 
 dict_value << pp.Group(
-    pp.Suppress('{') + pp.delimitedList(dict_key_value) + pp.Suppress('}')
-).setParseAction(_parse_type('dict'))
+    pp.Suppress("{") + pp.delimitedList(dict_key_value) + pp.Suppress("}")
+).setParseAction(_parse_type("dict"))
 
 # Positionals must be end of line or has a space (or more) afterwards.
 # This is to ensure that the parser treats text like "something=" as invalid
@@ -147,13 +145,13 @@ dict_value << pp.Group(
 # invalid on its own.
 positionals = pp.ZeroOrMore(
     value + (pp.StringEnd() ^ pp.Suppress(pp.OneOrMore(pp.White())))
-).setResultsName('positionals')
+).setResultsName("positionals")
 
-key_value = pp.Dict(pp.ZeroOrMore(pp.Group(
-    identifier + pp.Suppress('=') + value
-))).setResultsName('kv')
+key_value = pp.Dict(
+    pp.ZeroOrMore(pp.Group(identifier + pp.Suppress("=") + value))
+).setResultsName("kv")
 
-command = identifier.setResultsName('command')
+command = identifier.setResultsName("command")
 
 command_line = command + positionals + key_value
 
@@ -172,13 +170,11 @@ class ParseStatus(NamedTuple):
 
 
 @lru_cache()
-def parse_cmd_line(
-    text: str
-) -> ParseStatus:
+def parse_cmd_line(text: str) -> ParseStatus:
     """Attempt to parse a command line, returning a :class:`ParseStatus` object."""
     try:
         parse_results = _raw_parse_cmd_line(text)
-        unparsed_text = ''
+        unparsed_text = ""
         unparsed_start_pos = len(text)
         parse_state = ParseState.FULL
     except PartialParseError as e:
@@ -195,9 +191,7 @@ def parse_cmd_line(
     return ParseStatus(parse_results, unparsed_text, unparsed_start_pos, parse_state)
 
 
-def _raw_parse_cmd_line(
-    text: str
-) -> pp.ParseResults:
+def _raw_parse_cmd_line(text: str) -> pp.ParseResults:
     """Attempt to parse the command line as per the grammar defined in this module.
 
     If the specified text can be fully parsed, then a `pypaysing.ParseResults` will be
@@ -220,7 +214,7 @@ def _raw_parse_cmd_line(
         return result
     except pp.ParseException as e:
         remaining = e.markInputline()
-        remaining = remaining[(remaining.find('>!<') + 3):]
+        remaining = remaining[(remaining.find(">!<") + 3) :]
 
         try:
             partial_result = command_line.parseString(text, parseAll=False)
@@ -234,31 +228,26 @@ def _raw_parse_cmd_line(
 class IncompleteToken:
     """Encapsulation of a token that could only be partially parsed."""
 
-    def __init__(
-        self,
-        token: str
-    ) -> None:
+    def __init__(self, token: str) -> None:
         self._token = token
 
-        self._key = ''
-        self._value = ''
+        self._key = ""
+        self._value = ""
         self._is_kw_arg = False
         self._is_pos_arg = False
 
         self._parse()
 
-    def _parse(
-        self
-    ) -> None:
-        key, delim, value = self._token.partition('=')
+    def _parse(self) -> None:
+        key, delim, value = self._token.partition("=")
 
-        if any(x in key for x in '[]{}"\''):
+        if any(x in key for x in "[]{}\"'"):
             # Treat the whole token as a positional value.
             self._is_pos_arg = True
             self._value = self._token
             return
 
-        if delim == '=':
+        if delim == "=":
             # This is a key=value.
             self._is_kw_arg = True
             self._key = key
@@ -269,65 +258,48 @@ class IncompleteToken:
             self._key = self._value = key
 
     @property
-    def is_kw_arg(
-        self
-    ) -> bool:
+    def is_kw_arg(self) -> bool:
         return self._is_kw_arg
 
     @property
-    def is_pos_arg(
-        self
-    ) -> bool:
+    def is_pos_arg(self) -> bool:
         return self._is_pos_arg
 
     @property
-    def is_ambiguous_arg(
-        self
-    ) -> bool:
+    def is_ambiguous_arg(self) -> bool:
         return not self._is_kw_arg and not self._is_pos_arg
 
     @property
-    def key(
-        self
-    ) -> str:
+    def key(self) -> str:
         return self._key
 
     @property
-    def value(
-        self
-    ) -> str:
+    def value(self) -> str:
         return self._value
 
-    def __str__(
-        self
-    ) -> str:
+    def __str__(self) -> str:
         if self.is_kw_arg:
-            return f'kwarg {self._key}={self._value}'
+            return f"kwarg {self._key}={self._value}"
         elif self.is_pos_arg:
-            return f'positional {self._value}'
+            return f"positional {self._value}"
         elif self.is_ambiguous_arg:
-            return f'ambiguous {self._key}'
+            return f"ambiguous {self._key}"
         else:
-            return 'Parse error'
+            return "Parse error"
 
-    def __repr__(
-        self
-    ) -> str:
-        return f'<{self.__class__.__qualname__} [{str(self)}]>'
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__qualname__} [{str(self)}]>"
 
 
-def last_incomplete_token(
-    document: Document,
-    unparsed_text: str
-) -> IncompleteToken:
-    if document.char_before_cursor in ' ]}':
-        last_token = ''
+def last_incomplete_token(document: Document, unparsed_text: str) -> IncompleteToken:
+    if document.char_before_cursor in " ]}":
+        last_token = ""
     else:
-        last_space = document.find_backwards(' ', in_current_line=True)
+        last_space = document.find_backwards(" ", in_current_line=True)
         if last_space is None:
             last_space = -1
 
-        last_token = document.text[last_space+1:]
+        last_token = document.text[last_space + 1 :]
 
     # The longer of the last_token and unparsed_text is taken in the event that the
     # unparsed_text is an open literal, which could itself contain spaces.
@@ -337,9 +309,7 @@ def last_incomplete_token(
     return IncompleteToken(last_token)
 
 
-def last_incomplete_token_from_document(
-    document: Document
-) -> IncompleteToken:
+def last_incomplete_token_from_document(document: Document) -> IncompleteToken:
     """Shortcut for getting the last incomplete token only from a ``Document``."""
     parse_status = parse_cmd_line(document.text)
     return last_incomplete_token(document, parse_status.unparsed_text)

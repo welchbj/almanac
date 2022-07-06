@@ -10,7 +10,7 @@ from prompt_toolkit.formatted_text import FormattedText
 # https://github.com/python/mypy/issues/5876
 AsyncHookCallback = Callable[..., Coroutine[Any, Any, Any]]
 
-_T = TypeVar('_T', covariant=True)
+_T = TypeVar("_T", covariant=True)
 
 
 class PromoterFunction(Protocol[_T]):
