@@ -5,7 +5,7 @@ Welcome to...
 .. raw:: html
 
   <p align="center">
-    <img width="600" height="162" src="https://github.com/welchbj/almanac/blob/devel/docs/_static/logo.png?raw=true" alt="almanac logo">
+    <img width="600" height="162" src="https://github.com/welchbj/almanac/blob/main/docs/_static/logo.png?raw=true" alt="almanac logo">
   </p>
   <p align="center">
     <em>a framework for interactive, page-based console applications</em>
