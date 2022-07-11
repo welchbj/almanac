@@ -142,7 +142,7 @@ dict_value << pp.Group(
 # instead of parsing this as positional "something" and leaving the "=" as
 # invalid on its own.
 positionals = pp.ZeroOrMore(
-    value + (pp.StringEnd() ^ pp.Suppress(pp.OneOrMore(pp.White())))
+    value + (pp.StringEnd() | pp.Suppress(pp.OneOrMore(pp.White())))
 ).setResultsName("positionals")
 
 key_value = pp.Dict(
