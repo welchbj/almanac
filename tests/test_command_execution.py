@@ -99,7 +99,7 @@ async def test_missing_kw_args():
 
 @pytest.mark.asyncio
 async def test_too_many_pos_args():
-    app = get_test_app(propagate_runtime_exceptions=True)
+    app = get_test_app(null_output=False, propagate_runtime_exceptions=True)
 
     @app.cmd.register()
     async def some_command(arg1: int, arg2: int, arg3: int = 3, *, arg4: int):
