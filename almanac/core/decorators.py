@@ -5,15 +5,15 @@ from typing import TYPE_CHECKING, Callable, Iterable, Optional, Union
 
 from prompt_toolkit.completion import Completer
 
-from ..arguments import MutableArgument
-from ..commands import FrozenCommand, MutableCommand
-from ..completion import WordCompleter
-from ..errors import InvalidArgumentNameError, NoSuchArgumentError
-from ..parsing import Patterns
-from ..types import CommandCoroutine
+from almanac.arguments import MutableArgument
+from almanac.commands import FrozenCommand, MutableCommand
+from almanac.completion import WordCompleter
+from almanac.errors import InvalidArgumentNameError, NoSuchArgumentError
+from almanac.parsing import Patterns
+from almanac.types import CommandCoroutine
 
 if TYPE_CHECKING:
-    from .application import Application
+    from almanac.core.application import Application
 
 
 CommandMutatingDecorator = Callable[

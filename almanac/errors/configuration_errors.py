@@ -1,4 +1,4 @@
-from .almanac_error import AlmanacError
+from almanac.errors.almanac_error import AlmanacError
 
 
 class BaseConfigurationError(AlmanacError):

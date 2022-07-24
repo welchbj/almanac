@@ -3,8 +3,8 @@ from __future__ import annotations
 import inspect
 from typing import Any, Dict, Iterable, Tuple
 
-from .almanac_error import AlmanacError
-from .generic_errors import AlmanacKeyError
+from almanac.errors.almanac_error import AlmanacError
+from almanac.errors.generic_errors import AlmanacKeyError
 
 
 class BaseArgumentError(AlmanacError):

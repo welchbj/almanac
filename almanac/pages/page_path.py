@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import PurePosixPath
 from typing import Any, Tuple, Union
 
-from ..errors import PathSyntaxError
+from almanac.errors import PathSyntaxError
 
 
 class PagePath:

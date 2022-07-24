@@ -16,8 +16,8 @@ from typing import (
 
 import pyparsing as pp
 
-from ..commands import FrozenCommand
-from ..errors import (
+from almanac.commands import FrozenCommand
+from almanac.errors import (
     CommandNameCollisionError,
     ConflictingPromoterTypesError,
     MissingArgumentsError,
@@ -26,12 +26,12 @@ from ..errors import (
     TooManyPositionalArgumentsError,
     UnknownArgumentBindingError,
 )
-from ..hooks import AsyncHookCallback, PromoterFunction
-from ..types import is_matching_type
-from ..utils import FuzzyMatcher
+from almanac.hooks import AsyncHookCallback, PromoterFunction
+from almanac.types import is_matching_type
+from almanac.utils import FuzzyMatcher
 
 if TYPE_CHECKING:
-    from .application import Application
+    from almanac.core.application import Application
 
 HookCallbackMapping = MutableMapping[FrozenCommand, List[AsyncHookCallback]]
 

@@ -1,8 +1,8 @@
 from typing import Tuple
 
-from .almanac_error import AlmanacError
-from .configuration_errors import BaseConfigurationError
-from .generic_errors import AlmanacKeyError
+from almanac.errors.almanac_error import AlmanacError
+from almanac.errors.configuration_errors import BaseConfigurationError
+from almanac.errors.generic_errors import AlmanacKeyError
 
 
 class BaseCommandError(AlmanacError):

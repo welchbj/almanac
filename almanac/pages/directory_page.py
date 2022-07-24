@@ -1,4 +1,4 @@
-from .abstract_page import AbstractPage
+from almanac.pages.abstract_page import AbstractPage
 
 
 class DirectoryPage(AbstractPage):

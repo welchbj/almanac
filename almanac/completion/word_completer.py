@@ -3,7 +3,7 @@ from typing import Callable, Iterable, List, Union
 from prompt_toolkit.completion import CompleteEvent, Completer, Completion
 from prompt_toolkit.document import Document
 
-from ..parsing import last_incomplete_token_from_document
+from almanac.parsing import last_incomplete_token_from_document
 
 
 class WordCompleter(Completer):

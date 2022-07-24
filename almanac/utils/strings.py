@@ -2,7 +2,7 @@
 
 import textwrap
 
-from ..constants import CommandLineDefaults
+from almanac.constants import CommandLineDefaults
 
 
 def capitalized(text: str) -> str:

@@ -2,14 +2,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Callable, List, Union
 
-from ..errors import InvalidCallbackTypeError, NoSuchCommandError
-from .assertions import assert_async_callback
-from .exception_hook_dispatch_table import ExceptionHookDispatchTable
-from .types import AsyncHookCallback
+from almanac.errors import InvalidCallbackTypeError, NoSuchCommandError
+from almanac.hooks.assertions import assert_async_callback
+from almanac.hooks.exception_hook_dispatch_table import ExceptionHookDispatchTable
+from almanac.hooks.types import AsyncHookCallback
 
 if TYPE_CHECKING:
-    from ..commands import FrozenCommand
-    from ..core import Application, CommandEngine
+    from almanac.commands import FrozenCommand
+    from almanac.core import Application, CommandEngine
 
 
 class HookProxy:

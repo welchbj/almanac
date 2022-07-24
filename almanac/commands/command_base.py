@@ -5,8 +5,8 @@ import itertools
 from abc import ABC, abstractmethod
 from typing import Iterable, List, Optional, Tuple, Union
 
-from ..constants import CommandLineDefaults
-from ..types import CommandCoroutine
+from almanac.constants import CommandLineDefaults
+from almanac.types import CommandCoroutine
 
 
 class CommandBase(ABC):

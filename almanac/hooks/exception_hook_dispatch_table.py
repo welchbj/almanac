@@ -1,13 +1,13 @@
 import inspect
 from typing import Callable, MutableMapping, Optional, Type
 
-from ..errors import (
+from almanac.errors import (
     ConflictingExceptionCallbacksError,
     InvalidCallbackTypeError,
     MissingRequiredParameterError,
 )
-from .assertions import assert_async_callback
-from .types import AsyncExceptionHookCallback
+from almanac.hooks.assertions import assert_async_callback
+from almanac.hooks.types import AsyncExceptionHookCallback
 
 _HookMapping = MutableMapping[Type[Exception], AsyncExceptionHookCallback]
 

@@ -11,21 +11,21 @@ from prompt_toolkit.completion import (
 )
 from prompt_toolkit.document import Document
 
-from ..arguments import FrozenArgument
-from ..commands import FrozenCommand
-from ..completion import rewrite_completion_stream
-from ..errors import NoSuchArgumentError
-from ..parsing import (
+from almanac.arguments import FrozenArgument
+from almanac.commands import FrozenCommand
+from almanac.completion import rewrite_completion_stream
+from almanac.errors import NoSuchArgumentError
+from almanac.parsing import (
     IncompleteToken,
     ParseState,
     Patterns,
     last_incomplete_token,
     parse_cmd_line,
 )
-from ..types import is_matching_type
+from almanac.types import is_matching_type
 
 if TYPE_CHECKING:
-    from .application import Application
+    from almanac.core.application import Application
 
 
 _compiled_word_re = re.compile(Patterns.UNQUOTED_STRING)

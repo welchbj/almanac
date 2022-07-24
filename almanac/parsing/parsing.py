@@ -43,7 +43,7 @@ from typing import NamedTuple
 import pyparsing as pp
 from prompt_toolkit.document import Document
 
-from ..errors import PartialParseError, TotalParseError
+from almanac.errors import PartialParseError, TotalParseError
 
 
 class Patterns:

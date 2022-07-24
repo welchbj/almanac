@@ -4,7 +4,7 @@ from typing import Any, Iterable, Optional, Union
 
 from prompt_toolkit.completion import Completer
 
-from ..constants import CommandLineDefaults
+from almanac.constants import CommandLineDefaults
 
 
 class ArgumentBase(ABC):
@@ -119,12 +119,12 @@ class ArgumentBase(ABC):
 
     @property
     def is_var_kw(self) -> bool:
-        """Whether this argument is a \*\*kwargs variant."""  # noqa
+        """Whether this argument is a kwargs variant."""  # noqa
         return self._param.kind == self._param.VAR_KEYWORD
 
     @property
     def is_var_pos(self) -> bool:
-        """Whether this argument is an \*args variant."""  # noqa
+        """Whether this argument is an star args variant."""  # noqa
         return self._param.kind == self._param.VAR_POSITIONAL
 
     @property

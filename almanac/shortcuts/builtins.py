@@ -1,7 +1,7 @@
-from ..constants import ExitCodes
-from ..context import current_app
-from ..core import ArgumentDecoratorProxy
-from ..pages import PagePath, PagePathLike
+from almanac.constants import ExitCodes
+from almanac.context import current_app
+from almanac.core import ArgumentDecoratorProxy
+from almanac.pages import PagePath, PagePathLike
 
 _arg = ArgumentDecoratorProxy()
 

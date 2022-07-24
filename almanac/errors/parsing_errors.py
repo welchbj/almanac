@@ -1,7 +1,7 @@
 import pyparsing as pp
 
-from .almanac_error import AlmanacError
-from .generic_errors import PositionalValueError
+from almanac.errors.almanac_error import AlmanacError
+from almanac.errors.generic_errors import PositionalValueError
 
 
 class BaseParseError(AlmanacError):

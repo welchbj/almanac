@@ -3,10 +3,10 @@ from __future__ import annotations
 from contextvars import ContextVar
 from typing import TYPE_CHECKING, Optional
 
-from ..errors import NoActiveApplicationError
+from almanac.errors import NoActiveApplicationError
 
 if TYPE_CHECKING:
-    from ..core import Application
+    from almanac.core import Application
 
 
 _current_app: ContextVar[Optional[Application]] = ContextVar("_current_app")

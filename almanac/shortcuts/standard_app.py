@@ -2,10 +2,10 @@ from typing import Type
 
 from prompt_toolkit.styles import Style
 
-from ..completion import PagePathCompleter, WordCompleter
-from ..context import current_app
-from ..core import Application
-from ..errors import (
+from almanac.completion import PagePathCompleter, WordCompleter
+from almanac.context import current_app
+from almanac.core import Application
+from almanac.errors import (
     BaseArgumentError,
     BasePageError,
     MissingArgumentsError,
@@ -14,17 +14,17 @@ from ..errors import (
     TooManyPositionalArgumentsError,
     UnknownArgumentBindingError,
 )
-from ..io import AbstractIoContext, StandardConsoleIoContext
-from ..pages import PagePath
-from ..style import DARK_MODE_STYLE
-from .builtins import back as builtin_back
-from .builtins import cd as builtin_cd
-from .builtins import forward as builtin_forward
-from .builtins import help as builtin_help
-from .builtins import ls as builtin_ls
-from .builtins import pwd as builtin_pwd
-from .builtins import quit as builtin_quit
-from .exception_hooks import (
+from almanac.io import AbstractIoContext, StandardConsoleIoContext
+from almanac.pages import PagePath
+from almanac.style import DARK_MODE_STYLE
+from almanac.shortcuts.builtins import back as builtin_back
+from almanac.shortcuts.builtins import cd as builtin_cd
+from almanac.shortcuts.builtins import forward as builtin_forward
+from almanac.shortcuts.builtins import help as builtin_help
+from almanac.shortcuts.builtins import ls as builtin_ls
+from almanac.shortcuts.builtins import pwd as builtin_pwd
+from almanac.shortcuts.builtins import quit as builtin_quit
+from almanac.shortcuts.exception_hooks import (
     hook_BaseArgumentError,
     hook_BasePageError,
     hook_MissingArgumentsError,
@@ -33,7 +33,7 @@ from .exception_hooks import (
     hook_TooManyPositionalArgumentsError,
     hook_UnknownArgumentBindingError,
 )
-from .promoters import promote_to_page_path
+from almanac.shortcuts.promoters import promote_to_page_path
 
 
 def _current_page_prompt_str() -> str:

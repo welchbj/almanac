@@ -1,7 +1,7 @@
 import asyncio
 from typing import Any
 
-from ..errors import InvalidCallbackTypeError
+from almanac.errors import InvalidCallbackTypeError
 
 
 def assert_sync_callback(candidate: Any) -> None:

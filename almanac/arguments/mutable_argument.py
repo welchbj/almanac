@@ -2,8 +2,8 @@ from typing import List
 
 from prompt_toolkit.completion import Completer
 
-from .argument_base import ArgumentBase
-from .frozen_argument import FrozenArgument
+from almanac.arguments.argument_base import ArgumentBase
+from almanac.arguments.frozen_argument import FrozenArgument
 
 
 class MutableArgument(ArgumentBase):

@@ -3,9 +3,9 @@ from typing import Tuple
 
 from prompt_toolkit.completion import Completer
 
-from ..errors import FrozenAccessError
-from ..utils import abbreviated
-from .argument_base import ArgumentBase
+from almanac.errors import FrozenAccessError
+from almanac.utils import abbreviated
+from almanac.arguments.argument_base import ArgumentBase
 
 
 class FrozenArgument(ArgumentBase):

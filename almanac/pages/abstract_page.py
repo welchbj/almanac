@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod, abstractproperty
 from typing import Any, Optional, Set
 
-from .page_path import PagePath, PagePathLike
+from almanac.pages.page_path import PagePath, PagePathLike
 
 
 class AbstractPage(ABC):

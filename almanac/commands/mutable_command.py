@@ -4,15 +4,15 @@ import asyncio
 from collections import Counter
 from typing import Iterable, Iterator, Mapping, MutableMapping, Optional, Union
 
-from ..arguments import MutableArgument
-from ..errors import (
+from almanac.arguments import MutableArgument
+from almanac.errors import (
     ArgumentNameCollisionError,
     CommandRegistrationError,
     NoSuchArgumentError,
 )
-from ..types import CommandCoroutine
-from .command_base import CommandBase
-from .frozen_command import FrozenCommand
+from almanac.types import CommandCoroutine
+from almanac.commands.command_base import CommandBase
+from almanac.commands.frozen_command import FrozenCommand
 
 
 class MutableCommand(CommandBase, MutableMapping[str, MutableArgument]):

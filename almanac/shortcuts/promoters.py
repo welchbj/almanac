@@ -1,7 +1,7 @@
 from typing import Any
 
-from ..context import current_app
-from ..pages import PagePath
+from almanac.context import current_app
+from almanac.pages import PagePath
 
 
 def promote_to_page_path(raw_path: Any) -> PagePath:

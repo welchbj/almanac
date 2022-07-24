@@ -1,6 +1,6 @@
 from typing import Any
 
-from .abstract_io_context import AbstractIoContext
+from almanac.io.abstract_io_context import AbstractIoContext
 
 
 class NullIoContext(AbstractIoContext):

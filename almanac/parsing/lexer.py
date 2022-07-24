@@ -6,10 +6,10 @@ from typing import TYPE_CHECKING, Iterator, Tuple, Type, TypeVar
 from pygments.lexer import RegexLexer, bygroups
 from pygments.token import Keyword, Name, Number, Operator, String, Text, Token
 
-from .parsing import Patterns
+from almanac.parsing.parsing import Patterns
 
 if TYPE_CHECKING:
-    from ..core import Application, CommandEngine
+    from almanac.core import Application, CommandEngine
 
 
 _T = TypeVar("_T")

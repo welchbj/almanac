@@ -2,11 +2,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from .almanac_error import AlmanacError
-from .generic_errors import AlmanacKeyError, PositionalValueError
+from almanac.errors.almanac_error import AlmanacError
+from almanac.errors.generic_errors import AlmanacKeyError, PositionalValueError
 
 if TYPE_CHECKING:
-    from ..pages import PagePathLike
+    from almanac.pages import PagePathLike
 
 
 class BasePageError(AlmanacError):

@@ -5,9 +5,9 @@ from prompt_toolkit.completion import CompleteEvent, Completer
 from prompt_toolkit.completion.base import Completion
 from prompt_toolkit.document import Document
 
-from ..context import current_app
-from ..errors import BasePageError
-from ..parsing import last_incomplete_token_from_document
+from almanac.context import current_app
+from almanac.errors import BasePageError
+from almanac.parsing import last_incomplete_token_from_document
 
 
 class PagePathCompleter(Completer):

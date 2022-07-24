@@ -24,10 +24,10 @@ from pygments import highlight
 from pygments.formatters import TerminalFormatter
 from pygments.lexers.python import Python3TracebackLexer
 
-from ..constants import ExitCodes
-from ..context import set_current_app
-from ..errors import ConflictingPromoterTypesError, InvalidCallbackTypeError
-from ..hooks import (
+from almanac.constants import ExitCodes
+from almanac.context import set_current_app
+from almanac.errors import ConflictingPromoterTypesError, InvalidCallbackTypeError
+from almanac.hooks import (
     AsyncNoArgsCallback,
     HookProxy,
     PromoterFunction,
@@ -35,13 +35,13 @@ from ..hooks import (
     assert_async_callback,
     assert_sync_callback,
 )
-from ..io import AbstractIoContext, StandardConsoleIoContext
-from ..pages import PageNavigator, PagePath
-from ..parsing import ParseState, get_lexer_cls_for_app, parse_cmd_line
-from ..style import DARK_MODE_STYLE
-from .command_completer import CommandCompleter
-from .command_engine import CommandEngine
-from .decorators import ArgumentDecoratorProxy, CommandDecoratorProxy
+from almanac.io import AbstractIoContext, StandardConsoleIoContext
+from almanac.pages import PageNavigator, PagePath
+from almanac.parsing import ParseState, get_lexer_cls_for_app, parse_cmd_line
+from almanac.style import DARK_MODE_STYLE
+from almanac.core.command_completer import CommandCompleter
+from almanac.core.command_engine import CommandEngine
+from almanac.core.decorators import ArgumentDecoratorProxy, CommandDecoratorProxy
 
 _T = TypeVar("_T")
 
