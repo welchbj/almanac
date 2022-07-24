@@ -4,7 +4,7 @@ import pytest
 
 from almanac import InvalidCallbackTypeError, NoSuchCommandError, PagePath, current_app
 
-from .utils import get_test_app
+from tests.utils import get_test_app
 
 
 @pytest.mark.asyncio

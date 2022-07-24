@@ -8,7 +8,7 @@ from almanac import (
     TooManyPositionalArgumentsError,
 )
 
-from .utils import get_test_app
+from tests.utils import get_test_app
 
 
 @pytest.mark.asyncio
